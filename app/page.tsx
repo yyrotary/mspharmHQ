@@ -1,94 +1,80 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen flex flex-col bg-white">
+      {/* 헤더 */}
+      <header className="header border-b border-gray-200">
+        <h1 className="text-xl font-bold text-center">노션 데이터베이스 관리</h1>
+      </header>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+      {/* 메인 컨텐츠 */}
+      <main className="flex-grow p-4 container">
+        <div style={{ 
+          padding: '20px', 
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          maxWidth: '500px',
+          margin: '0 auto',
+          width: '100%'
+        }}>
+          <h1 style={{ 
+            fontSize: '20px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            marginBottom: '10px'
+          }}>
+            노션 데이터베이스 관리
+          </h1>
+          
+          <p style={{ 
+            fontSize: '14px',
+            color: '#666',
+            textAlign: 'center',
+            marginBottom: '30px'
+          }}>
+            일일 수입과 지출을 노션 데이터베이스에 쉽게 기록하고 관리하세요.
+          </p>
+
+          {/* 메뉴 목록 */}
+          <div className="grid gap-4">
+            <Link href="/daily-income" className="block p-6 bg-white shadow-md rounded-lg hover:shadow-lg transition">
+              <h2 className="text-lg font-semibold mb-2">일일 수입/지출 관리</h2>
+              <p className="text-sm text-gray-600">일일 수입과 지출을 기록하고 관리합니다.</p>
+            </Link>
+            
+            <Link href="/invoice-scanner" className="block p-6 bg-white shadow-md rounded-lg hover:shadow-lg transition">
+              <h2 className="text-lg font-semibold mb-2">영수증 스캔</h2>
+              <p className="text-sm text-gray-600">영수증을 스캔하여 데이터를 자동으로 추출합니다.</p>
+            </Link>
+            
+            <Link href="/customer-recognition" className="block p-6 bg-white shadow-md rounded-lg hover:shadow-lg transition">
+              <h2 className="text-lg font-semibold mb-2">고객 인식</h2>
+              <p className="text-sm text-gray-600">카메라로 고객을 인식하여 정보를 조회합니다.</p>
+            </Link>
+          </div>
+          
+          <div style={{
+            margin: '30px 0',
+            padding: '15px',
+            backgroundColor: '#f9f9f9',
+            borderRadius: '8px',
+            fontSize: '14px',
+            color: '#666',
+            textAlign: 'center'
+          }}>
+            v1.0.0 - DB ID: 1a81d8554a468039b6fdc63a830e1d24
+          </div>
         </div>
       </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* 푸터 */}
+      <footer className="bg-white border-t border-gray-200 p-4 text-center">
+        <p className="text-gray-500 text-sm">
+          DB ID: 1a81d8554a468039b6fdc63a830e1d24
+        </p>
       </footer>
     </div>
   );
