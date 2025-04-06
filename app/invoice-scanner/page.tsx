@@ -216,7 +216,7 @@ export default function InvoiceScannerPage() {
       setLoading(false);
     }
   };
-
+  
   // 약품 스캔 모드로 전환
   const startMedicineScan = async () => {
     setScanMode('medicine');
@@ -808,299 +808,299 @@ export default function InvoiceScannerPage() {
       )}
 
       {scanMode === 'invoice' ? (
-        <div style={{ 
-          padding: '20px', 
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px',
-          maxWidth: '500px',
-          margin: '0 auto',
-          width: '100%'
-        }}>
-          {/* 이미지 업로드 영역 */}
-          {!preview && (
-            <div style={{ 
-              backgroundColor: '#fff',
-              padding: '20px',
-              borderRadius: '8px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              textAlign: 'center'
+      <div style={{ 
+        padding: '20px', 
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        maxWidth: '500px',
+        margin: '0 auto',
+        width: '100%'
+      }}>
+        {/* 이미지 업로드 영역 */}
+        {!preview && (
+          <div style={{ 
+            backgroundColor: '#fff',
+            padding: '20px',
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            textAlign: 'center'
+          }}>
+            <p style={{ 
+              marginBottom: '15px',
+              color: '#555',
+              fontSize: '14px'
             }}>
-              <p style={{ 
-                marginBottom: '15px',
-                color: '#555',
-                fontSize: '14px'
-              }}>
-                거래 내역서 이미지를 업로드하거나 카메라로 촬영해주세요
-              </p>
-              
-              <input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={handleFileChange}
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                capture="environment"
-              />
-              
-              <div style={{ 
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px'
-              }}>
-                <button 
-                  onClick={handleCameraClick}
-                  style={{ 
-                    padding: '12px',
-                    backgroundColor: '#0066FF',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                >
-                  <span>카메라로 촬영</span>
-                </button>
-              </div>
+              거래 내역서 이미지를 업로드하거나 카메라로 촬영해주세요
+            </p>
+            
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={handleFileChange}
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              capture="environment"
+            />
+            
+            <div style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}>
+              <button 
+                onClick={handleCameraClick}
+                style={{ 
+                  padding: '12px',
+                  backgroundColor: '#0066FF',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <span>카메라로 촬영</span>
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* 이미지 미리보기 */}
-          {preview && (
+        {/* 이미지 미리보기 */}
+        {preview && (
+          <div style={{ 
+            backgroundColor: '#fff',
+            padding: '15px',
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
             <div style={{ 
-              backgroundColor: '#fff',
-              padding: '15px',
-              borderRadius: '8px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              marginBottom: '15px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
             }}>
+              <h2 style={{ 
+                margin: 0,
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: '#333'
+              }}>
+                선택된 이미지
+              </h2>
+              <button
+                onClick={handleSelectAnother}
+                style={{
+                  backgroundColor: 'transparent',
+                  color: '#0066FF',
+                  border: 'none',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  padding: '5px'
+                }}
+              >
+                다른 이미지 선택
+              </button>
+            </div>
+            
+            <div style={{ 
+              display: 'flex',
+              justifyContent: 'center',
+              marginBottom: '15px'
+            }}>
+              <img 
+                src={preview} 
+                alt="선택한 거래 내역서" 
+                style={{ 
+                  maxWidth: '100%',
+                  maxHeight: '300px',
+                  objectFit: 'contain',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+            
+            {!extractedData && (
+              <button
+                onClick={handleExtract}
+                disabled={loading}
+                style={{ 
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: loading ? '#cccccc' : '#0066FF',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: loading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {loading ? '처리 중...' : '텍스트 추출하기'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* 오류 메시지 */}
+        {error && (
+          <div style={{ 
+            padding: '15px',
+            borderRadius: '8px',
+            textAlign: 'center',
+            backgroundColor: '#ffeeee',
+            color: '#d32f2f',
+            border: '1px solid #ffd1d1'
+          }}>
+            {error}
+          </div>
+        )}
+
+        {/* 메시지 표시 */}
+        {message && (
+          <div style={{ 
+            padding: '15px',
+            borderRadius: '8px',
+            textAlign: 'center',
+            backgroundColor: message.includes('성공') ? '#e7f7ed' : '#ffeeee',
+            color: message.includes('성공') ? '#0c753a' : '#d32f2f',
+            border: `1px solid ${message.includes('성공') ? '#a8e0bc' : '#ffd1d1'}`
+          }}>
+            {message}
+          </div>
+        )}
+
+        {/* 추출된 데이터 표시 */}
+        {extractedData && (
+          <div style={{ 
+            backgroundColor: '#fff',
+            padding: '15px',
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ 
+              margin: '0 0 15px 0',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              color: '#333',
+              borderBottom: '1px solid #eee',
+              paddingBottom: '10px'
+            }}>
+              추출된 정보
+            </h2>
+            
+            <div style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <div>
+                <label style={{ 
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  color: '#555',
+                  marginBottom: '5px'
+                }}>
+                  공급처
+                </label>
+                <div style={{ 
+                  fontSize: '16px',
+                  color: '#333'
+                }}>
+                  {extractedData.supplier}
+                </div>
+              </div>
+              
+              <div>
+                <label style={{ 
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  color: '#555',
+                  marginBottom: '5px'
+                }}>
+                  거래일자
+                </label>
+                <div style={{ 
+                  fontSize: '16px',
+                  color: '#333'
+                }}>
+                  {extractedData.date}
+                </div>
+              </div>
+              
+              <div>
+                <label style={{ 
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  color: '#555',
+                  marginBottom: '8px'
+                }}>
+                  상품 목록
+                </label>
+                
+                {extractedData.items.map((item, index) => (
+                  <div 
+                    key={index}
+                    style={{ 
+                      marginBottom: '10px',
+                      padding: '10px',
+                      backgroundColor: '#f8f8f8',
+                      borderRadius: '4px'
+                    }}
+                  >
+                    <div style={{ 
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '5px'
+                    }}>
+                      <span style={{ fontWeight: 'bold' }}>{item.name}</span>
+                      <span>{formatKRW(item.amount)}원</span>
+                    </div>
+                    <div style={{ 
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '14px',
+                      color: '#666'
+                    }}>
+                      <span>규격: {item.specification}</span>
+                      <span>수량: {item.quantity}개</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
               <div style={{ 
-                marginBottom: '15px',
+                marginTop: '10px',
+                padding: '10px',
+                borderTop: '1px solid #eee',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
-                <h2 style={{ 
-                  margin: 0,
-                  fontSize: '16px',
+                <span style={{ 
                   fontWeight: 'bold',
-                  color: '#333'
+                  fontSize: '16px'
                 }}>
-                  선택된 이미지
-                </h2>
-                <button
-                  onClick={handleSelectAnother}
-                  style={{
-                    backgroundColor: 'transparent',
-                    color: '#0066FF',
-                    border: 'none',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    padding: '5px'
-                  }}
-                >
-                  다른 이미지 선택
-                </button>
-              </div>
-              
-              <div style={{ 
-                display: 'flex',
-                justifyContent: 'center',
-                marginBottom: '15px'
-              }}>
-                <img 
-                  src={preview} 
-                  alt="선택한 거래 내역서" 
-                  style={{ 
-                    maxWidth: '100%',
-                    maxHeight: '300px',
-                    objectFit: 'contain',
-                    borderRadius: '4px',
-                    border: '1px solid #ddd'
-                  }}
-                />
-              </div>
-              
-              {!extractedData && (
-                <button
-                  onClick={handleExtract}
-                  disabled={loading}
-                  style={{ 
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: loading ? '#cccccc' : '#0066FF',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    cursor: loading ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  {loading ? '처리 중...' : '텍스트 추출하기'}
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* 오류 메시지 */}
-          {error && (
-            <div style={{ 
-              padding: '15px',
-              borderRadius: '8px',
-              textAlign: 'center',
-              backgroundColor: '#ffeeee',
-              color: '#d32f2f',
-              border: '1px solid #ffd1d1'
-            }}>
-              {error}
-            </div>
-          )}
-
-          {/* 메시지 표시 */}
-          {message && (
-            <div style={{ 
-              padding: '15px',
-              borderRadius: '8px',
-              textAlign: 'center',
-              backgroundColor: message.includes('성공') ? '#e7f7ed' : '#ffeeee',
-              color: message.includes('성공') ? '#0c753a' : '#d32f2f',
-              border: `1px solid ${message.includes('성공') ? '#a8e0bc' : '#ffd1d1'}`
-            }}>
-              {message}
-            </div>
-          )}
-
-          {/* 추출된 데이터 표시 */}
-          {extractedData && (
-            <div style={{ 
-              backgroundColor: '#fff',
-              padding: '15px',
-              borderRadius: '8px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}>
-              <h2 style={{ 
-                margin: '0 0 15px 0',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                color: '#333',
-                borderBottom: '1px solid #eee',
-                paddingBottom: '10px'
-              }}>
-                추출된 정보
-              </h2>
-              
-              <div style={{ 
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px'
-              }}>
-                <div>
-                  <label style={{ 
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    color: '#555',
-                    marginBottom: '5px'
-                  }}>
-                    공급처
-                  </label>
-                  <div style={{ 
-                    fontSize: '16px',
-                    color: '#333'
-                  }}>
-                    {extractedData.supplier}
-                  </div>
-                </div>
-                
-                <div>
-                  <label style={{ 
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    color: '#555',
-                    marginBottom: '5px'
-                  }}>
-                    거래일자
-                  </label>
-                  <div style={{ 
-                    fontSize: '16px',
-                    color: '#333'
-                  }}>
-                    {extractedData.date}
-                  </div>
-                </div>
-                
-                <div>
-                  <label style={{ 
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    color: '#555',
-                    marginBottom: '8px'
-                  }}>
-                    상품 목록
-                  </label>
-                  
-                  {extractedData.items.map((item, index) => (
-                    <div 
-                      key={index}
-                      style={{ 
-                        marginBottom: '10px',
-                        padding: '10px',
-                        backgroundColor: '#f8f8f8',
-                        borderRadius: '4px'
-                      }}
-                    >
-                      <div style={{ 
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        marginBottom: '5px'
-                      }}>
-                        <span style={{ fontWeight: 'bold' }}>{item.name}</span>
-                        <span>{formatKRW(item.amount)}원</span>
-                      </div>
-                      <div style={{ 
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        fontSize: '14px',
-                        color: '#666'
-                      }}>
-                        <span>규격: {item.specification}</span>
-                        <span>수량: {item.quantity}개</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div style={{ 
-                  marginTop: '10px',
-                  padding: '10px',
-                  borderTop: '1px solid #eee',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
+                  총액
+                </span>
+                <span style={{ 
+                  fontWeight: 'bold',
+                  fontSize: '18px',
+                  color: '#0066FF'
                 }}>
-                  <span style={{ 
-                    fontWeight: 'bold',
-                    fontSize: '16px'
-                  }}>
-                    총액
-                  </span>
-                  <span style={{ 
-                    fontWeight: 'bold',
-                    fontSize: '18px',
-                    color: '#0066FF'
-                  }}>
-                    {formatKRW(extractedData.total)}원
-                  </span>
-                </div>
+                  {formatKRW(extractedData.total)}원
+                </span>
+              </div>
                 
                 <div style={{
                   display: 'flex',
@@ -1124,29 +1124,29 @@ export default function InvoiceScannerPage() {
                   >
                     약품 스캔하기
                   </button>
-                  
-                  <button
-                    onClick={() => saveToNotion(extractedData)}
-                    disabled={loading}
-                    style={{ 
-                      width: '100%',
-                      padding: '12px',
+              
+              <button
+                onClick={() => saveToNotion(extractedData)}
+                disabled={loading}
+                style={{ 
+                  width: '100%',
+                  padding: '12px',
                       backgroundColor: loading ? '#cccccc' : '#4CAF50',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      fontWeight: 'bold',
-                      cursor: loading ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    {loading ? '저장 중...' : '노션에 저장하기'}
-                  </button>
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: loading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {loading ? '저장 중...' : '노션에 저장하기'}
+              </button>
                 </div>
-              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
       ) : scanMode === 'medicine' ? (
         <div style={{ 
           display: 'flex',
@@ -1205,7 +1205,7 @@ export default function InvoiceScannerPage() {
                 zIndex: 20
               }}>
                 약품을 프레임 안에 놓으세요
-              </div>
+    </div>
 
               {/* 카메라 오류 시 수동 인식 버튼 */}
               {debugMode && (
@@ -1628,4 +1628,4 @@ export default function InvoiceScannerPage() {
       )}
     </div>
   );
-}
+} 

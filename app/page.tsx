@@ -2,78 +2,153 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="flex flex-col min-h-screen bg-gray-100">
       {/* 헤더 */}
-      <header className="header border-b border-gray-200">
-        <h1 className="text-xl font-bold text-center">노션 데이터베이스 관리</h1>
+      <header 
+        style={{ 
+          background: 'linear-gradient(to right, #2563eb, #1e40af)', 
+          color: 'white', 
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '1.5rem 1rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>명성약국</h1>
+        </div>
       </header>
 
       {/* 메인 컨텐츠 */}
-      <main className="flex-grow p-4 container">
-        <div style={{ 
-          padding: '20px', 
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px',
-          maxWidth: '500px',
-          margin: '0 auto',
-          width: '100%'
-        }}>
-          <h1 style={{ 
-            fontSize: '20px',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            marginBottom: '10px'
+      <main style={{ flexGrow: 1, padding: '1rem' }}>
+        <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+          {/* 약국 소개 카드 */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            borderRadius: '0.75rem', 
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+            padding: '1.5rem', 
+            marginBottom: '1.5rem',
+            border: '1px solid #e5e7eb' 
           }}>
-            노션 데이터베이스 관리
-          </h1>
-          
-          <p style={{ 
-            fontSize: '14px',
-            color: '#666',
-            textAlign: 'center',
-            marginBottom: '30px'
-          }}>
-            일일 수입과 지출을 노션 데이터베이스에 쉽게 기록하고 관리하세요.
-          </p>
-
-          {/* 메뉴 목록 */}
-          <div className="grid gap-4">
-            <Link href="/daily-income" className="block p-6 bg-white shadow-md rounded-lg hover:shadow-lg transition">
-              <h2 className="text-lg font-semibold mb-2">일일 수입/지출 관리</h2>
-              <p className="text-sm text-gray-600">일일 수입과 지출을 기록하고 관리합니다.</p>
-            </Link>
-            
-            <Link href="/invoice-scanner" className="block p-6 bg-white shadow-md rounded-lg hover:shadow-lg transition">
-              <h2 className="text-lg font-semibold mb-2">영수증 스캔</h2>
-              <p className="text-sm text-gray-600">영수증을 스캔하여 데이터를 자동으로 추출합니다.</p>
-            </Link>
-            
-            <Link href="/customer-recognition" className="block p-6 bg-white shadow-md rounded-lg hover:shadow-lg transition">
-              <h2 className="text-lg font-semibold mb-2">고객 인식</h2>
-              <p className="text-sm text-gray-600">카메라로 고객을 인식하여 정보를 조회합니다.</p>
-            </Link>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              gap: '1rem', 
+              marginBottom: '1rem' 
+            }}>
+              <div style={{ fontSize: '4rem' }}>💊</div>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>건강을 위한 최선의 선택</h2>
+              <p style={{ fontSize: '1.125rem', textAlign: 'center', color: '#4b5563', maxWidth: '42rem' }}>
+                고객의 건강을 최우선으로 생각하는 명성약국입니다.
+                정확한 약품 정보와 친절한 상담으로 여러분의 건강을 지켜드립니다.
+              </p>
+            </div>
           </div>
-          
-          <div style={{
-            margin: '30px 0',
-            padding: '15px',
-            backgroundColor: '#f9f9f9',
-            borderRadius: '8px',
-            fontSize: '14px',
-            color: '#666',
-            textAlign: 'center'
-          }}>
-            v1.0.0 - DB ID: 1a81d8554a468039b6fdc63a830e1d24
+
+          {/* 메뉴 버튼 */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1e40af' }}>서비스 메뉴</h2>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(1, 1fr)', 
+              gap: '1rem' 
+            }}>
+              <Link href="/consultation" 
+                style={{ 
+                  backgroundColor: 'white', 
+                  borderRadius: '0.75rem', 
+                  padding: '1.5rem', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                  border: '1px solid #e5e7eb',
+                  borderLeft: '4px solid #2563eb',
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'inherit'
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>👨‍⚕️</div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e40af' }}>고객 상담</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>고객 정보를 조회하고 상담 내용을 기록합니다.</p>
+                </div>
+              </Link>
+              
+              <Link href="/customer-recognition" 
+                style={{ 
+                  backgroundColor: 'white', 
+                  borderRadius: '0.75rem', 
+                  padding: '1.5rem', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                  border: '1px solid #e5e7eb',
+                  borderLeft: '4px solid #10b981',
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'inherit'
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>👤</div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10b981' }}>고객 인식</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>카메라를 통해 고객을 자동 인식합니다.</p>
+                </div>
+              </Link>
+              
+              <Link href="/daily-income" 
+                style={{ 
+                  backgroundColor: 'white', 
+                  borderRadius: '0.75rem', 
+                  padding: '1.5rem', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                  border: '1px solid #e5e7eb',
+                  borderLeft: '4px solid #8b5cf6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'inherit'
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>📊</div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#8b5cf6' }}>수입/지출 관리</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>일일 수입과 지출을 기록하고 관리합니다.</p>
+                </div>
+              </Link>
+              
+              <Link href="/invoice-scanner" 
+                style={{ 
+                  backgroundColor: 'white', 
+                  borderRadius: '0.75rem', 
+                  padding: '1.5rem', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                  border: '1px solid #e5e7eb',
+                  borderLeft: '4px solid #f59e0b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'inherit'
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>📷</div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#f59e0b' }}>영수증 스캔</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>영수증을 스캔하여 정보를 자동으로 추출합니다.</p>
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
       </main>
 
       {/* 푸터 */}
-      <footer className="bg-white border-t border-gray-200 p-4 text-center">
-        <p className="text-gray-500 text-sm">
-          DB ID: 1a81d8554a468039b6fdc63a830e1d24
+      <footer style={{ 
+        padding: '1rem', 
+        backgroundColor: 'white', 
+        borderTop: '1px solid #e5e7eb', 
+        textAlign: 'center' 
+      }}>
+        <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+          명성약국 &copy; {new Date().getFullYear()}
         </p>
       </footer>
     </div>

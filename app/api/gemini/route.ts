@@ -41,24 +41,35 @@ export async function POST(request: Request) {
     const response = await result.response;
     const text = response.text();
     
-    // JSON 응답 추출 시도
+    // 텍스트 형식에서 JSON 추출 시도
+    let jsonData;
     try {
-      // "{...}" 형태의 JSON 문자열을 찾아 파싱
+      // JSON 문자열 형식 추출 시도
       const jsonMatch = text.match(/\{[\s\S]*\}/);
-      let jsonData = {};
-      
-      if (jsonMatch) {
-        jsonData = JSON.parse(jsonMatch[0]);
-      } else {
-        // JSON 형식이 아니면 텍스트 결과 반환
-        jsonData = { text };
-      }
-      
-      return NextResponse.json({ success: true, data: jsonData });
-    } catch (jsonError) {
-      // JSON 파싱에 실패하면 원본 텍스트 반환
-      return NextResponse.json({ success: true, data: { text } });
+      const jsonStr = jsonMatch ? jsonMatch[0] : text;
+      jsonData = JSON.parse(jsonStr);
+    } catch (error) {
+      console.error('JSON 파싱 오류:', error);
+      jsonData = { age: null, gender: null, faceDetected: false };
     }
+    
+    // 얼굴 감지 여부 확인 (text에 "얼굴을 감지할 수 없습니다" 또는 "사람이 없습니다" 등의 단어가 있는지)
+    const noFaceDetected = 
+      text.includes('얼굴을 감지할 수 없') || 
+      text.includes('사람이 없') || 
+      text.includes('얼굴이 없') || 
+      text.includes('감지되지 않') ||
+      text.includes('could not detect') ||
+      text.includes('no face') ||
+      text.includes('no person');
+      
+    if (noFaceDetected) {
+      jsonData.faceDetected = false;
+    } else {
+      jsonData.faceDetected = true;
+    }
+    
+    return NextResponse.json({ success: true, data: jsonData });
   } catch (error) {
     console.error('Gemini API 오류:', error);
     return NextResponse.json({ error: '이미지 분석 중 오류가 발생했습니다.' }, { status: 500 });

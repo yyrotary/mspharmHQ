@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 certificates
+
+# Google 서비스 계정 키
+service-account-key.json
