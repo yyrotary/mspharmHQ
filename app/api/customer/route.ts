@@ -231,7 +231,7 @@ export async function PUT(request: Request) {
     
     for (const customer of customers) {
       try {
-        // @ts-ignore - 타입 정의 문제
+        // @ts-expect-error - 타입 정의 문제
         const embeddingText = customer.properties['얼굴_임베딩'][CUSTOMER_SCHEMA.얼굴_임베딩.type][0]?.text?.content || '';
         
         if (embeddingText) {
@@ -433,7 +433,7 @@ function calculateFaceSimilarity(embedding1: any, embedding2: any): number {
 // 고객명 추출 도우미 함수
 function getCustomerName(customer: any): string {
   try {
-    // @ts-ignore
+    // @ts-expect-error
     return customer.properties['고객명']?.rich_text?.[0]?.text?.content || customer.id;
   } catch (err) {
     return customer.id;
