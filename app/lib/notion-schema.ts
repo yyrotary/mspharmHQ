@@ -73,6 +73,7 @@ export interface NotionCustomer {
 // 상담일지 데이터 인터페이스
 export interface NotionConsultation {
   id: string;
+  created_time: string; // 노션 페이지 생성 시간 (메타데이터)
   properties: {
     상담일자: any;
     고객: any;
@@ -80,7 +81,6 @@ export interface NotionConsultation {
     증상이미지: any;
     처방약: any;
     결과: any;
-    생성일시: any;
   };
 }
 

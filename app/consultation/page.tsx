@@ -141,7 +141,7 @@ export default function ConsultationPage() {
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
             
             // 생성일시 정보 가져오기
-            const createdTime = getNotionPropertyValue(consultation.properties.생성일시, CONSULTATION_SCHEMA.생성일시.type);
+            const createdTime = consultation.created_time || '';
             
             // 처방약 및 결과 가져오기
             let prescription = '';
@@ -2043,12 +2043,13 @@ export default function ConsultationPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <p style={{ fontSize: '1rem', color: '#4b5563' }}>
-                            {new Date(consultation.createdTime || consultation.consultationDate).toLocaleDateString('ko-KR', {
+                            {new Date(consultation.createdTime || consultation.consultationDate).toLocaleString('ko-KR', {
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric',
                               hour: '2-digit',
-                              minute: '2-digit'
+                              minute: '2-digit',
+                              hour12: true
                             })}
                           </p>
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
