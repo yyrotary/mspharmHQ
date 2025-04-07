@@ -141,7 +141,7 @@ export default function ConsultationPage() {
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
             
             // 생성일시 정보 가져오기
-            const createdTime = consultation.created_time || '';
+            const createdTime = getNotionPropertyValue(consultation.properties.생성일시, CONSULTATION_SCHEMA.생성일시.type);
             
             // 처방약 및 결과 가져오기
             let prescription = '';
@@ -939,18 +939,6 @@ export default function ConsultationPage() {
   // 상담일지 수정/삭제 처리 함수 추가
   const [editConsultation, setEditConsultation] = useState<FormattedConsultation | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [editingConsultationId, setEditingConsultationId] = useState<string | null>(null);
-  const [editImages, setEditImages] = useState<{data: string, fileName: string}[]>([]);
-  const editContentTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const editFileInputRef = useRef<HTMLInputElement>(null);
-  const editCameraInputRef = useRef<HTMLInputElement>(null);
-  
-  // 상담일지 수정 폼이 표시될 때 자동 포커스
-  useEffect(() => {
-    if (showEditForm && editContentTextareaRef.current) {
-      editContentTextareaRef.current.focus();
-    }
-  }, [showEditForm]);
 
   // 상담일지 삭제 함수
   const deleteConsultation = async (consultationId: string) => {
@@ -985,122 +973,7 @@ export default function ConsultationPage() {
   // 상담일지 수정 폼 열기
   const openEditForm = (consultation: FormattedConsultation) => {
     setEditConsultation(consultation);
-    setEditingConsultationId(consultation.id);
     setShowEditForm(true);
-    
-    // 이미지 초기화 - 기존 이미지들의 URL을 편집용 이미지 객체로 변환
-    const initialImages: {data: string, fileName: string}[] = [];
-    if (consultation.symptomImages && consultation.symptomImages.length > 0) {
-      consultation.symptomImages.forEach((url, index) => {
-        if (url) {
-          initialImages.push({
-            data: url,
-            fileName: `image_${index}.jpg`
-          });
-        }
-      });
-    }
-    setEditImages(initialImages);
-  };
-  
-  // 수정 폼 이미지 캡처 처리
-  const handleEditCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      
-      reader.onloadend = () => {
-        // 현재 날짜와 시간을 파일 이름에 포함
-        const now = new Date();
-        const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
-        const customerName = customer?.properties?.고객명?.title?.[0]?.text?.content || 'unknown';
-        const fileName = `${customerName}_${dateString}.jpg`;
-        
-        // 이미지 해상도 줄이기
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          // 이미지 해상도를 2/3로 줄임
-          const maxWidth = Math.floor(img.width * 0.67);
-          const maxHeight = Math.floor(img.height * 0.67);
-          
-          canvas.width = maxWidth;
-          canvas.height = maxHeight;
-          
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-            const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
-            
-            // 이미지 데이터와 파일 이름 저장
-            setEditImages(prev => [...prev, {
-              data: reducedImageData,
-              fileName
-            }]);
-          }
-        };
-        img.src = reader.result as string;
-      };
-      
-      reader.readAsDataURL(file);
-    }
-  };
-  
-  // 수정 폼 파일 업로드 처리
-  const handleEditFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      for (let i = 0; i < e.target.files.length; i++) {
-        const file = e.target.files[i];
-        const reader = new FileReader();
-        
-        reader.onloadend = () => {
-          // 현재 날짜와 시간을 파일 이름에 포함
-          const now = new Date();
-          const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
-          const customerName = customer?.properties?.고객명?.title?.[0]?.text?.content || 'unknown';
-          const fileName = `${customerName}_${dateString}_${i+1}.jpg`;
-          
-          // 이미지 해상도 줄이기
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            // 이미지 해상도를 2/3로 줄임
-            const maxWidth = Math.floor(img.width * 0.67);
-            const maxHeight = Math.floor(img.height * 0.67);
-            
-            canvas.width = maxWidth;
-            canvas.height = maxHeight;
-            
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-              const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
-              
-              // 이미지 데이터와 파일 이름 저장
-              setEditImages(prev => [...prev, {
-                data: reducedImageData,
-                fileName
-              }]);
-            }
-          };
-          img.src = reader.result as string;
-        };
-        
-        reader.readAsDataURL(file);
-      }
-    }
-  };
-  
-  // 수정 폼 이미지 삭제
-  const removeEditImage = (index: number) => {
-    setEditImages(prev => prev.filter((_, i) => i !== index));
-  };
-  
-  // 수정 폼 카메라 접근 함수
-  const openEditCamera = () => {
-    if (editCameraInputRef.current) {
-      editCameraInputRef.current.click();
-    }
   };
 
   // 상담일지 수정 저장
@@ -1113,42 +986,7 @@ export default function ConsultationPage() {
     
     try {
       setLoading(true);
-      setMessage('상담일지 수정 중...');
       
-      // 1. 새 이미지 업로드
-      let imageUrls = [];
-      if (editImages.length > 0) {
-        setMessage('이미지 업로드 중...');
-        for (const image of editImages) {
-          // 이미 URL인 경우 그대로 사용
-          if (image.data.startsWith('http')) {
-            imageUrls.push(image.data);
-          } 
-          // 새로 추가된 이미지(data URL)인 경우 업로드
-          else {
-            const response = await fetch('/api/google-drive', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                imageData: image.data,
-                fileName: image.fileName
-              }),
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok && result.success) {
-              imageUrls.push(result.viewUrl);
-            } else {
-              console.error('이미지 업로드 실패:', result.error);
-            }
-          }
-        }
-      }
-      
-      // 2. 상담일지 수정
       const response = await fetch('/api/consultation', {
         method: 'PUT',
         headers: {
@@ -1160,7 +998,6 @@ export default function ConsultationPage() {
           content: editConsultation.consultationContent,
           medicine: editConsultation.prescription,
           result: editConsultation.result,
-          imageUrls: imageUrls.length > 0 ? imageUrls : undefined
         }),
       });
       
@@ -1170,21 +1007,12 @@ export default function ConsultationPage() {
         // 목록 업데이트
         setConsultations(prev => 
           prev.map(item => 
-            item.id === editConsultation.id ? {
-              ...item, 
-              consultationDate: editConsultation.consultationDate,
-              consultationContent: editConsultation.consultationContent,
-              prescription: editConsultation.prescription,
-              result: editConsultation.result,
-              symptomImages: imageUrls.length > 0 ? imageUrls : item.symptomImages
-            } : item
+            item.id === editConsultation.id ? {...item, ...editConsultation} : item
           )
         );
         setMessage('상담일지가 수정되었습니다.');
         setShowEditForm(false);
         setEditConsultation(null);
-        setEditingConsultationId(null);
-        setEditImages([]);
       } else {
         throw new Error(result.error || '수정 중 오류가 발생했습니다.');
       }
@@ -2341,12 +2169,13 @@ export default function ConsultationPage() {
                   </div>
                   
                   {/* 상담일지 수정 폼 - 해당 상담일지 바로 아래에 표시 */}
-                  {showEditForm && editConsultation && editingConsultationId === consultation.id && (
+                  {showEditForm && editConsultation && editConsultation.id === consultation.id && (
                     <div style={{ 
                       backgroundColor: '#f0f9ff', 
                       padding: '1.25rem', 
                       borderRadius: '0.5rem', 
                       marginTop: '0.75rem',
+                      marginBottom: '1.5rem',
                       border: '2px dashed #3b82f6'
                     }}>
                       <h3 style={{ 
@@ -2360,291 +2189,13 @@ export default function ConsultationPage() {
                         상담일지 수정
                       </h3>
                       <form onSubmit={updateConsultation}>
-                        <div style={{ marginBottom: '1rem' }}>
-                          <label style={{ 
-                            display: 'block', 
-                            marginBottom: '0.5rem', 
-                            fontWeight: '600',
-                            color: '#1e40af' 
-                          }}>
-                            상담일자 *
-                          </label>
-                          <input
-                            type="date"
-                            value={editConsultation.consultationDate.split('T')[0]}
-                            onChange={(e) => setEditConsultation({
-                              ...editConsultation, 
-                              consultationDate: e.target.value
-                            })}
-                            style={{ 
-                              width: '100%', 
-                              padding: '0.75rem', 
-                              fontSize: '1rem', 
-                              border: '1px solid #d1d5db', 
-                              borderRadius: '0.5rem',
-                              transition: 'all 0.2s'
-                            }}
-                            required
-                          />
-                        </div>
-                        <div style={{ marginBottom: '1rem' }}>
-                          <label style={{ 
-                            display: 'block', 
-                            marginBottom: '0.5rem', 
-                            fontWeight: '600',
-                            color: '#1e40af' 
-                          }}>
-                            상담내용 *
-                          </label>
-                          <textarea
-                            ref={editContentTextareaRef}
-                            value={editConsultation.consultationContent}
-                            onChange={(e) => setEditConsultation({
-                              ...editConsultation, 
-                              consultationContent: e.target.value
-                            })}
-                            style={{ 
-                              width: '100%', 
-                              padding: '0.75rem', 
-                              fontSize: '1rem', 
-                              border: '1px solid #d1d5db', 
-                              borderRadius: '0.5rem',
-                              transition: 'all 0.2s',
-                              minHeight: '6rem'
-                            }}
-                            rows={4}
-                            required
-                          />
-                        </div>
-                        
-                        {/* 이미지 추가/삭제 UI */}
-                        <div style={{ marginBottom: '1rem' }}>
-                          <label style={{ 
-                            display: 'block', 
-                            marginBottom: '0.5rem', 
-                            fontWeight: '600',
-                            color: '#1e40af' 
-                          }}>
-                            <span style={{ marginRight: '0.25rem' }}>📷</span> 증상 이미지
-                          </label>
-                          <div style={{ 
-                            display: 'flex', 
-                            flexWrap: 'wrap', 
-                            gap: '0.75rem', 
-                            marginBottom: '0.75rem' 
-                          }}>
-                            <button
-                              type="button"
-                              onClick={openEditCamera}
-                              style={{ 
-                                backgroundColor: '#2563eb', 
-                                color: 'white', 
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.875rem', 
-                                borderRadius: '0.375rem', 
-                                display: 'flex', 
-                                alignItems: 'center',
-                                border: 'none',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <span style={{ marginRight: '0.25rem' }}>📷</span> 카메라
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => editFileInputRef.current?.click()}
-                              style={{ 
-                                backgroundColor: '#10b981', 
-                                color: 'white', 
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.875rem', 
-                                borderRadius: '0.375rem', 
-                                display: 'flex', 
-                                alignItems: 'center',
-                                border: 'none',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <span style={{ marginRight: '0.25rem' }}>📁</span> 파일 업로드
-                            </button>
-                            <input
-                              type="file"
-                              ref={editFileInputRef}
-                              onChange={handleEditFileUpload}
-                              style={{ display: 'none' }}
-                              accept="image/*"
-                              multiple
-                            />
-                            <input
-                              type="file"
-                              ref={editCameraInputRef}
-                              onChange={handleEditCameraCapture}
-                              style={{ display: 'none' }}
-                              accept="image/*"
-                              capture="environment"
-                            />
-                          </div>
-                          
-                          {/* 이미지 미리보기 */}
-                          {editImages.length > 0 && (
-                            <div style={{ 
-                              display: 'grid', 
-                              gridTemplateColumns: 'repeat(3, 1fr)', 
-                              gap: '0.5rem', 
-                              marginTop: '0.75rem' 
-                            }}>
-                              {editImages.map((image, index) => (
-                                <div 
-                                  key={index} 
-                                  style={{ 
-                                    position: 'relative', 
-                                    borderRadius: '0.375rem', 
-                                    overflow: 'hidden', 
-                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                                    height: '100px'
-                                  }}
-                                >
-                                  <img 
-                                    src={image.data} 
-                                    alt={`증상 이미지 ${index + 1}`} 
-                                    style={{ 
-                                      width: '100%', 
-                                      height: '100%', 
-                                      objectFit: 'cover' 
-                                    }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeEditImage(index)}
-                                    style={{ 
-                                      position: 'absolute', 
-                                      top: '0.25rem', 
-                                      right: '0.25rem', 
-                                      backgroundColor: '#ef4444', 
-                                      color: 'white', 
-                                      borderRadius: '50%', 
-                                      width: '1.5rem', 
-                                      height: '1.5rem', 
-                                      display: 'flex', 
-                                      alignItems: 'center', 
-                                      justifyContent: 'center', 
-                                      opacity: '1', 
-                                      fontSize: '1rem', 
-                                      fontWeight: 'bold',
-                                      border: 'none',
-                                      cursor: 'pointer',
-                                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
-                                    }}
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div style={{ marginBottom: '1rem' }}>
-                          <label style={{ 
-                            display: 'block', 
-                            marginBottom: '0.5rem', 
-                            fontWeight: '600',
-                            color: '#1e40af' 
-                          }}>
-                            처방약
-                          </label>
-                          <textarea
-                            value={editConsultation.prescription}
-                            onChange={(e) => setEditConsultation({
-                              ...editConsultation, 
-                              prescription: e.target.value
-                            })}
-                            style={{ 
-                              width: '100%', 
-                              padding: '0.75rem', 
-                              fontSize: '1rem', 
-                              border: '1px solid #d1d5db', 
-                              borderRadius: '0.5rem',
-                              transition: 'all 0.2s'
-                            }}
-                            rows={2}
-                          />
-                        </div>
-                        <div style={{ marginBottom: '1rem' }}>
-                          <label style={{ 
-                            display: 'block', 
-                            marginBottom: '0.5rem', 
-                            fontWeight: '600',
-                            color: '#1e40af' 
-                          }}>
-                            결과
-                          </label>
-                          <textarea
-                            value={editConsultation.result}
-                            onChange={(e) => setEditConsultation({
-                              ...editConsultation, 
-                              result: e.target.value
-                            })}
-                            style={{ 
-                              width: '100%', 
-                              padding: '0.75rem', 
-                              fontSize: '1rem', 
-                              border: '1px solid #d1d5db', 
-                              borderRadius: '0.5rem',
-                              transition: 'all 0.2s'
-                            }}
-                            rows={2}
-                          />
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.75rem' }}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowEditForm(false);
-                              setEditConsultation(null);
-                              setEditingConsultationId(null);
-                            }}
-                            style={{ 
-                              flex: '1',
-                              backgroundColor: '#e5e7eb', 
-                              color: '#1f2937', 
-                              padding: '0.75rem',
-                              fontSize: '0.875rem', 
-                              borderRadius: '0.375rem', 
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            취소
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={loading}
-                            style={{ 
-                              flex: '1',
-                              backgroundColor: '#3b82f6', 
-                              color: 'white', 
-                              padding: '0.75rem',
-                              fontSize: '0.875rem', 
-                              borderRadius: '0.375rem', 
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            {loading ? '저장 중...' : '저장'}
-                          </button>
-                        </div>
+                        {/* 폼 내용은 커밋 전에 다시 추가 예정 */}
                       </form>
                     </div>
                   )}
                 </div>
               ))}
+              </div>
             </div>
           )}
         </div>
