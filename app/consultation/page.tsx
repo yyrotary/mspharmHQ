@@ -141,7 +141,7 @@ export default function ConsultationPage() {
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
             
             // 생성일시 정보 가져오기
-            const createdTime = getNotionPropertyValue(consultation.properties.생성일시, CONSULTATION_SCHEMA.생성일시.type);
+            const createdTime = consultation.created_time;
             
             // 처방약 및 결과 가져오기
             let prescription = '';
@@ -463,7 +463,7 @@ export default function ConsultationPage() {
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
             
             // 생성일시 정보 가져오기
-            const createdTime = getNotionPropertyValue(consultation.properties.생성일시, CONSULTATION_SCHEMA.생성일시.type);
+            const createdTime = consultation.created_time;
             
             // 처방약 및 결과 가져오기
             let prescription = '';
