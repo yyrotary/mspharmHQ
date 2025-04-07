@@ -94,6 +94,21 @@
             "file": "app/consultation/page.tsx",
             "error_message": "Variable 'images' implicitly has type 'any[]' in some locations where its type cannot be determined."
           }
+        },
+        "react_styles": {
+          "hover_selector": {
+            "problem": "React 인라인 스타일에서 :hover 가상 선택자 사용 불가",
+            "solution": {
+              "pattern": {
+                "before": "style={{ transform: 'scale(1)', ':hover': { transform: 'scale(1.05)' } }}",
+                "after": "style={{ transform: 'scale(1)' }} className=\"hover:scale-105\""
+              },
+              "explanation": "React 인라인 스타일에서는 CSS 가상 선택자(:hover 등)를 직접 사용할 수 없습니다. 대신 Tailwind CSS 클래스 또는 CSS 모듈을 사용해야 합니다.",
+              "file": "app/consultation/page.tsx",
+              "error_message": "Object literal may only specify known properties, and ':hover' does not exist in type 'Properties<string | number, string & {}>'.",
+              "notes": "이 해결책은 Tailwind CSS가 프로젝트에 설정되어 있다고 가정합니다."
+            }
+          }
         }
       }
     }
@@ -126,6 +141,6 @@
   "metadata": {
     "last_updated": "2024-04-07",
     "contributors": ["cursor-ai"],
-    "tags": ["nextjs", "typescript", "notion-api", "route-handlers"]
+    "tags": ["nextjs", "typescript", "notion-api", "route-handlers", "react", "css"]
   }
 } 

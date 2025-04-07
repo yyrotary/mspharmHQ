@@ -1714,9 +1714,9 @@ export default function ConsultationPage() {
                             overflow: 'hidden', 
                             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
                             transition: 'transform 0.2s', 
-                            transform: 'scale(1)', 
-                            ':hover': { transform: 'scale(1.05)' } 
+                            transform: 'scale(1)'
                           }}
+                          className="hover:scale-105"
                         >
                           <img 
                             src={image.data} 
