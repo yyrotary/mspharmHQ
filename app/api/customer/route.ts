@@ -52,7 +52,7 @@ export async function GET(request: Request) {
     
     const response = await notion.databases.query({
       database_id: customerDbId,
-      filter: Object.keys(filter).length > 0 ? filter : undefined,
+      filter: Object.keys(filter).length > 0 ? filter as any : undefined,
     });
     
     return NextResponse.json({ success: true, customers: response.results });
