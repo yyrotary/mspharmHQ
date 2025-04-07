@@ -16,6 +16,11 @@ interface FormattedConsultation {
   prescription: string;
   result: string;
   createdTime: string; // 생성일시 추가
+  editImages?: Array<{
+    url: string;
+    isExisting: boolean;
+    fileName?: string;
+  }>;
 }
 
 // 새 상담일지 폼 데이터 타입
@@ -141,7 +146,7 @@ export default function ConsultationPage() {
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
             
             // 생성일시 정보 가져오기
-            const createdTime = consultation.created_time;
+            const createdTime = getNotionPropertyValue(consultation.properties.생성일시, CONSULTATION_SCHEMA.생성일시.type);
             
             // 처방약 및 결과 가져오기
             let prescription = '';
@@ -463,7 +468,7 @@ export default function ConsultationPage() {
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
             
             // 생성일시 정보 가져오기
-            const createdTime = consultation.created_time;
+            const createdTime = getNotionPropertyValue(consultation.properties.생성일시, CONSULTATION_SCHEMA.생성일시.type);
             
             // 처방약 및 결과 가져오기
             let prescription = '';
@@ -972,8 +977,144 @@ export default function ConsultationPage() {
 
   // 상담일지 수정 폼 열기
   const openEditForm = (consultation: FormattedConsultation) => {
-    setEditConsultation(consultation);
+    setEditConsultation({
+      ...consultation,
+      // 이미지 수정을 위한 배열 초기화
+      editImages: consultation.symptomImages?.filter(Boolean).map(url => ({
+        url,
+        isExisting: true
+      })) || []
+    });
     setShowEditForm(true);
+  };
+  
+  // 수정 폼에서 이미지 추가/관리를 위한 참조
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+  const editCameraInputRef = useRef<HTMLInputElement>(null);
+  
+  // 수정 폼에서 카메라 접근
+  const openEditCamera = () => {
+    if (editCameraInputRef.current) {
+      editCameraInputRef.current.click();
+    }
+  };
+  
+  // 수정 폼에서 카메라로 캡처한 이미지 처리
+  const handleEditCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editConsultation || !e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    
+    reader.onloadend = () => {
+      // 현재 날짜와 시간을 파일 이름에 포함
+      const now = new Date();
+      const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
+      const customerNameStr = editConsultation.customerName || 'unknown';
+      const fileName = `${customerNameStr}_edit_${dateString}.jpg`;
+      
+      // 이미지 해상도 줄이기
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        // 이미지 해상도를 2/3로 줄임
+        const maxWidth = Math.floor(img.width * 0.67);
+        const maxHeight = Math.floor(img.height * 0.67);
+        
+        canvas.width = maxWidth;
+        canvas.height = maxHeight;
+        
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
+          const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
+          
+          // 이미지 데이터 저장
+          const newEditImages = [
+            ...(editConsultation.editImages || []),
+            {
+              url: reducedImageData,
+              fileName,
+              isExisting: false
+            }
+          ];
+          
+          setEditConsultation({
+            ...editConsultation,
+            editImages: newEditImages
+          });
+        }
+      };
+      img.src = reader.result as string;
+    };
+    
+    reader.readAsDataURL(file);
+  };
+  
+  // 수정 폼에서 파일 업로드 처리
+  const handleEditFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editConsultation || !e.target.files || e.target.files.length === 0) return;
+    
+    for (let i = 0; i < e.target.files.length; i++) {
+      const file = e.target.files[i];
+      const reader = new FileReader();
+      
+      reader.onloadend = () => {
+        // 현재 날짜와 시간을 파일 이름에 포함
+        const now = new Date();
+        const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
+        const customerNameStr = editConsultation.customerName || 'unknown';
+        const fileName = `${customerNameStr}_edit_${dateString}_${i+1}.jpg`;
+        
+        // 이미지 해상도 줄이기
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          // 이미지 해상도를 2/3로 줄임
+          const maxWidth = Math.floor(img.width * 0.67);
+          const maxHeight = Math.floor(img.height * 0.67);
+          
+          canvas.width = maxWidth;
+          canvas.height = maxHeight;
+          
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
+            const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
+            
+            // 이미지 데이터 저장
+            const newEditImages = [
+              ...(editConsultation.editImages || []),
+              {
+                url: reducedImageData,
+                fileName,
+                isExisting: false
+              }
+            ];
+            
+            setEditConsultation({
+              ...editConsultation,
+              editImages: newEditImages
+            });
+          }
+        };
+        img.src = reader.result as string;
+      };
+      
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  // 수정 폼에서 이미지 삭제
+  const removeEditImage = (index: number) => {
+    if (!editConsultation || !editConsultation.editImages) return;
+    
+    const newEditImages = editConsultation.editImages.filter((_, i) => i !== index);
+    
+    setEditConsultation({
+      ...editConsultation,
+      editImages: newEditImages
+    });
   };
 
   // 상담일지 수정 저장
@@ -986,7 +1127,43 @@ export default function ConsultationPage() {
     
     try {
       setLoading(true);
+      setMessage('상담일지 수정 중...');
       
+      // 1. 새로운 이미지 업로드 (있는 경우)
+      const newImages = editConsultation.editImages?.filter(img => !img.isExisting) || [];
+      let uploadedImageUrls: string[] = [];
+      
+      if (newImages.length > 0) {
+        const uploadPromises = newImages.map(async (image) => {
+          const response = await fetch('/api/google-drive', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              imageData: image.url,
+              fileName: image.fileName || `edit_image_${Date.now()}.jpg`
+            }),
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok && result.success) {
+            return result.viewUrl;
+          } else {
+            console.error('이미지 업로드 실패:', result.error);
+            return null;
+          }
+        });
+        
+        uploadedImageUrls = (await Promise.all(uploadPromises)).filter(Boolean) as string[];
+      }
+      
+      // 2. 기존 이미지와 새 이미지 합치기
+      const existingImages = editConsultation.editImages?.filter(img => img.isExisting).map(img => img.url) || [];
+      const allImageUrls = [...existingImages, ...uploadedImageUrls];
+      
+      // 3. 상담일지 저장
       const response = await fetch('/api/consultation', {
         method: 'PUT',
         headers: {
@@ -998,6 +1175,7 @@ export default function ConsultationPage() {
           content: editConsultation.consultationContent,
           medicine: editConsultation.prescription,
           result: editConsultation.result,
+          imageUrls: allImageUrls
         }),
       });
       
@@ -1007,7 +1185,14 @@ export default function ConsultationPage() {
         // 목록 업데이트
         setConsultations(prev => 
           prev.map(item => 
-            item.id === editConsultation.id ? {...item, ...editConsultation} : item
+            item.id === editConsultation.id ? {
+              ...item,
+              consultationDate: editConsultation.consultationDate,
+              consultationContent: editConsultation.consultationContent, 
+              prescription: editConsultation.prescription,
+              result: editConsultation.result,
+              symptomImages: allImageUrls
+            } : item
           )
         );
         setMessage('상담일지가 수정되었습니다.');
@@ -2043,16 +2228,18 @@ export default function ConsultationPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <p style={{ fontSize: '1rem', color: '#4b5563' }}>
-                            {new Date(consultation.createdTime || consultation.consultationDate).toLocaleString('ko-KR', {
+                            {new Date(consultation.createdTime || consultation.consultationDate).toLocaleDateString('ko-KR', {
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric',
                               hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: true
+                              minute: '2-digit'
                             })}
                           </p>
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <div style={{ fontSize: '1rem', color: '#2563eb', fontWeight: '500' }}>
+                              {consultation.phoneNumber}
+                            </div>
                             <button
                               onClick={() => openEditForm(consultation)}
                               style={{
@@ -2167,37 +2354,64 @@ export default function ConsultationPage() {
                       )}
                     </div>
                   </div>
-                  
-                  {/* 상담일지 수정 폼 - 해당 상담일지 바로 아래에 표시 */}
-                  {showEditForm && editConsultation && editConsultation.id === consultation.id && (
-                    <div style={{ 
-                      backgroundColor: '#f0f9ff', 
-                      padding: '1.25rem', 
-                      borderRadius: '0.5rem', 
-                      marginTop: '0.75rem',
-                      marginBottom: '1.5rem',
-                      border: '2px dashed #3b82f6'
-                    }}>
-                      <h3 style={{ 
-                        fontSize: '1.125rem', 
-                        fontWeight: 'bold', 
-                        marginBottom: '1rem', 
-                        color: '#1e40af',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}>
-                        상담일지 수정
-                      </h3>
-                      <form onSubmit={updateConsultation}>
-                        {/* 폼 내용은 커밋 전에 다시 추가 예정 */}
-                      </form>
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
               </div>
             </div>
           )}
+
+          {/* 상담일지 수정 폼 */}
+          {showEditForm && editConsultation && (
+            <div style={{ 
+              backgroundColor: 'white', 
+              borderRadius: '0.75rem', 
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+              padding: '1.5rem', 
+              marginBottom: '1.5rem',
+              border: '1px solid #e5e7eb'
+            }}>
+              <h2 style={{ 
+                fontSize: '1.25rem', 
+                fontWeight: 'bold', 
+                marginBottom: '1rem', 
+                color: '#1e40af',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                상담일지 수정
+              </h2>
+              <form onSubmit={updateConsultation} style={{ 
+                backgroundColor: '#eff6ff', 
+                padding: '1.25rem', 
+                borderRadius: '0.5rem', 
+                borderLeft: '4px solid #3b82f6'
+              }}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '0.5rem', 
+                    fontWeight: '600',
+                    color: '#1e40af' 
+                  }}>
+                    상담일자 *
+                  </label>
+                  <input
+                    type="date"
+                    value={editConsultation.consultationDate.split('T')[0]}
+                    onChange={(e) => setEditConsultation({
+                      ...editConsultation, 
+                      consultationDate: e.target.value
+                    })}
+                    style={{ 
+                      width: '100%', 
+                      padding: '1rem', 
+                      fontSize: '1.125rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.5rem',
+                      transition: 'all 0.2s'
+                    }}
+                    required
+                  />
+                </div>
         </div>
       </main>
     </div>
