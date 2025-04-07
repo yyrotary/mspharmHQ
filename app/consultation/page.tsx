@@ -1831,6 +1831,121 @@ export default function ConsultationPage() {
             </div>
           )}
 
+          {/* 상담일지 목록 */}
+          {consultations.length > 0 && (
+            <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', padding: '1.5rem', marginBottom: '1.5rem', border: '1px solid #e5e7eb' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1e40af' }}>
+                상담일지 목록
+              </h2>
+              
+              <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
+                {consultations.map((consultation) => (
+                  <div 
+                    key={consultation.id} 
+                    style={{ 
+                      backgroundColor: '#f9fafb', 
+                      borderRadius: '0.5rem', 
+                      padding: '1rem', 
+                      border: '1px solid #e5e7eb',
+                      position: 'relative'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <h3 style={{ fontWeight: '600', fontSize: '1rem', color: '#1e40af' }}>
+                          {new Date(consultation.consultationDate).toLocaleDateString('ko-KR', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric', 
+                            weekday: 'long'
+                          })}
+                        </h3>
+                        <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                          {new Date(consultation.createdTime).toLocaleString('ko-KR', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                          })} 작성
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          onClick={() => openEditForm(consultation)}
+                          style={{ 
+                            backgroundColor: '#3b82f6', 
+                            color: 'white', 
+                            padding: '0.25rem 0.5rem',
+                            fontSize: '0.75rem', 
+                            borderRadius: '0.25rem',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <span style={{ marginRight: '0.25rem' }}>✏️</span>
+                          수정
+                        </button>
+                        <button
+                          onClick={() => deleteConsultation(consultation.id)}
+                          style={{ 
+                            backgroundColor: '#ef4444', 
+                            color: 'white', 
+                            padding: '0.25rem 0.5rem',
+                            fontSize: '0.75rem', 
+                            borderRadius: '0.25rem',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <span style={{ marginRight: '0.25rem' }}>🗑️</span>
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginBottom: '1rem' }}>
+                      <p style={{ fontWeight: '600', color: '#1e40af', marginBottom: '0.25rem', fontSize: '0.9rem' }}>상담내용</p>
+                      <p style={{ whiteSpace: 'pre-line', fontSize: '0.9rem' }}>{consultation.consultationContent}</p>
+                    </div>
+                    
+                    {consultation.prescription && (
+                      <div style={{ marginBottom: '1rem' }}>
+                        <p style={{ fontWeight: '600', color: '#1e40af', marginBottom: '0.25rem', fontSize: '0.9rem' }}>처방약</p>
+                        <p style={{ whiteSpace: 'pre-line', fontSize: '0.9rem' }}>{consultation.prescription}</p>
+                      </div>
+                    )}
+                    
+                    {consultation.result && (
+                      <div style={{ marginBottom: '1rem' }}>
+                        <p style={{ fontWeight: '600', color: '#1e40af', marginBottom: '0.25rem', fontSize: '0.9rem' }}>결과</p>
+                        <p style={{ whiteSpace: 'pre-line', fontSize: '0.9rem' }}>{consultation.result}</p>
+                      </div>
+                    )}
+                    
+                    {consultation.symptomImages && consultation.symptomImages.length > 0 && (
+                      <div>
+                        <p style={{ fontWeight: '600', color: '#1e40af', marginBottom: '0.25rem', fontSize: '0.9rem' }}>증상 이미지</p>
+                        <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                          {consultation.symptomImages.map((imageUrl, index) => (
+                            <ConsultationImage key={index} imageUrl={imageUrl} index={index} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 새 상담일지 입력 폼 */}
           {showNewForm && customer && (
             <div style={{ 
