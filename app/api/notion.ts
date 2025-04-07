@@ -1,20 +1,25 @@
 import { Client } from '@notionhq/client';
 
-// 노션 클라이언트 초기화
+// 임시 값 (개발/테스트용) - 실제 배포 시에는 반드시 환경 변수 사용
+const DEFAULT_API_KEY = 'ntn_R79244355263GBYcvHFosCBgZPea5o6efgEgnAthWXb8UB';
+const DEFAULT_DATABASE_ID = '714b76dc6cde47f696309c5f70d189e9';
+
+// 환경 변수 체크 (없으면 콘솔에 경고)
 if (!process.env.NOTION_API_KEY) {
-  throw new Error('NOTION_API_KEY 환경 변수가 설정되지 않았습니다.');
+  console.warn('⚠️ 경고: NOTION_API_KEY 환경 변수가 설정되지 않았습니다. 기본값을 사용합니다.');
 }
 
 if (!process.env.NOTION_DATABASE_ID) {
-  throw new Error('NOTION_DATABASE_ID 환경 변수가 설정되지 않았습니다.');
+  console.warn('⚠️ 경고: NOTION_DATABASE_ID 환경 변수가 설정되지 않았습니다. 기본값을 사용합니다.');
 }
 
+// 노션 클라이언트 초기화 (환경 변수 없으면 기본값 사용)
 const notion = new Client({
-  auth: process.env.NOTION_API_KEY,
+  auth: process.env.NOTION_API_KEY || DEFAULT_API_KEY,
 });
 
-// 데이터베이스 ID
-const databaseId = process.env.NOTION_DATABASE_ID;
+// 데이터베이스 ID (환경 변수 없으면 기본값 사용)
+const databaseId = process.env.NOTION_DATABASE_ID || DEFAULT_DATABASE_ID;
 
 // app/api/notion.ts에 캐싱 기능 추가
 const cache = new Map();
