@@ -163,10 +163,9 @@ export async function POST(request: Request) {
 // 얼굴 임베딩 데이터로 고객 검색
 export async function PUT(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { params } = context;
-  const customerId = params.id;
+  const { id } = await params;
   
   if (!customerDbId) {
     return NextResponse.json({ error: '노션 고객 DB ID가 설정되지 않았습니다.' }, { status: 500 });
@@ -449,10 +448,9 @@ function getCustomerName(customer: any): string {
 // 고객 정보 삭제
 export async function DELETE(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { params } = context;
-  const customerId = params.id;
+  const { id } = await params;
   
   if (!customerDbId) {
     return NextResponse.json({ error: '노션 고객 DB ID가 설정되지 않았습니다.' }, { status: 500 });
