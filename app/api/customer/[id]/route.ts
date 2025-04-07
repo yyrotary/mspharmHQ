@@ -10,9 +10,9 @@ const notion = new Client({
 // 고객 정보 업데이트
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
   
   if (!id) {
     return NextResponse.json({ error: '고객 ID가 필요합니다.' }, { status: 400 });
@@ -94,9 +94,9 @@ export async function PUT(
 // 고객 정보 삭제 (아카이브)
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
   
   if (!id) {
     return NextResponse.json({ error: '고객 ID가 필요합니다.' }, { status: 400 });
