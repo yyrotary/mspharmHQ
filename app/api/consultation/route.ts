@@ -170,4 +170,106 @@ export async function POST(request: Request) {
     console.error('상담일지 저장 오류:', error);
     return NextResponse.json({ error: '상담일지 저장 중 오류가 발생했습니다.' }, { status: 500 });
   }
+}
+
+// 상담일지 삭제
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const consultationId = searchParams.get('id');
+  
+  if (!consultationId) {
+    return NextResponse.json({ error: '상담일지 ID가 필요합니다.' }, { status: 400 });
+  }
+  
+  try {
+    // 노션 페이지 삭제 (실제로는 아카이브)
+    await notion.pages.update({
+      page_id: consultationId,
+      archived: true
+    });
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('상담일지 삭제 오류:', error);
+    return NextResponse.json({ error: '상담일지 삭제 중 오류가 발생했습니다.' }, { status: 500 });
+  }
+}
+
+// 상담일지 수정
+export async function PUT(request: Request) {
+  try {
+    const data = await request.json();
+    
+    // 필수 필드 검증
+    if (!data.consultationId) {
+      return NextResponse.json({ error: '상담일지 ID는 필수 입력 항목입니다.' }, { status: 400 });
+    }
+    
+    // 노션 API 형식으로 데이터 변환
+    const properties: any = {};
+    
+    // 상담일자 수정
+    if (data.consultDate) {
+      properties['상담일자'] = {
+        [CONSULTATION_SCHEMA.상담일자.type]: {
+          start: data.consultDate
+        }
+      };
+    }
+    
+    // 상담내용 수정
+    if (data.content) {
+      properties['상담내용'] = {
+        [CONSULTATION_SCHEMA.상담내용.type]: [
+          { 
+            type: 'text', 
+            text: { 
+              content: data.content 
+            } 
+          }
+        ]
+      };
+    }
+    
+    // 처방약 정보 수정
+    if (data.medicine !== undefined) {
+      properties['처방약'] = {
+        [CONSULTATION_SCHEMA.처방약.type]: [
+          { 
+            type: 'text', 
+            text: { 
+              content: data.medicine 
+            } 
+          }
+        ]
+      };
+    }
+    
+    // 결과 정보 수정
+    if (data.result !== undefined) {
+      properties['결과'] = {
+        [CONSULTATION_SCHEMA.결과.type]: [
+          { 
+            type: 'text', 
+            text: { 
+              content: data.result 
+            } 
+          }
+        ]
+      };
+    }
+    
+    // 이미지는 쉽게 수정할 수 없으므로 새 이미지만 추가하는 로직 (필요시 구현)
+    
+    // 상담일지 업데이트
+    const response = await notion.pages.update({
+      page_id: data.consultationId,
+      properties: properties
+    });
+    
+    return NextResponse.json({ success: true, consultation: response });
+  } catch (error) {
+    console.error('상담일지 수정 오류:', error);
+    return NextResponse.json({ error: '상담일지 수정 중 오류가 발생했습니다.' }, { status: 500 });
+  }
 } 

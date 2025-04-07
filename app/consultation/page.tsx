@@ -15,6 +15,7 @@ interface FormattedConsultation {
   symptomImages: string[];
   prescription: string;
   result: string;
+  createdTime: string; // 생성일시 추가
 }
 
 // 새 상담일지 폼 데이터 타입
@@ -139,6 +140,9 @@ export default function ConsultationPage() {
             const consultationDate = getNotionPropertyValue(consultation.properties.상담일자, CONSULTATION_SCHEMA.상담일자.type);
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
             
+            // 생성일시 정보 가져오기
+            const createdTime = getNotionPropertyValue(consultation.properties.생성일시, CONSULTATION_SCHEMA.생성일시.type);
+            
             // 처방약 및 결과 가져오기
             let prescription = '';
             try {
@@ -162,7 +166,8 @@ export default function ConsultationPage() {
               consultationContent,
               symptomImages: images,
               prescription,
-              result
+              result,
+              createdTime // 생성일시 추가
             } as FormattedConsultation;
           });
           setConsultations(formattedConsultations);
@@ -457,6 +462,9 @@ export default function ConsultationPage() {
             const consultationDate = getNotionPropertyValue(consultation.properties.상담일자, CONSULTATION_SCHEMA.상담일자.type);
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
             
+            // 생성일시 정보 가져오기
+            const createdTime = getNotionPropertyValue(consultation.properties.생성일시, CONSULTATION_SCHEMA.생성일시.type);
+            
             // 처방약 및 결과 가져오기
             let prescription = '';
             try {
@@ -480,7 +488,8 @@ export default function ConsultationPage() {
               consultationContent,
               symptomImages: images,
               prescription,
-              result
+              result,
+              createdTime // 생성일시 추가
             } as FormattedConsultation;
           });
           setConsultations(formattedConsultations);
@@ -926,6 +935,94 @@ export default function ConsultationPage() {
       contentTextareaRef.current.focus();
     }
   }, [showNewForm]);
+
+  // 상담일지 수정/삭제 처리 함수 추가
+  const [editConsultation, setEditConsultation] = useState<FormattedConsultation | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+
+  // 상담일지 삭제 함수
+  const deleteConsultation = async (consultationId: string) => {
+    if (!confirm('정말 이 상담일지를 삭제하시겠습니까?')) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      const response = await fetch(`/api/consultation?id=${consultationId}`, {
+        method: 'DELETE',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // 목록에서 삭제된 상담일지 제거
+        setConsultations(prev => prev.filter(item => item.id !== consultationId));
+        setMessage('상담일지가 삭제되었습니다.');
+      } else {
+        throw new Error(result.error || '삭제 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('상담일지 삭제 오류:', error);
+      setMessage((error as Error).message || '상담일지 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 상담일지 수정 폼 열기
+  const openEditForm = (consultation: FormattedConsultation) => {
+    setEditConsultation(consultation);
+    setShowEditForm(true);
+  };
+
+  // 상담일지 수정 저장
+  const updateConsultation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editConsultation) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      const response = await fetch('/api/consultation', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          consultationId: editConsultation.id,
+          consultDate: editConsultation.consultationDate,
+          content: editConsultation.consultationContent,
+          medicine: editConsultation.prescription,
+          result: editConsultation.result,
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // 목록 업데이트
+        setConsultations(prev => 
+          prev.map(item => 
+            item.id === editConsultation.id ? {...item, ...editConsultation} : item
+          )
+        );
+        setMessage('상담일지가 수정되었습니다.');
+        setShowEditForm(false);
+        setEditConsultation(null);
+      } else {
+        throw new Error(result.error || '수정 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('상담일지 수정 오류:', error);
+      setMessage((error as Error).message || '상담일지 수정 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -1946,7 +2043,7 @@ export default function ConsultationPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <p style={{ fontSize: '1rem', color: '#4b5563' }}>
-                            {new Date(consultation.consultationDate).toLocaleDateString('ko-KR', {
+                            {new Date(consultation.createdTime || consultation.consultationDate).toLocaleDateString('ko-KR', {
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric',
@@ -1954,8 +2051,38 @@ export default function ConsultationPage() {
                               minute: '2-digit'
                             })}
                           </p>
-                          <div style={{ fontSize: '1rem', color: '#2563eb', fontWeight: '500' }}>
-                            {consultation.phoneNumber}
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <div style={{ fontSize: '1rem', color: '#2563eb', fontWeight: '500' }}>
+                              {consultation.phoneNumber}
+                            </div>
+                            <button
+                              onClick={() => openEditForm(consultation)}
+                              style={{
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem',
+                                border: 'none',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              수정
+                            </button>
+                            <button
+                              onClick={() => deleteConsultation(consultation.id)}
+                              style={{
+                                backgroundColor: '#ef4444',
+                                color: 'white',
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.875rem',
+                                border: 'none',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              삭제
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -2044,6 +2171,187 @@ export default function ConsultationPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* 상담일지 수정 폼 */}
+          {showEditForm && editConsultation && (
+            <div style={{ 
+              backgroundColor: 'white', 
+              borderRadius: '0.75rem', 
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+              padding: '1.5rem', 
+              marginBottom: '1.5rem',
+              border: '1px solid #e5e7eb'
+            }}>
+              <h2 style={{ 
+                fontSize: '1.25rem', 
+                fontWeight: 'bold', 
+                marginBottom: '1rem', 
+                color: '#1e40af',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                상담일지 수정
+              </h2>
+              <form onSubmit={updateConsultation} style={{ 
+                backgroundColor: '#eff6ff', 
+                padding: '1.25rem', 
+                borderRadius: '0.5rem', 
+                borderLeft: '4px solid #3b82f6'
+              }}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '0.5rem', 
+                    fontWeight: '600',
+                    color: '#1e40af' 
+                  }}>
+                    상담일자 *
+                  </label>
+                  <input
+                    type="date"
+                    value={editConsultation.consultationDate.split('T')[0]}
+                    onChange={(e) => setEditConsultation({
+                      ...editConsultation, 
+                      consultationDate: e.target.value
+                    })}
+                    style={{ 
+                      width: '100%', 
+                      padding: '1rem', 
+                      fontSize: '1.125rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.5rem',
+                      transition: 'all 0.2s'
+                    }}
+                    required
+                  />
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '0.5rem', 
+                    fontWeight: '600',
+                    color: '#1e40af' 
+                  }}>
+                    상담내용 *
+                  </label>
+                  <textarea
+                    value={editConsultation.consultationContent}
+                    onChange={(e) => setEditConsultation({
+                      ...editConsultation, 
+                      consultationContent: e.target.value
+                    })}
+                    style={{ 
+                      width: '100%', 
+                      padding: '1rem', 
+                      fontSize: '1.125rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.5rem',
+                      transition: 'all 0.2s',
+                      minHeight: '6rem'
+                    }}
+                    rows={4}
+                    required
+                  />
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '0.5rem', 
+                    fontWeight: '600',
+                    color: '#1e40af' 
+                  }}>
+                    처방약
+                  </label>
+                  <textarea
+                    value={editConsultation.prescription}
+                    onChange={(e) => setEditConsultation({
+                      ...editConsultation, 
+                      prescription: e.target.value
+                    })}
+                    style={{ 
+                      width: '100%', 
+                      padding: '1rem', 
+                      fontSize: '1.125rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.5rem',
+                      transition: 'all 0.2s'
+                    }}
+                    rows={2}
+                  />
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '0.5rem', 
+                    fontWeight: '600',
+                    color: '#1e40af' 
+                  }}>
+                    결과
+                  </label>
+                  <textarea
+                    value={editConsultation.result}
+                    onChange={(e) => setEditConsultation({
+                      ...editConsultation, 
+                      result: e.target.value
+                    })}
+                    style={{ 
+                      width: '100%', 
+                      padding: '1rem', 
+                      fontSize: '1.125rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.5rem',
+                      transition: 'all 0.2s'
+                    }}
+                    rows={2}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditForm(false);
+                      setEditConsultation(null);
+                    }}
+                    style={{ 
+                      width: '100%', 
+                      backgroundColor: '#e5e7eb', 
+                      color: '#1f2937', 
+                      padding: '1rem',
+                      fontSize: '1.125rem', 
+                      borderRadius: '0.5rem', 
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    style={{ 
+                      width: '100%', 
+                      backgroundColor: '#3b82f6', 
+                      color: 'white', 
+                      padding: '1rem',
+                      fontSize: '1.125rem', 
+                      borderRadius: '0.5rem', 
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {loading ? '저장 중...' : '저장'}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
         </div>
