@@ -141,7 +141,7 @@ export default function ConsultationPage() {
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
             
             // 생성일시 정보 가져오기
-            const createdTime = consultation.created_time || '';
+            const createdTime = consultation.created_time;
             
             // 처방약 및 결과 가져오기
             let prescription = '';
@@ -463,7 +463,7 @@ export default function ConsultationPage() {
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
             
             // 생성일시 정보 가져오기
-            const createdTime = getNotionPropertyValue(consultation.properties.생성일시, CONSULTATION_SCHEMA.생성일시.type);
+            const createdTime = consultation.created_time;
             
             // 처방약 및 결과 가져오기
             let prescription = '';
@@ -1028,12 +1028,13 @@ export default function ConsultationPage() {
             const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
             
             // 이미지 추가
-            if (editConsultation) {
-              setEditConsultation({
-                ...editConsultation,
-                symptomImages: [...editConsultation.symptomImages, reducedImageData]
-              });
-            }
+            setEditConsultation(prevState => {
+              if (!prevState) return prevState;
+              return {
+                ...prevState,
+                symptomImages: [...prevState.symptomImages, reducedImageData]
+              };
+            });
           }
         };
         img.src = reader.result as string;
@@ -1074,12 +1075,13 @@ export default function ConsultationPage() {
               const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
               
               // 이미지 추가
-              if (editConsultation) {
-                setEditConsultation({
-                  ...editConsultation,
-                  symptomImages: [...editConsultation.symptomImages, reducedImageData]
-                });
-              }
+              setEditConsultation(prevState => {
+                if (!prevState) return prevState;
+                return {
+                  ...prevState,
+                  symptomImages: [...prevState.symptomImages, reducedImageData]
+                };
+              });
             }
           };
           img.src = reader.result as string;
@@ -1093,9 +1095,12 @@ export default function ConsultationPage() {
   // 수정폼용 이미지 삭제
   const removeEditImage = (index: number) => {
     if (editConsultation) {
-      setEditConsultation({
-        ...editConsultation,
-        symptomImages: editConsultation.symptomImages.filter((_, i) => i !== index)
+      setEditConsultation(prevState => {
+        if (!prevState) return prevState;
+        return {
+          ...prevState,
+          symptomImages: prevState.symptomImages.filter((_, i) => i !== index)
+        };
       });
     }
   };
@@ -1914,11 +1919,9 @@ export default function ConsultationPage() {
                       상담내용 *
                     </label>
                     <textarea
-                      value={editConsultation.consultationContent}
-                      onChange={(e) => setEditConsultation({
-                        ...editConsultation, 
-                        consultationContent: e.target.value
-                      })}
+                      ref={contentTextareaRef}
+                      value={newConsultation.content}
+                      onChange={(e) => setNewConsultation({...newConsultation, content: e.target.value})}
                       style={{ 
                         width: '100%', 
                         padding: '1rem', 
@@ -1930,7 +1933,6 @@ export default function ConsultationPage() {
                       }}
                       rows={4}
                       required
-                      id="edit-consultation-content"
                     />
                   </div>
                   <div style={{ marginBottom: '1rem' }}>
@@ -1943,11 +1945,8 @@ export default function ConsultationPage() {
                       처방약
                     </label>
                     <textarea
-                      value={editConsultation.prescription}
-                      onChange={(e) => setEditConsultation({
-                        ...editConsultation, 
-                        prescription: e.target.value
-                      })}
+                      value={newConsultation.medicine}
+                      onChange={(e) => setNewConsultation({...newConsultation, medicine: e.target.value})}
                       style={{ 
                         width: '100%', 
                         padding: '1rem', 
@@ -1969,11 +1968,8 @@ export default function ConsultationPage() {
                       결과
                     </label>
                     <textarea
-                      value={editConsultation.result}
-                      onChange={(e) => setEditConsultation({
-                        ...editConsultation, 
-                        result: e.target.value
-                      })}
+                      value={newConsultation.result}
+                      onChange={(e) => setNewConsultation({...newConsultation, result: e.target.value})}
                       style={{ 
                         width: '100%', 
                         padding: '1rem', 
@@ -2004,7 +2000,7 @@ export default function ConsultationPage() {
                     }}>
                       <button
                         type="button"
-                        onClick={openEditCamera}
+                        onClick={openCamera}
                         style={{ 
                           backgroundColor: '#2563eb', 
                           color: 'white', 
@@ -2021,7 +2017,7 @@ export default function ConsultationPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => editFileInputRef.current?.click()}
+                        onClick={() => fileInputRef.current?.click()}
                         style={{ 
                           backgroundColor: '#10b981', 
                           color: 'white', 
@@ -2038,16 +2034,16 @@ export default function ConsultationPage() {
                       </button>
                       <input
                         type="file"
-                        ref={editFileInputRef}
-                        onChange={handleEditFileUpload}
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
                         style={{ display: 'none' }}
                         accept="image/*"
                         multiple
                       />
                       <input
                         type="file"
-                        ref={editCameraInputRef}
-                        onChange={handleEditCameraCapture}
+                        ref={cameraInputRef}
+                        onChange={handleCameraCapture}
                         style={{ display: 'none' }}
                         accept="image/*"
                         capture="environment"
@@ -2055,14 +2051,14 @@ export default function ConsultationPage() {
                     </div>
                     
                     {/* 이미지 미리보기 */}
-                    {editConsultation.symptomImages.length > 0 && (
+                    {newConsultation.images.length > 0 && (
                       <div style={{ 
                         display: 'grid', 
                         gridTemplateColumns: 'repeat(2, 1fr)', 
                         gap: '0.75rem', 
                         marginTop: '0.75rem' 
                       }}>
-                        {editConsultation.symptomImages.map((imageUrl, index) => (
+                        {newConsultation.images.map((image, index) => (
                           <div 
                             key={index} 
                             style={{ 
@@ -2076,7 +2072,7 @@ export default function ConsultationPage() {
                             className="hover:scale-105"
                           >
                             <img 
-                              src={imageUrl} 
+                              src={image.data} 
                               alt={`증상 이미지 ${index + 1}`} 
                               style={{ 
                                 width: '100%', 
@@ -2086,7 +2082,7 @@ export default function ConsultationPage() {
                             />
                             <button
                               type="button"
-                              onClick={() => removeEditImage(index)}
+                              onClick={() => removeImage(index)}
                               style={{ 
                                 position: 'absolute', 
                                 top: '0.5rem', 
