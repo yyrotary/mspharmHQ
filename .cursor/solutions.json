@@ -28,6 +28,19 @@
                 ]
               }
             }
+          },
+          "filter_type_error": {
+            "problem": "Notion API의 filter 객체 타입 오류",
+            "solution": {
+              "pattern": {
+                "before": "filter: Object.keys(filter).length > 0 ? filter : undefined",
+                "after": "filter: Object.keys(filter).length > 0 ? filter as any : undefined"
+              },
+              "explanation": "Notion API의 PropertyFilter 타입과 빈 객체({}) 타입 간의 불일치 문제를 해결합니다.",
+              "file": "app/api/customer/route.ts",
+              "error_message": "Type '{}' is not assignable to type '{ or: (PropertyFilter | TimestampCreatedTimeFilter | TimestampLastEditedTimeFilter | { or: PropertyFilter[]; } | { ...; })[]; } | ... 4 more ... | undefined'",
+              "vercel_build": true
+            }
           }
         }
       }
@@ -84,7 +97,7 @@
     }
   },
   "metadata": {
-    "last_updated": "2024-03-21",
+    "last_updated": "2024-04-07",
     "contributors": ["cursor-ai"],
     "tags": ["nextjs", "typescript", "notion-api", "route-handlers"]
   }
