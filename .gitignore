@@ -44,3 +44,7 @@ certificates
 
 # Google 서비스 계정 키
 service-account-key.json
+
+# Cursor solutions
+.cursor-solutions/
+# sync-solutions.ps1
