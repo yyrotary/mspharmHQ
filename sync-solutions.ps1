@@ -5,6 +5,9 @@ $repoUrl = "https://github.com/yymspharm/mspharmHQ.git"
 $solutionsDir = "$env:USERPROFILE\.cursor-solutions"
 $localPath = ".\.cursor\solutions.json"
 
+# 임시 솔루션 파일 경로 (Vercel 빌드 확인 전)
+$tempSolutionPath = ".\.cursor\temp_solutions.json"
+
 # GitHub 저장소 복제 또는 업데이트 (이미 존재하는 경우)
 if (-not (Test-Path $solutionsDir)) {
     Write-Host "솔루션 저장소 복제 중..."
@@ -80,12 +83,74 @@ function Push-ToGitHub {
     }
 }
 
+# 임시 솔루션 생성 (Vercel 빌드 확인 전)
+function New-TempSolution {
+    param (
+        [string]$category,
+        [string]$name,
+        [string]$problem,
+        [string]$before,
+        [string]$after,
+        [string]$explanation,
+        [string]$file,
+        [string]$errorMessage
+    )
+
+    if (Test-Path $localPath) {
+        # 현재 솔루션 파일 복사
+        if (-not (Test-Path $tempSolutionPath)) {
+            Copy-Item -Path $localPath -Destination $tempSolutionPath -Force
+        }
+        
+        Write-Host "임시 솔루션 생성: $name"
+        Write-Host "문제: $problem"
+        Write-Host "파일: $file"
+        Write-Host ""
+        Write-Host "이 솔루션은 Vercel 빌드 확인 후 저장될 예정입니다."
+        Write-Host "빌드 성공 후 다음 명령어를 실행하세요: .\sync-solutions.ps1 confirm"
+    } else {
+        Write-Host "오류: 로컬 solutions.json 파일을 찾을 수 없습니다."
+    }
+}
+
+# 임시 솔루션을 실제 솔루션으로 변환 (Vercel 빌드 확인 후)
+function Confirm-Solution {
+    if (Test-Path $tempSolutionPath) {
+        Write-Host "Vercel 빌드 확인 후 임시 솔루션을 영구적으로 저장합니다."
+        
+        # 임시 솔루션 파일 적용
+        Copy-Item -Path $tempSolutionPath -Destination $localPath -Force
+        
+        # 임시 파일 삭제
+        Remove-Item -Path $tempSolutionPath -Force
+        
+        # GitHub에 푸시
+        Push-ToGitHub
+        
+        Write-Host "솔루션이 확인되어 저장되었습니다!"
+    } else {
+        Write-Host "오류: 임시 솔루션 파일이 없습니다. 먼저 임시 솔루션을 생성해주세요."
+    }
+}
+
 # 인자에 따라 동기화 수행
 if ($args[0] -eq "push") {
     Push-ToGitHub
 } elseif ($args[0] -eq "sync") {
     Push-ToGitHub
     Write-Host "양방향 동기화 완료!"
-}
-
-Write-Host "동기화 작업이 완료되었습니다." 
+} elseif ($args[0] -eq "temp") {
+    # 예: .\sync-solutions.ps1 temp "nextjs" "filter_error" "필터 타입 오류" "변경 전 코드" "변경 후 코드" "설명" "파일경로" "에러메시지"
+    New-TempSolution -category $args[1] -name $args[2] -problem $args[3] -before $args[4] -after $args[5] -explanation $args[6] -file $args[7] -errorMessage $args[8]
+} elseif ($args[0] -eq "confirm") {
+    Confirm-Solution
+} else {
+    Write-Host "동기화 작업이 완료되었습니다."
+    Write-Host ""
+    Write-Host "사용 가능한 명령어:"
+    Write-Host "  .\sync-solutions.ps1          - 솔루션 파일 동기화"
+    Write-Host "  .\sync-solutions.ps1 push     - 로컬 솔루션을 GitHub에 푸시"
+    Write-Host "  .\sync-solutions.ps1 sync     - 양방향 동기화 수행"
+    Write-Host "  .\sync-solutions.ps1 temp ... - 임시 솔루션 생성"
+    Write-Host "  .\sync-solutions.ps1 confirm  - Vercel 빌드 확인 후 솔루션 저장"
+} 

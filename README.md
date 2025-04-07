@@ -154,3 +154,34 @@ const saveConsultation = async () => {
 1. 노션 데이터베이스의 `증상이미지` 필드는 `relation` 타입이므로, Google Drive 파일 ID를 직접 전달해야 합니다.
 2. 구글 드라이브 API 응답의 `fileId` 또는 `notionRelationId`를 사용하세요.
 3. 이미지 URL을 직접 전달하는 방식은 지원되지 않습니다.
+
+## 솔루션 관리
+
+이 프로젝트는 개발 중 발생하는 문제와 해결책을 `.cursor/solutions.json` 파일에 체계적으로 저장하여 관리합니다.
+
+### 솔루션 동기화 스크립트 사용법
+
+프로젝트 루트에 있는 `sync-solutions.ps1` 스크립트를 통해 솔루션을 관리할 수 있습니다:
+
+```powershell
+# 기본 동기화 (GitHub에서 최신 솔루션 가져오기)
+.\sync-solutions.ps1
+
+# 로컬 솔루션을 GitHub에 푸시
+.\sync-solutions.ps1 push
+
+# 양방향 동기화
+.\sync-solutions.ps1 sync
+
+# 임시 솔루션 생성 (Vercel 빌드 전)
+.\sync-solutions.ps1 temp "카테고리" "이름" "문제설명" "변경전코드" "변경후코드" "설명" "파일경로" "에러메시지"
+
+# Vercel 빌드 확인 후 솔루션 저장
+.\sync-solutions.ps1 confirm
+```
+
+### 모범 사례
+
+1. 문제 해결 시 항상 솔루션을 기록하세요.
+2. Vercel 빌드 오류가 있는 경우, 먼저 문제를 해결하고 빌드가 성공한 후에 솔루션을 기록하세요.
+3. 다른 개발자들이 이해할 수 있도록 명확한 설명과 예제를 포함하세요.
