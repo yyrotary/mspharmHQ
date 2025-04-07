@@ -1,0 +1,91 @@
+{
+  "version": "1.0.0",
+  "framework": {
+    "nextjs": {
+      "v15": {
+        "route_handlers": {
+          "dynamic_params": {
+            "problem": "Next.js 15에서 동적 라우트의 params 타입이 Promise로 변경됨",
+            "solution": {
+              "pattern": {
+                "before": "export async function METHOD(request: Request, context: { params: { [key: string]: string } })",
+                "after": "export async function METHOD(request: Request, { params }: { params: Promise<{ [key: string]: string }> })"
+              },
+              "implementation": {
+                "before": "const { params } = context;\nconst paramValue = params.key;",
+                "after": "const { key } = await params;"
+              },
+              "example": {
+                "file": "app/api/[id]/route.ts",
+                "code": [
+                  "export async function GET(",
+                  "  request: Request,",
+                  "  { params }: { params: Promise<{ id: string }> }",
+                  ") {",
+                  "  const { id } = await params;",
+                  "  // ... rest of the handler",
+                  "}"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "typescript": {
+    "notion_api": {
+      "database_query": {
+        "filter_type": {
+          "problem": "Notion API의 filter 타입이 올바르게 지정되지 않음",
+          "solution": {
+            "pattern": {
+              "before": "filter: Object.keys(filter).length > 0 ? filter : undefined",
+              "after": "filter: Object.keys(filter).length > 0 ? filter as PropertyFilter : undefined"
+            },
+            "note": "PropertyFilter 타입을 정확히 정의하거나 @notionhq/client에서 제공하는 타입을 사용해야 함"
+          }
+        }
+      },
+      "property_access": {
+        "problem": "Notion 페이지 속성 접근 시 타입 오류",
+        "solution": {
+          "pattern": {
+            "before": "// @ts-expect-error\ncustomer.properties['속성명']",
+            "after": "interface NotionProperty {\n  properties: {\n    [key: string]: {\n      rich_text?: Array<{ text: { content: string } }>\n    }\n  }\n}"
+          }
+        }
+      }
+    }
+  },
+  "best_practices": {
+    "error_handling": {
+      "api_routes": {
+        "pattern": {
+          "try_catch": [
+            "try {",
+            "  const data = await someOperation();",
+            "  return NextResponse.json({ success: true, data });",
+            "} catch (error) {",
+            "  console.error('Operation failed:', error);",
+            "  return NextResponse.json(",
+            "    { success: false, error: 'Operation failed' },",
+            "    { status: 500 }",
+            "  );",
+            "}"
+          ]
+        }
+      }
+    },
+    "type_safety": {
+      "unknown_vs_any": {
+        "recommendation": "가능한 경우 any 대신 unknown을 사용하고 타입 가드를 통해 안전하게 타입 좁히기"
+      }
+    }
+  },
+  "metadata": {
+    "last_updated": "2024-03-21",
+    "contributors": ["cursor-ai"],
+    "tags": ["nextjs", "typescript", "notion-api", "route-handlers"]
+  }
+} 
