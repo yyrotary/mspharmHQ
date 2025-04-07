@@ -15,7 +15,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ data });
   } catch (error) {
     console.error('데이터 조회 오류:', error);
-    return NextResponse.json({ error: '데이터 조회 중 오류가 발생했습니다.' }, { status: 500 });
+    // 더 상세한 에러 메시지 반환
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    return NextResponse.json({ error: `데이터 조회 중 오류가 발생했습니다: ${errorMessage}` }, { status: 500 });
   }
 }
 
@@ -33,6 +35,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, data: response });
   } catch (error) {
     console.error('데이터 저장 오류:', error);
-    return NextResponse.json({ error: '데이터 저장 중 오류가 발생했습니다.' }, { status: 500 });
+    // 더 상세한 에러 메시지 반환
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    return NextResponse.json({ error: `데이터 저장 중 오류가 발생했습니다: ${errorMessage}` }, { status: 500 });
   }
 } 

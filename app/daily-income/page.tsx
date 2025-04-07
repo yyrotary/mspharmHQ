@@ -45,6 +45,13 @@ export default function DailyIncomePage() {
       setMessage('');
       
       const response = await fetch(`/api/daily-income?date=${date}`);
+      
+      if (!response.ok) {
+        // HTTP 오류 처리
+        const errorData = await response.json().catch(() => ({ error: '응답을 파싱할 수 없습니다' }));
+        throw new Error(errorData.error || `HTTP 오류: ${response.status}`);
+      }
+      
       const result = await response.json();
       
       if (result.data) {
@@ -77,7 +84,7 @@ export default function DailyIncomePage() {
       }
     } catch (error) {
       console.error('데이터 조회 오류:', error);
-      setMessage('데이터 조회 중 오류가 발생했습니다.');
+      setMessage(`데이터 조회 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     } finally {
       setLoading(false);
     }
@@ -141,16 +148,22 @@ export default function DailyIncomePage() {
         body: JSON.stringify(notionData),
       });
       
+      if (!response.ok) {
+        // HTTP 오류 처리
+        const errorData = await response.json().catch(() => ({ error: '응답을 파싱할 수 없습니다' }));
+        throw new Error(errorData.error || `HTTP 오류: ${response.status}`);
+      }
+      
       const result = await response.json();
       
       if (result.success) {
         setMessage('데이터가 성공적으로 저장되었습니다.');
       } else {
-        setMessage(`저장 실패: ${result.error}`);
+        setMessage(`저장 실패: ${result.error || '알 수 없는 오류'}`);
       }
     } catch (error) {
       console.error('데이터 저장 오류:', error);
-      setMessage('데이터 저장 중 오류가 발생했습니다.');
+      setMessage(`데이터 저장 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     } finally {
       setLoading(false);
     }

@@ -1,12 +1,20 @@
 import { Client } from '@notionhq/client';
 
 // 노션 클라이언트 초기화
+if (!process.env.NOTION_API_KEY) {
+  throw new Error('NOTION_API_KEY 환경 변수가 설정되지 않았습니다.');
+}
+
+if (!process.env.NOTION_DATABASE_ID) {
+  throw new Error('NOTION_DATABASE_ID 환경 변수가 설정되지 않았습니다.');
+}
+
 const notion = new Client({
-  auth: process.env.NOTION_API_KEY || 'ntn_R79244355263GBYcvHFosCBgZPea5o6efgEgnAthWXb8UB',
+  auth: process.env.NOTION_API_KEY,
 });
 
 // 데이터베이스 ID
-const databaseId = process.env.NOTION_DATABASE_ID || '714b76dc6cde47f696309c5f70d189e9';
+const databaseId = process.env.NOTION_DATABASE_ID;
 
 // app/api/notion.ts에 캐싱 기능 추가
 const cache = new Map();
