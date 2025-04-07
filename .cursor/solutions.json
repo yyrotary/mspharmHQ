@@ -81,6 +81,20 @@
             "vercel_build": true
           }
         }
+      },
+      "implicit_types": {
+        "any_array": {
+          "problem": "배열 변수가 암시적으로 any[] 타입을 가지는 문제",
+          "solution": {
+            "pattern": {
+              "before": "const images = [];",
+              "after": "const images: string[] = [];"
+            },
+            "explanation": "TypeScript에서 빈 배열 초기화 시 타입 추론이 any[]로 되어 타입 오류가 발생합니다. 명시적 타입을 지정하여 해결합니다.",
+            "file": "app/consultation/page.tsx",
+            "error_message": "Variable 'images' implicitly has type 'any[]' in some locations where its type cannot be determined."
+          }
+        }
       }
     }
   },

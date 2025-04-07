@@ -87,7 +87,7 @@ export default function ConsultationPage() {
           // 상담일지 데이터 구조 변환
           const formattedConsultations = consultationsData.consultations.map((consultation: NotionConsultation) => {
             // 이미지 URL 추출 로직 개선
-            const images = [];
+            const images: string[] = [];
 
             try {
               // 증상이미지 프로퍼티 존재 확인
@@ -406,7 +406,7 @@ export default function ConsultationPage() {
           // 상담일지 데이터 구조 변환
           const formattedConsultations = consultationsData.consultations.map((consultation: NotionConsultation) => {
             // 이미지 URL 추출 로직 개선
-            const images = [];
+            const images: string[] = [];
 
             try {
               // 증상이미지 프로퍼티 존재 확인
