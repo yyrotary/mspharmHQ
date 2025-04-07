@@ -110,6 +110,25 @@
             }
           }
         }
+      },
+      "missing_properties": {
+        "transformed_data": {
+          "problem": "매핑된 객체와 원본 타입 간 불일치",
+          "solution": {
+            "pattern": {
+              "before": "const formattedData = originalData.map((item: OriginalType) => ({ ... }));",
+              "after": "interface TransformedType extends OriginalType {\n  mappedField1: string;\n  mappedField2: string[];\n}\n\nconst formattedData = originalData.map((item: OriginalType): TransformedType => ({ ... }));"
+            },
+            "example": {
+              "before": "consultations.map((consultation) => (/* 속성 접근 */));",
+              "after": "type FormattedConsultation = NotionConsultation & {\n  consultationDate: string;\n  phoneNumber: string;\n  consultationContent: string;\n  symptomImages: string[];\n  prescription: string;\n  result: string;\n};\n\nconsultations.map((consultation: FormattedConsultation) => (/* 속성 접근 */));"
+            },
+            "explanation": "노션 API 데이터를 변환할 때 원본 타입에 없는 속성이 추가됩니다. 이를 확장된 인터페이스로 정의하거나 타입 단언을 사용하여 해결할 수 있습니다.",
+            "file": "app/consultation/page.tsx",
+            "error_message": "Property 'consultationDate' does not exist on type 'NotionConsultation'.",
+            "vercel_build": true
+          }
+        }
       }
     }
   },

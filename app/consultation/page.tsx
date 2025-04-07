@@ -5,13 +5,37 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CUSTOMER_SCHEMA, CONSULTATION_SCHEMA, getNotionPropertyValue, NotionCustomer, NotionConsultation } from '@/app/lib/notion-schema';
 
+// 확장된 타입 정의
+interface FormattedConsultation {
+  id: string;
+  customerName: string;
+  phoneNumber: string;
+  consultationDate: string;
+  consultationContent: string;
+  symptomImages: string[];
+  prescription: string;
+  result: string;
+}
+
+// 새 상담일지 폼 데이터 타입
+interface NewConsultation {
+  consultDate: string;
+  content: string;
+  medicine: string;
+  result: string;
+  images: Array<{
+    data: string;
+    fileName: string;
+  }>;
+}
+
 export default function ConsultationPage() {
   const router = useRouter();
   const [customerName, setCustomerName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [customer, setCustomer] = useState<NotionCustomer | null>(null);
-  const [consultations, setConsultations] = useState<NotionConsultation[]>([]);
+  const [consultations, setConsultations] = useState<FormattedConsultation[]>([]);
   const [showNewForm, setShowNewForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
@@ -139,7 +163,7 @@ export default function ConsultationPage() {
               symptomImages: images,
               prescription,
               result
-            };
+            } as FormattedConsultation;
           });
           setConsultations(formattedConsultations);
         }
@@ -457,7 +481,7 @@ export default function ConsultationPage() {
               symptomImages: images,
               prescription,
               result
-            };
+            } as FormattedConsultation;
           });
           setConsultations(formattedConsultations);
         }
@@ -1899,7 +1923,7 @@ export default function ConsultationPage() {
             <div style={{ margin: '0 auto', padding: '1.5rem 0' }}>
               <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>상담 일지</h1>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                {consultations.map((consultation) => (
+                {consultations.map((consultation: FormattedConsultation) => (
                   <div 
                     key={consultation.id} 
                     style={{
@@ -1956,7 +1980,7 @@ export default function ConsultationPage() {
                       </div>
 
                       {/* 이미지가 있는 경우만 표시 */}
-                      {consultation.symptomImages && consultation.symptomImages.length > 0 && consultation.symptomImages.some(url => url) && (
+                      {consultation.symptomImages && consultation.symptomImages.length > 0 && consultation.symptomImages.some((url: string) => url) && (
                         <div>
                           <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
                             증상 이미지 ({consultation.symptomImages.filter(Boolean).length}장)
@@ -1970,7 +1994,7 @@ export default function ConsultationPage() {
                             WebkitOverflowScrolling: 'touch',
                             scrollbarWidth: 'none'
                           }}>
-                            {consultation.symptomImages.filter(Boolean).map((imageUrl, index) => (
+                            {consultation.symptomImages.filter(Boolean).map((imageUrl: string, index: number) => (
                               <ConsultationImage 
                                 key={index} 
                                 imageUrl={imageUrl} 
