@@ -10,12 +10,11 @@ const notion = new Client({
 // 고객 정보 업데이트
 export async function PUT(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  const { params } = context;
-  const customerId = params.id;
+  const { id } = params;
   
-  if (!customerId) {
+  if (!id) {
     return NextResponse.json({ error: '고객 ID가 필요합니다.' }, { status: 400 });
   }
   
@@ -69,10 +68,10 @@ export async function PUT(
     }
     
     // 고객 정보 업데이트
-    console.log(`고객 ID ${customerId} 정보 업데이트 중...`, properties);
+    console.log(`고객 ID ${id} 정보 업데이트 중...`, properties);
     
     const response = await notion.pages.update({
-      page_id: customerId,
+      page_id: id,
       properties: properties
     });
     
@@ -95,19 +94,18 @@ export async function PUT(
 // 고객 정보 삭제 (아카이브)
 export async function DELETE(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  const { params } = context;
-  const customerId = params.id;
+  const { id } = params;
   
-  if (!customerId) {
+  if (!id) {
     return NextResponse.json({ error: '고객 ID가 필요합니다.' }, { status: 400 });
   }
   
   try {
     // 노션에서는 완전 삭제 대신 아카이브 처리
     const response = await notion.pages.update({
-      page_id: customerId,
+      page_id: id,
       archived: true
     });
     
