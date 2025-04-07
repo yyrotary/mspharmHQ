@@ -161,7 +161,13 @@ export async function POST(request: Request) {
 }
 
 // 얼굴 임베딩 데이터로 고객 검색
-export async function PUT(request: Request) {
+export async function PUT(
+  request: Request,
+  context: { params: { id: string } }
+) {
+  const { params } = context;
+  const customerId = params.id;
+  
   if (!customerDbId) {
     return NextResponse.json({ error: '노션 고객 DB ID가 설정되지 않았습니다.' }, { status: 500 });
   }
@@ -437,5 +443,27 @@ function getCustomerName(customer: any): string {
     return customer.properties['고객명']?.rich_text?.[0]?.text?.content || customer.id;
   } catch (err) {
     return customer.id;
+  }
+}
+
+// 고객 정보 삭제
+export async function DELETE(
+  request: Request,
+  context: { params: { id: string } }
+) {
+  const { params } = context;
+  const customerId = params.id;
+  
+  if (!customerDbId) {
+    return NextResponse.json({ error: '노션 고객 DB ID가 설정되지 않았습니다.' }, { status: 500 });
+  }
+  
+  try {
+    // 고객 정보 삭제 로직 구현
+    // 이 부분은 구현되지 않았습니다. 필요한 경우 구현해야 합니다.
+    return NextResponse.json({ error: '고객 정보 삭제 기능이 구현되지 않았습니다.' }, { status: 500 });
+  } catch (error) {
+    console.error('고객 정보 삭제 오류:', error);
+    return NextResponse.json({ error: '고객 정보 삭제 중 오류가 발생했습니다.' }, { status: 500 });
   }
 } 
