@@ -83,11 +83,11 @@ export async function PUT(
       const pageResponse = await notion.pages.retrieve({ page_id: id });
       let existingImages = [];
       
-      // @ts-ignore - 타입 정의 문제 해결
+      // @ts-expect-error - 타입 정의 문제 해결
       if (pageResponse.properties?.증상이미지?.files && 
-          // @ts-ignore
+          // @ts-expect-error - 타입 정의 문제 해결
           Array.isArray(pageResponse.properties.증상이미지.files)) {
-        // @ts-ignore
+        // @ts-expect-error - 타입 정의 문제 해결
         existingImages = pageResponse.properties.증상이미지.files;
       }
       
