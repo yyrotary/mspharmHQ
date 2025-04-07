@@ -2159,6 +2159,366 @@ export default function ConsultationPage() {
               </div>
             </div>
           )}
+
+          {/* 상담일지 수정 폼 */}
+          {showEditForm && editConsultation && (
+            <div style={{ 
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+              padding: '1rem'
+            }}>
+              <div style={{ 
+                backgroundColor: 'white', 
+                borderRadius: '0.75rem', 
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                padding: '1.5rem', 
+                maxWidth: '90%',
+                width: '600px',
+                maxHeight: '90vh',
+                overflow: 'auto'
+              }}>
+                <h2 style={{ 
+                  fontSize: '1.25rem', 
+                  fontWeight: 'bold', 
+                  marginBottom: '1rem', 
+                  color: '#1e40af',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <span>상담일지 수정</span>
+                  <button
+                    onClick={() => {
+                      setShowEditForm(false);
+                      setEditConsultation(null);
+                    }}
+                    style={{
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
+                      color: '#6b7280'
+                    }}
+                  >
+                    ×
+                  </button>
+                </h2>
+                <form onSubmit={updateConsultation} style={{ 
+                  backgroundColor: '#eff6ff', 
+                  padding: '1.25rem', 
+                  borderRadius: '0.5rem', 
+                  borderLeft: '4px solid #3b82f6'
+                }}>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      상담일자 *
+                    </label>
+                    <input
+                      type="date"
+                      value={editConsultation.consultationDate}
+                      onChange={(e) => {
+                        if (editConsultation) {
+                          setEditConsultation({
+                            ...editConsultation,
+                            consultationDate: e.target.value
+                          });
+                        }
+                      }}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      required
+                    />
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      상담내용 *
+                    </label>
+                    <textarea
+                      id="edit-consultation-content"
+                      value={editConsultation.consultationContent}
+                      onChange={(e) => {
+                        if (editConsultation) {
+                          setEditConsultation({
+                            ...editConsultation,
+                            consultationContent: e.target.value
+                          });
+                        }
+                      }}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s',
+                        minHeight: '6rem'
+                      }}
+                      rows={4}
+                      required
+                    />
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      처방약
+                    </label>
+                    <textarea
+                      value={editConsultation.prescription}
+                      onChange={(e) => {
+                        if (editConsultation) {
+                          setEditConsultation({
+                            ...editConsultation,
+                            prescription: e.target.value
+                          });
+                        }
+                      }}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={2}
+                    />
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      결과
+                    </label>
+                    <textarea
+                      value={editConsultation.result}
+                      onChange={(e) => {
+                        if (editConsultation) {
+                          setEditConsultation({
+                            ...editConsultation,
+                            result: e.target.value
+                          });
+                        }
+                      }}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={2}
+                    />
+                  </div>
+                  
+                  {/* 이미지 관련 기능 추가 */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      <span style={{ marginRight: '0.25rem' }}>📷</span> 증상 이미지
+                    </label>
+                    <div style={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: '0.75rem', 
+                      marginBottom: '0.75rem' 
+                    }}>
+                      <button
+                        type="button"
+                        onClick={openEditCamera}
+                        style={{ 
+                          backgroundColor: '#2563eb', 
+                          color: 'white', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          borderRadius: '0.5rem', 
+                          display: 'flex', 
+                          alignItems: 'center',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <span style={{ marginRight: '0.5rem' }}>📷</span> 카메라
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => editFileInputRef.current?.click()}
+                        style={{ 
+                          backgroundColor: '#10b981', 
+                          color: 'white', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          borderRadius: '0.5rem', 
+                          display: 'flex', 
+                          alignItems: 'center',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <span style={{ marginRight: '0.5rem' }}>📁</span> 파일 업로드
+                      </button>
+                      <input
+                        type="file"
+                        ref={editFileInputRef}
+                        onChange={handleEditFileUpload}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                        multiple
+                      />
+                      <input
+                        type="file"
+                        ref={editCameraInputRef}
+                        onChange={handleEditCameraCapture}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                        capture="environment"
+                      />
+                    </div>
+                    
+                    {/* 이미지 미리보기 */}
+                    {editConsultation.symptomImages.length > 0 && (
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(2, 1fr)', 
+                        gap: '0.75rem', 
+                        marginTop: '0.75rem' 
+                      }}>
+                        {editConsultation.symptomImages.map((imageUrl, index) => (
+                          <div 
+                            key={index} 
+                            style={{ 
+                              position: 'relative', 
+                              borderRadius: '0.5rem', 
+                              overflow: 'hidden', 
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+                              transition: 'transform 0.2s', 
+                              transform: 'scale(1)'
+                            }}
+                            className="hover:scale-105"
+                          >
+                            <img 
+                              src={imageUrl} 
+                              alt={`증상 이미지 ${index + 1}`} 
+                              style={{ 
+                                width: '100%', 
+                                height: '8rem', 
+                                objectFit: 'cover' 
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeEditImage(index)}
+                              style={{ 
+                                position: 'absolute', 
+                                top: '0.5rem', 
+                                right: '0.5rem', 
+                                backgroundColor: '#ef4444', 
+                                color: 'white', 
+                                borderRadius: '50%', 
+                                width: '2rem', 
+                                height: '2rem', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                opacity: '1', 
+                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+                                fontSize: '1.25rem', 
+                                fontWeight: 'bold',
+                                border: 'none',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEditForm(false);
+                        setEditConsultation(null);
+                      }}
+                      style={{ 
+                        flex: '1',
+                        backgroundColor: '#e5e7eb', 
+                        color: '#1f2937', 
+                        padding: '1rem',
+                        fontSize: '1.125rem', 
+                        borderRadius: '0.5rem', 
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      style={{ 
+                        flex: '1',
+                        backgroundColor: '#3b82f6', 
+                        color: 'white', 
+                        padding: '1rem',
+                        fontSize: '1.125rem', 
+                        borderRadius: '0.5rem', 
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {loading ? '저장 중...' : '저장'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
