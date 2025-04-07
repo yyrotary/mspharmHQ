@@ -10,8 +10,9 @@ const notion = new Client({
 // 고객 정보 업데이트
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { params } = context;
   const customerId = params.id;
   
   if (!customerId) {
@@ -94,8 +95,9 @@ export async function PUT(
 // 고객 정보 삭제 (아카이브)
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { params } = context;
   const customerId = params.id;
   
   if (!customerId) {
