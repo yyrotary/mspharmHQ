@@ -281,7 +281,7 @@ export default function CustomerRecognitionPage() {
       const predictions = await faceDetector.estimateFaces(
         video, 
         false // 랜드마크(눈, 코, 입 등의 위치) 반환 안함
-      ).catch(err => {
+      ).catch((err: Error) => {
         console.error('BlazeFace 감지 오류:', err);
         return []; // 오류 시 빈 배열 반환
       });
