@@ -433,7 +433,7 @@ function calculateFaceSimilarity(embedding1: any, embedding2: any): number {
 // 고객명 추출 도우미 함수
 function getCustomerName(customer: any): string {
   try {
-    // @ts-expect-error
+    // @ts-expect-error - 타입 정의 문제
     return customer.properties['고객명']?.rich_text?.[0]?.text?.content || customer.id;
   } catch (err) {
     return customer.id;
