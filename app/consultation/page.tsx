@@ -972,8 +972,174 @@ export default function ConsultationPage() {
 
   // 상담일지 수정 폼 열기
   const openEditForm = (consultation: FormattedConsultation) => {
-    setEditConsultation(consultation);
+    setEditConsultation({
+      ...consultation,
+      symptomImages: [...consultation.symptomImages]  // 이미지 배열 복사
+    });
     setShowEditForm(true);
+    
+    // 다음 렌더링 사이클에서 포커스 지정
+    setTimeout(() => {
+      const contentTextarea = document.getElementById('edit-consultation-content');
+      if (contentTextarea) {
+        contentTextarea.focus();
+      }
+    }, 100);
+  };
+  
+  // 이미지 추가 변수 추가
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+  const editCameraInputRef = useRef<HTMLInputElement>(null);
+  
+  // 수정폼용 카메라 접근 함수
+  const openEditCamera = () => {
+    if (editCameraInputRef.current) {
+      editCameraInputRef.current.click();
+    }
+  };
+  
+  // 수정폼용 사진 캡처 처리
+  const handleEditCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0 && editConsultation) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      
+      reader.onloadend = () => {
+        // 현재 날짜와 시간을 파일 이름에 포함
+        const now = new Date();
+        const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
+        const customerName = editConsultation.customerName || 'unknown';
+        const fileName = `${customerName}_${dateString}.jpg`;
+        
+        // 이미지 해상도 줄이기
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          // 이미지 해상도를 2/3로 줄임
+          const maxWidth = Math.floor(img.width * 0.67);
+          const maxHeight = Math.floor(img.height * 0.67);
+          
+          canvas.width = maxWidth;
+          canvas.height = maxHeight;
+          
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
+            const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
+            
+            // 이미지 추가
+            if (editConsultation) {
+              setEditConsultation({
+                ...editConsultation,
+                symptomImages: [...editConsultation.symptomImages, reducedImageData]
+              });
+            }
+          }
+        };
+        img.src = reader.result as string;
+      };
+      
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  // 수정폼용 파일 업로드 처리
+  const handleEditFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0 && editConsultation) {
+      for (let i = 0; i < e.target.files.length; i++) {
+        const file = e.target.files[i];
+        const reader = new FileReader();
+        
+        reader.onloadend = () => {
+          // 현재 날짜와 시간을 파일 이름에 포함
+          const now = new Date();
+          const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
+          const customerName = editConsultation.customerName || 'unknown';
+          const fileName = `${customerName}_${dateString}_${i+1}.jpg`;
+          
+          // 이미지 해상도 줄이기
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            // 이미지 해상도를 2/3로 줄임
+            const maxWidth = Math.floor(img.width * 0.67);
+            const maxHeight = Math.floor(img.height * 0.67);
+            
+            canvas.width = maxWidth;
+            canvas.height = maxHeight;
+            
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
+              const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
+              
+              // 이미지 추가
+              if (editConsultation) {
+                setEditConsultation({
+                  ...editConsultation,
+                  symptomImages: [...editConsultation.symptomImages, reducedImageData]
+                });
+              }
+            }
+          };
+          img.src = reader.result as string;
+        };
+        
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+  
+  // 수정폼용 이미지 삭제
+  const removeEditImage = (index: number) => {
+    if (editConsultation) {
+      setEditConsultation({
+        ...editConsultation,
+        symptomImages: editConsultation.symptomImages.filter((_, i) => i !== index)
+      });
+    }
+  };
+  
+  // 수정폼 이미지 업로드 함수
+  const uploadEditImages = async () => {
+    if (!editConsultation || editConsultation.symptomImages.length === 0) return [];
+    
+    try {
+      const uploadedUrls: string[] = [];
+      
+      for (const imageUrl of editConsultation.symptomImages) {
+        // 이미 URL인 경우는 그대로 유지
+        if (imageUrl.startsWith('http')) {
+          uploadedUrls.push(imageUrl);
+          continue;
+        }
+        
+        // Data URL인 경우만 업로드
+        const response = await fetch('/api/google-drive', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: imageUrl,
+            fileName: `${editConsultation.customerName}_${Date.now()}.jpg`
+          }),
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+          uploadedUrls.push(result.viewUrl);
+        } else {
+          console.error('이미지 업로드 실패:', result.error);
+        }
+      }
+      
+      return uploadedUrls;
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error);
+      return [];
+    }
   };
 
   // 상담일지 수정 저장
@@ -998,6 +1164,7 @@ export default function ConsultationPage() {
           content: editConsultation.consultationContent,
           medicine: editConsultation.prescription,
           result: editConsultation.result,
+          imageUrls: editConsultation.symptomImages
         }),
       });
       
@@ -1191,221 +1358,250 @@ export default function ConsultationPage() {
           {/* 신규 고객 등록 폼 */}
           {showCustomerForm && (
             <div style={{ 
-              backgroundColor: 'white', 
-              borderRadius: '0.75rem', 
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-              padding: '1.5rem', 
-              marginBottom: '1.5rem',
-              border: '1px solid #e5e7eb'
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+              padding: '1rem'
             }}>
-              <h2 style={{ 
-                fontSize: '1.25rem', 
-                fontWeight: 'bold', 
-                marginBottom: '1rem', 
-                color: '#1e40af',
-                display: 'flex',
-                alignItems: 'center'
+              <div style={{ 
+                backgroundColor: 'white', 
+                borderRadius: '0.75rem', 
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                padding: '1.5rem', 
+                maxWidth: '90%',
+                width: '600px',
+                maxHeight: '90vh',
+                overflow: 'auto'
               }}>
-                신규 고객 등록
-              </h2>
-              <form onSubmit={registerNewCustomer} style={{ 
-                backgroundColor: '#eff6ff', 
-                padding: '1.25rem', 
-                borderRadius: '0.5rem', 
-                borderLeft: '4px solid #3b82f6'
-              }}>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(1, 1fr)', 
-                  gap: '1rem', 
-                  marginBottom: '1rem'
+                <h2 style={{ 
+                  fontSize: '1.25rem', 
+                  fontWeight: 'bold', 
+                  marginBottom: '1rem', 
+                  color: '#1e40af',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
                 }}>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      이름 *
-                    </label>
-                    <input
-                      type="text"
-                      value={newCustomer.name}
-                      onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                      required
-                    />
+                  <span>신규 고객 등록</span>
+                  <button
+                    onClick={() => setShowCustomerForm(false)}
+                    style={{
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
+                      color: '#6b7280'
+                    }}
+                  >
+                    ×
+                  </button>
+                </h2>
+                <form onSubmit={registerNewCustomer} style={{ 
+                  backgroundColor: '#eff6ff', 
+                  padding: '1.25rem', 
+                  borderRadius: '0.5rem', 
+                  borderLeft: '4px solid #3b82f6'
+                }}>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(1, 1fr)', 
+                    gap: '1rem', 
+                    marginBottom: '1rem'
+                  }}>
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '0.5rem', 
+                        fontWeight: '600',
+                        color: '#1e40af' 
+                      }}>
+                        이름 *
+                      </label>
+                      <input
+                        type="text"
+                        value={newCustomer.name}
+                        onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
+                        style={{ 
+                          width: '100%', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          border: '1px solid #d1d5db', 
+                          borderRadius: '0.5rem',
+                          transition: 'all 0.2s'
+                        }}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '0.5rem', 
+                        fontWeight: '600',
+                        color: '#1e40af' 
+                      }}>
+                        전화번호
+                      </label>
+                      <input
+                        type="tel"
+                        value={newCustomer.phone}
+                        onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
+                        style={{ 
+                          width: '100%', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          border: '1px solid #d1d5db', 
+                          borderRadius: '0.5rem',
+                          transition: 'all 0.2s'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '0.5rem', 
+                        fontWeight: '600',
+                        color: '#1e40af' 
+                      }}>
+                        성별
+                      </label>
+                      <select
+                        value={newCustomer.gender}
+                        onChange={(e) => setNewCustomer({...newCustomer, gender: e.target.value})}
+                        style={{ 
+                          width: '100%', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          border: '1px solid #d1d5db', 
+                          borderRadius: '0.5rem',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <option value="">선택하세요</option>
+                        <option value="남성">남성</option>
+                        <option value="여성">여성</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '0.5rem', 
+                        fontWeight: '600',
+                        color: '#1e40af' 
+                      }}>
+                        생년월일
+                      </label>
+                      <input
+                        type="date"
+                        value={newCustomer.birth}
+                        onChange={(e) => setNewCustomer({...newCustomer, birth: e.target.value})}
+                        style={{ 
+                          width: '100%', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          border: '1px solid #d1d5db', 
+                          borderRadius: '0.5rem',
+                          transition: 'all 0.2s'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '0.5rem', 
+                        fontWeight: '600',
+                        color: '#1e40af' 
+                      }}>
+                        주소
+                      </label>
+                      <input
+                        type="text"
+                        value={newCustomer.address}
+                        onChange={(e) => setNewCustomer({...newCustomer, address: e.target.value})}
+                        style={{ 
+                          width: '100%', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          border: '1px solid #d1d5db', 
+                          borderRadius: '0.5rem',
+                          transition: 'all 0.2s'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '0.5rem', 
+                        fontWeight: '600',
+                        color: '#1e40af' 
+                      }}>
+                        특이사항
+                      </label>
+                      <textarea
+                        value={newCustomer.specialNote}
+                        onChange={(e) => setNewCustomer({...newCustomer, specialNote: e.target.value})}
+                        style={{ 
+                          width: '100%', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          border: '1px solid #d1d5db', 
+                          borderRadius: '0.5rem',
+                          transition: 'all 0.2s',
+                          minHeight: '5rem'
+                        }}
+                        rows={3}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      전화번호
-                    </label>
-                    <input
-                      type="tel"
-                      value={newCustomer.phone}
-                      onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomerForm(false)}
                       style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
+                        flex: '1',
+                        backgroundColor: '#e5e7eb', 
+                        color: '#1f2937', 
+                        padding: '1rem',
                         fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      성별
-                    </label>
-                    <select
-                      value={newCustomer.gender}
-                      onChange={(e) => setNewCustomer({...newCustomer, gender: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
+                        borderRadius: '0.5rem', 
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        cursor: 'pointer'
                       }}
                     >
-                      <option value="">선택하세요</option>
-                      <option value="남성">남성</option>
-                      <option value="여성">여성</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      생년월일
-                    </label>
-                    <input
-                      type="date"
-                      value={newCustomer.birth}
-                      onChange={(e) => setNewCustomer({...newCustomer, birth: e.target.value})}
+                      취소
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
                       style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
+                        flex: '1',
+                        backgroundColor: '#10b981', 
+                        color: 'white', 
+                        padding: '1rem',
                         fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
+                        borderRadius: '0.5rem', 
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        cursor: 'pointer'
                       }}
-                    />
+                    >
+                      {loading ? '저장 중...' : '저장'}
+                    </button>
                   </div>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      주소
-                    </label>
-                    <input
-                      type="text"
-                      value={newCustomer.address}
-                      onChange={(e) => setNewCustomer({...newCustomer, address: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      특이사항
-                    </label>
-                    <textarea
-                      value={newCustomer.specialNote}
-                      onChange={(e) => setNewCustomer({...newCustomer, specialNote: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s',
-                        minHeight: '5rem'
-                      }}
-                      rows={3}
-                    />
-                  </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomerForm(false)}
-                    style={{ 
-                      width: '100%', 
-                      backgroundColor: '#e5e7eb', 
-                      color: '#1f2937', 
-                      padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    취소
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    style={{ 
-                      width: '100%', 
-                      backgroundColor: '#10b981', 
-                      color: 'white', 
-                      padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {loading ? '저장 중...' : '저장'}
-                  </button>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           )}
 
@@ -1633,726 +1829,338 @@ export default function ConsultationPage() {
           {/* 새 상담일지 입력 폼 */}
           {showNewForm && customer && (
             <div style={{ 
-              backgroundColor: 'white', 
-              borderRadius: '0.75rem', 
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-              padding: '1.5rem', 
-              marginBottom: '1.5rem',
-              border: '1px solid #e5e7eb'
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+              padding: '1rem'
             }}>
-              <h2 style={{ 
-                fontSize: '1.25rem', 
-                fontWeight: 'bold', 
-                marginBottom: '1rem', 
-                color: '#1e40af',
-                display: 'flex',
-                alignItems: 'center'
+              <div style={{ 
+                backgroundColor: 'white', 
+                borderRadius: '0.75rem', 
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                padding: '1.5rem', 
+                maxWidth: '90%',
+                width: '600px',
+                maxHeight: '90vh',
+                overflow: 'auto'
               }}>
-                새 상담일지
-              </h2>
-              <form onSubmit={saveConsultation} style={{ 
-                backgroundColor: '#eff6ff', 
-                padding: '1.25rem', 
-                borderRadius: '0.5rem', 
-                borderLeft: '4px solid #3b82f6'
-              }}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    상담일자 *
-                  </label>
-                  <input
-                    type="date"
-                    value={newConsultation.consultDate}
-                    onChange={(e) => setNewConsultation({...newConsultation, consultDate: e.target.value})}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s'
-                    }}
-                    required
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    상담내용 *
-                  </label>
-                  <textarea
-                    ref={contentTextareaRef}
-                    value={newConsultation.content}
-                    onChange={(e) => setNewConsultation({...newConsultation, content: e.target.value})}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s',
-                      minHeight: '6rem'
-                    }}
-                    rows={4}
-                    required
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    처방약
-                  </label>
-                  <textarea
-                    value={newConsultation.medicine}
-                    onChange={(e) => setNewConsultation({...newConsultation, medicine: e.target.value})}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s'
-                    }}
-                    rows={2}
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    결과
-                  </label>
-                  <textarea
-                    value={newConsultation.result}
-                    onChange={(e) => setNewConsultation({...newConsultation, result: e.target.value})}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s'
-                    }}
-                    rows={2}
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    <span style={{ marginRight: '0.25rem' }}>📷</span> 증상 이미지
-                  </label>
-                  <div style={{ 
-                    display: 'flex', 
-                    flexWrap: 'wrap', 
-                    gap: '0.75rem', 
-                    marginBottom: '0.75rem' 
-                  }}>
-                    <button
-                      type="button"
-                      onClick={openCamera}
-                      style={{ 
-                        backgroundColor: '#2563eb', 
-                        color: 'white', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        borderRadius: '0.5rem', 
-                        display: 'flex', 
-                        alignItems: 'center',
-                        border: 'none',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <span style={{ marginRight: '0.5rem' }}>📷</span> 카메라
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      style={{ 
-                        backgroundColor: '#10b981', 
-                        color: 'white', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        borderRadius: '0.5rem', 
-                        display: 'flex', 
-                        alignItems: 'center',
-                        border: 'none',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <span style={{ marginRight: '0.5rem' }}>📁</span> 파일 업로드
-                    </button>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      style={{ display: 'none' }}
-                      accept="image/*"
-                      multiple
-                    />
-                    <input
-                      type="file"
-                      ref={cameraInputRef}
-                      onChange={handleCameraCapture}
-                      style={{ display: 'none' }}
-                      accept="image/*"
-                      capture="environment"
-                    />
-                  </div>
-                  {/* 이미지 미리보기 */}
-                  {newConsultation.images.length > 0 && (
-                    <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: 'repeat(2, 1fr)', 
-                      gap: '0.75rem', 
-                      marginTop: '0.75rem' 
-                    }}>
-                      {newConsultation.images.map((image, index) => (
-                        <div 
-                          key={index} 
-                          style={{ 
-                            position: 'relative', 
-                            borderRadius: '0.5rem', 
-                            overflow: 'hidden', 
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                            transition: 'transform 0.2s', 
-                            transform: 'scale(1)'
-                          }}
-                          className="hover:scale-105"
-                        >
-                          <img 
-                            src={image.data} 
-                            alt={`증상 이미지 ${index + 1}`} 
-                            style={{ 
-                              width: '100%', 
-                              height: '8rem', 
-                              objectFit: 'cover' 
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            style={{ 
-                              position: 'absolute', 
-                              top: '0.5rem', 
-                              right: '0.5rem', 
-                              backgroundColor: '#ef4444', 
-                              color: 'white', 
-                              borderRadius: '50%', 
-                              width: '2rem', 
-                              height: '2rem', 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center', 
-                              opacity: '1', 
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                              fontSize: '1.25rem', 
-                              fontWeight: 'bold',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <h2 style={{ 
+                  fontSize: '1.25rem', 
+                  fontWeight: 'bold', 
+                  marginBottom: '1rem', 
+                  color: '#1e40af',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <span>새 상담일지</span>
                   <button
-                    type="button"
                     onClick={() => setShowNewForm(false)}
-                    style={{ 
-                      width: '100%', 
-                      backgroundColor: '#e5e7eb', 
-                      color: '#1f2937', 
-                      padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    취소
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    style={{ 
-                      width: '100%', 
-                      backgroundColor: '#10b981', 
-                      color: 'white', 
-                      padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {loading ? '저장 중...' : '저장'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* 이미지 모달 */}
-          {showImageModal && (
-            <div 
-              style={{ 
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                zIndex: 1000,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '1rem'
-              }}
-              onClick={closeImageModal}
-            >
-              <div 
-                style={{ 
-                  position: 'relative',
-                  maxWidth: '90vw',
-                  maxHeight: '90vh',
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  borderRadius: '0.5rem',
-                  overflow: 'hidden',
-                  padding: '0.5rem',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
-                }} 
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button 
-                  style={{ 
-                    position: 'absolute',
-                    top: '0.5rem',
-                    right: '0.5rem',
-                    backgroundColor: 'white',
-                    color: 'black',
-                    width: '2.5rem',
-                    height: '2.5rem',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
-                    zIndex: 10,
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    border: 'none',
-                    cursor: 'pointer'
-                  }}
-                  onClick={closeImageModal}
-                >
-                  ×
-                </button>
-                {modalLoading && (
-                  <div style={{ 
-                    position: 'absolute', 
-                    top: '50%', 
-                    left: '50%', 
-                    transform: 'translate(-50%, -50%)',
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    color: 'white',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '0.25rem',
-                    fontSize: '1rem',
-                    zIndex: 5
-                  }}>
-                    이미지 로딩 중...
-                  </div>
-                )}
-                <img 
-                  src={selectedImage} 
-                  alt="증상 이미지 확대" 
-                  style={{ 
-                    maxWidth: '100%',
-                    maxHeight: '85vh',
-                    objectFit: 'contain',
-                    display: 'block',
-                    margin: '0 auto',
-                    borderRadius: '0.25rem'
-                  }}
-                  onLoad={handleImageLoaded}
-                  onError={() => {
-                    setModalLoading(false);
-                    alert('이미지를 불러올 수 없습니다. URL: ' + selectedImage);
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* 상담일지 목록 (카드 형태) */}
-          {consultations.length > 0 && (
-            <div style={{ margin: '0 auto', padding: '1.5rem 0' }}>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>상담 일지</h1>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                {consultations.map((consultation: FormattedConsultation) => (
-                  <div 
-                    key={consultation.id} 
                     style={{
-                      border: '2px solid #e5e7eb', 
-                      borderRadius: '0.75rem', 
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                      overflow: 'hidden',
-                      backgroundColor: 'white',
-                      marginBottom: '1rem'
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
+                      color: '#6b7280'
                     }}
                   >
-                    {/* 상담 정보 헤더 */}
-                    <div 
-                      style={{
-                        backgroundColor: '#eff6ff', 
-                        padding: '1.25rem', 
-                        borderBottom: '2px solid #e5e7eb'
+                    ×
+                  </button>
+                </h2>
+                <form onSubmit={saveConsultation} style={{ 
+                  backgroundColor: '#eff6ff', 
+                  padding: '1.25rem', 
+                  borderRadius: '0.5rem', 
+                  borderLeft: '4px solid #3b82f6'
+                }}>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      상담일자 *
+                    </label>
+                    <input
+                      type="date"
+                      value={newConsultation.consultDate}
+                      onChange={(e) => setNewConsultation({...newConsultation, consultDate: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      required
+                    />
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      상담내용 *
+                    </label>
+                    <textarea
+                      value={editConsultation.consultationContent}
+                      onChange={(e) => setEditConsultation({
+                        ...editConsultation, 
+                        consultationContent: e.target.value
+                      })}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s',
+                        minHeight: '6rem'
+                      }}
+                      rows={4}
+                      required
+                      id="edit-consultation-content"
+                    />
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      처방약
+                    </label>
+                    <textarea
+                      value={editConsultation.prescription}
+                      onChange={(e) => setEditConsultation({
+                        ...editConsultation, 
+                        prescription: e.target.value
+                      })}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={2}
+                    />
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      결과
+                    </label>
+                    <textarea
+                      value={editConsultation.result}
+                      onChange={(e) => setEditConsultation({
+                        ...editConsultation, 
+                        result: e.target.value
+                      })}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={2}
+                    />
+                  </div>
+                  
+                  {/* 이미지 관련 기능 추가 */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      <span style={{ marginRight: '0.25rem' }}>📷</span> 증상 이미지
+                    </label>
+                    <div style={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: '0.75rem', 
+                      marginBottom: '0.75rem' 
+                    }}>
+                      <button
+                        type="button"
+                        onClick={openEditCamera}
+                        style={{ 
+                          backgroundColor: '#2563eb', 
+                          color: 'white', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          borderRadius: '0.5rem', 
+                          display: 'flex', 
+                          alignItems: 'center',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <span style={{ marginRight: '0.5rem' }}>📷</span> 카메라
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => editFileInputRef.current?.click()}
+                        style={{ 
+                          backgroundColor: '#10b981', 
+                          color: 'white', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          borderRadius: '0.5rem', 
+                          display: 'flex', 
+                          alignItems: 'center',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <span style={{ marginRight: '0.5rem' }}>📁</span> 파일 업로드
+                      </button>
+                      <input
+                        type="file"
+                        ref={editFileInputRef}
+                        onChange={handleEditFileUpload}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                        multiple
+                      />
+                      <input
+                        type="file"
+                        ref={editCameraInputRef}
+                        onChange={handleEditCameraCapture}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                        capture="environment"
+                      />
+                    </div>
+                    
+                    {/* 이미지 미리보기 */}
+                    {editConsultation.symptomImages.length > 0 && (
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(2, 1fr)', 
+                        gap: '0.75rem', 
+                        marginTop: '0.75rem' 
+                      }}>
+                        {editConsultation.symptomImages.map((imageUrl, index) => (
+                          <div 
+                            key={index} 
+                            style={{ 
+                              position: 'relative', 
+                              borderRadius: '0.5rem', 
+                              overflow: 'hidden', 
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+                              transition: 'transform 0.2s', 
+                              transform: 'scale(1)'
+                            }}
+                            className="hover:scale-105"
+                          >
+                            <img 
+                              src={imageUrl} 
+                              alt={`증상 이미지 ${index + 1}`} 
+                              style={{ 
+                                width: '100%', 
+                                height: '8rem', 
+                                objectFit: 'cover' 
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeEditImage(index)}
+                              style={{ 
+                                position: 'absolute', 
+                                top: '0.5rem', 
+                                right: '0.5rem', 
+                                backgroundColor: '#ef4444', 
+                                color: 'white', 
+                                borderRadius: '50%', 
+                                width: '2rem', 
+                                height: '2rem', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                opacity: '1', 
+                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+                                fontSize: '1.25rem', 
+                                fontWeight: 'bold',
+                                border: 'none',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEditForm(false);
+                        setEditConsultation(null);
+                      }}
+                      style={{ 
+                        flex: '1',
+                        backgroundColor: '#e5e7eb', 
+                        color: '#1f2937', 
+                        padding: '1rem',
+                        fontSize: '1.125rem', 
+                        borderRadius: '0.5rem', 
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        cursor: 'pointer'
                       }}
                     >
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <p style={{ fontSize: '1rem', color: '#4b5563' }}>
-                            {new Date(consultation.createdTime || consultation.consultationDate).toLocaleString('ko-KR', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: true
-                            })}
-                          </p>
-                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                            <div style={{ fontSize: '1rem', color: '#2563eb', fontWeight: '500' }}>
-                              {consultation.phoneNumber}
-                            </div>
-                            <button
-                              onClick={() => openEditForm(consultation)}
-                              style={{
-                                backgroundColor: '#3b82f6',
-                                color: 'white',
-                                padding: '0.25rem 0.5rem',
-                                borderRadius: '0.25rem',
-                                fontSize: '0.875rem',
-                                border: 'none',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              수정
-                            </button>
-                            <button
-                              onClick={() => deleteConsultation(consultation.id)}
-                              style={{
-                                backgroundColor: '#ef4444',
-                                color: 'white',
-                                padding: '0.25rem 0.5rem',
-                                borderRadius: '0.25rem',
-                                fontSize: '0.875rem',
-                                border: 'none',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              삭제
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 상담 내용 */}
-                    <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                      <div 
-                        style={{
-                          border: '2px solid #f3f4f6', 
-                          borderRadius: '0.5rem', 
-                          padding: '1rem',
-                          backgroundColor: '#f9fafb'
-                        }}
-                      >
-                        <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
-                          상담 내용
-                        </h3>
-                        <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
-                          {consultation.consultationContent || '내용 없음'}
-                        </p>
-                      </div>
-
-                      {/* 이미지가 있는 경우만 표시 */}
-                      {consultation.symptomImages && consultation.symptomImages.length > 0 && consultation.symptomImages.some((url: string) => url) && (
-                        <div>
-                          <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
-                            증상 이미지 ({consultation.symptomImages.filter(Boolean).length}장)
-                          </h3>
-                          <div style={{ 
-                            display: 'flex',
-                            flexWrap: 'nowrap',
-                            overflowX: 'auto',
-                            gap: '0.75rem',
-                            padding: '0.5rem 0',
-                            WebkitOverflowScrolling: 'touch',
-                            scrollbarWidth: 'none'
-                          }}>
-                            {consultation.symptomImages.filter(Boolean).map((imageUrl: string, index: number) => (
-                              <ConsultationImage 
-                                key={index} 
-                                imageUrl={imageUrl} 
-                                index={index} 
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 처방약 정보 - 항상 표시 */}
-                      <div 
-                        style={{
-                          border: '2px solid #f3f4f6', 
-                          borderRadius: '0.5rem', 
-                          padding: '1rem',
-                          backgroundColor: '#f9fafb'
-                        }}
-                      >
-                        <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
-                          처방약
-                        </h3>
-                        <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
-                          {consultation.prescription || '처방약 정보가 없습니다.'}
-                        </p>
-                      </div>
-
-                      {/* 결과 정보 */}
-                      {consultation.result && (
-                        <div 
-                          style={{
-                            border: '2px solid #f3f4f6', 
-                            borderRadius: '0.5rem', 
-                            padding: '1rem',
-                            backgroundColor: '#f9fafb'
-                          }}
-                        >
-                          <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
-                            결과
-                          </h3>
-                          <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
-                            {consultation.result}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                      취소
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      style={{ 
+                        flex: '1',
+                        backgroundColor: '#3b82f6', 
+                        color: 'white', 
+                        padding: '1rem',
+                        fontSize: '1.125rem', 
+                        borderRadius: '0.5rem', 
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {loading ? '저장 중...' : '저장'}
+                    </button>
                   </div>
-                ))}
+                </form>
               </div>
-            </div>
-          )}
-
-          {/* 상담일지 수정 폼 */}
-          {showEditForm && editConsultation && (
-            <div style={{ 
-              backgroundColor: 'white', 
-              borderRadius: '0.75rem', 
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-              padding: '1.5rem', 
-              marginBottom: '1.5rem',
-              border: '1px solid #e5e7eb'
-            }}>
-              <h2 style={{ 
-                fontSize: '1.25rem', 
-                fontWeight: 'bold', 
-                marginBottom: '1rem', 
-                color: '#1e40af',
-                display: 'flex',
-                alignItems: 'center'
-              }}>
-                상담일지 수정
-              </h2>
-              <form onSubmit={updateConsultation} style={{ 
-                backgroundColor: '#eff6ff', 
-                padding: '1.25rem', 
-                borderRadius: '0.5rem', 
-                borderLeft: '4px solid #3b82f6'
-              }}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    상담일자 *
-                  </label>
-                  <input
-                    type="date"
-                    value={editConsultation.consultationDate.split('T')[0]}
-                    onChange={(e) => setEditConsultation({
-                      ...editConsultation, 
-                      consultationDate: e.target.value
-                    })}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s'
-                    }}
-                    required
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    상담내용 *
-                  </label>
-                  <textarea
-                    value={editConsultation.consultationContent}
-                    onChange={(e) => setEditConsultation({
-                      ...editConsultation, 
-                      consultationContent: e.target.value
-                    })}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s',
-                      minHeight: '6rem'
-                    }}
-                    rows={4}
-                    required
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    처방약
-                  </label>
-                  <textarea
-                    value={editConsultation.prescription}
-                    onChange={(e) => setEditConsultation({
-                      ...editConsultation, 
-                      prescription: e.target.value
-                    })}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s'
-                    }}
-                    rows={2}
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    결과
-                  </label>
-                  <textarea
-                    value={editConsultation.result}
-                    onChange={(e) => setEditConsultation({
-                      ...editConsultation, 
-                      result: e.target.value
-                    })}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s'
-                    }}
-                    rows={2}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowEditForm(false);
-                      setEditConsultation(null);
-                    }}
-                    style={{ 
-                      width: '100%', 
-                      backgroundColor: '#e5e7eb', 
-                      color: '#1f2937', 
-                      padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    취소
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    style={{ 
-                      width: '100%', 
-                      backgroundColor: '#3b82f6', 
-                      color: 'white', 
-                      padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {loading ? '저장 중...' : '저장'}
-                  </button>
-                </div>
-              </form>
             </div>
           )}
         </div>
