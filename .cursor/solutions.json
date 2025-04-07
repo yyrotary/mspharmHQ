@@ -67,6 +67,19 @@
             "before": "// @ts-expect-error\ncustomer.properties['속성명']",
             "after": "interface NotionProperty {\n  properties: {\n    [key: string]: {\n      rich_text?: Array<{ text: { content: string } }>\n    }\n  }\n}"
           }
+        },
+        "unused_ts_expect_error": {
+          "problem": "사용되지 않는 @ts-expect-error 지시문",
+          "solution": {
+            "pattern": {
+              "before": "// @ts-expect-error - 타입 정의 문제",
+              "after": "// 타입 문제 해결"
+            },
+            "explanation": "TypeScript에서 실제 타입 오류가 없는데 @ts-expect-error 지시문이 있는 경우 발생하는 오류입니다.",
+            "file": "app/api/customer/route.ts",
+            "error_message": "Unused '@ts-expect-error' directive.",
+            "vercel_build": true
+          }
         }
       }
     }
