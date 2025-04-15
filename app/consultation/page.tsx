@@ -375,11 +375,33 @@ export default function ConsultationPage() {
       let failedUploads = 0;
       let errorMessages: string[] = [];
       
+      // 고객 폴더 ID 가져오기
+      let customerFolderId = null;
+      if (customer) {
+        try {
+          // @ts-expect-error - 타입 정의 문제 해결
+          customerFolderId = customer.properties?.customerFolderId?.rich_text?.[0]?.text?.content || null;
+          if (customerFolderId) {
+            console.log(`고객 폴더 ID 확인: ${customerFolderId}`);
+          }
+        } catch (e) {
+          console.warn('고객 폴더 ID 추출 실패:', e);
+        }
+      }
+      
       for (let i = 0; i < newConsultation.images.length; i++) {
         const image = newConsultation.images[i];
         setMessage(`이미지 업로드 중 (${i+1}/${newConsultation.images.length})...`);
         
         try {
+          // 파일명 포맷 개선
+          const customerId = getNotionPropertyValue(customer?.properties?.id, 'title') || 'unknown';
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const fileNamePrefix = `${customerId}_${timestamp}_${i+1}`;
+          const fileName = `${fileNamePrefix}.jpg`;
+          
+          console.log(`이미지 ${i+1} 업로드 시작: ${fileName}`);
+          
           const response = await fetch('/api/google-drive', {
             method: 'POST',
             headers: {
@@ -387,15 +409,25 @@ export default function ConsultationPage() {
             },
             body: JSON.stringify({
               imageData: image.data,
-              fileName: image.fileName
+              fileName: fileName,
+              customerFolderId: customerFolderId  // 고객 폴더 ID 전달
             }),
           });
           
           const result = await response.json();
           
           if (response.ok && result.success) {
-            // 구글 드라이브 뷰 URL을 사용하여 노션에서 임베드 가능하게 함
-            uploadedUrls.push(result.viewUrl);
+            // 구글 드라이브 링크 사용
+            const fileUrl = result.file?.link || result.fileId 
+              ? `https://drive.google.com/file/d/${result.fileId || result.file?.id}/view`
+              : null;
+            
+            if (fileUrl) {
+              uploadedUrls.push(fileUrl);
+              console.log(`이미지 ${i+1} 업로드 성공: ${fileUrl.substring(0, 60)}...`);
+            } else {
+              throw new Error('유효한 파일 URL이 반환되지 않음');
+            }
           } else {
             failedUploads++;
             const errorMessage = result.error || '알 수 없는 오류';
@@ -443,11 +475,34 @@ export default function ConsultationPage() {
       let failedUploads = 0;
       let errorMessages: string[] = [];
       
+      // 고객 폴더 ID 가져오기
+      let customerFolderId = null;
+      if (customer) {
+        try {
+          // @ts-expect-error - 타입 정의 문제 해결
+          customerFolderId = customer.properties?.customerFolderId?.rich_text?.[0]?.text?.content || null;
+          if (customerFolderId) {
+            console.log(`고객 폴더 ID 확인: ${customerFolderId}`);
+          }
+        } catch (e) {
+          console.warn('고객 폴더 ID 추출 실패:', e);
+        }
+      }
+      
       for (let i = 0; i < editFormData.images.length; i++) {
         const image = editFormData.images[i];
         setMessage(`이미지 업로드 중 (${i+1}/${editFormData.images.length})...`);
         
         try {
+          // 파일명 포맷 개선
+          const customerId = getNotionPropertyValue(customer?.properties?.id, 'title') || 'unknown';
+          const consultationId = editingConsultation?.id.substring(0, 10) || 'edit';
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const fileNamePrefix = `${customerId}_${consultationId}_${timestamp}_${i+1}`;
+          const fileName = `${fileNamePrefix}.jpg`;
+          
+          console.log(`이미지 ${i+1} 업로드 시작: ${fileName}`);
+          
           const response = await fetch('/api/google-drive', {
             method: 'POST',
             headers: {
@@ -455,15 +510,25 @@ export default function ConsultationPage() {
             },
             body: JSON.stringify({
               imageData: image.data,
-              fileName: image.fileName
+              fileName: fileName,
+              customerFolderId: customerFolderId  // 고객 폴더 ID 전달
             }),
           });
           
           const result = await response.json();
           
           if (response.ok && result.success) {
-            // 구글 드라이브 뷰 URL을 사용하여 노션에서 임베드 가능하게 함
-            uploadedUrls.push(result.viewUrl);
+            // 구글 드라이브 링크 사용
+            const fileUrl = result.file?.link || result.fileId 
+              ? `https://drive.google.com/file/d/${result.fileId || result.file?.id}/view`
+              : null;
+            
+            if (fileUrl) {
+              uploadedUrls.push(fileUrl);
+              console.log(`이미지 ${i+1} 업로드 성공: ${fileUrl.substring(0, 60)}...`);
+            } else {
+              throw new Error('유효한 파일 URL이 반환되지 않음');
+            }
           } else {
             failedUploads++;
             const errorMessage = result.error || '알 수 없는 오류';
