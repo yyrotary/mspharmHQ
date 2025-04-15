@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import { CONSULTATION_SCHEMA, NOTION_ENV_VARS, NotionConsultation } from '@/app/lib/notion-schema';
+import { generateConsultationId } from '@/app/lib/utils';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
@@ -69,8 +70,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '상담내용은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
+    // 상담일지 ID 생성
+    const consultationId = generateConsultationId(data.customerId, data.consultDate);
+    
     // 노션 API 형식으로 데이터 변환
     const properties: any = {
+      'id': {
+        [CONSULTATION_SCHEMA.id.type]: [{ 
+          type: 'text', 
+          text: { content: consultationId } 
+        }]
+      },
       '상담일자': {
         [CONSULTATION_SCHEMA.상담일자.type]: {
           start: data.consultDate
@@ -165,7 +175,11 @@ export async function POST(request: Request) {
       properties: properties
     });
     
-    return NextResponse.json({ success: true, consultation: response });
+    return NextResponse.json({ 
+      success: true, 
+      consultation: response,
+      consultationId: consultationId // 생성된 ID 반환
+    });
   } catch (error) {
     console.error('상담일지 저장 오류:', error);
     return NextResponse.json({ error: '상담일지 저장 중 오류가 발생했습니다.' }, { status: 500 });

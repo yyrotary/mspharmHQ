@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import { CUSTOMER_SCHEMA, NOTION_ENV_VARS, NotionCustomer } from '@/app/lib/notion-schema';
+import { generateCustomerId } from '@/app/lib/utils';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
@@ -76,8 +77,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '이름은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
+    // 고객 ID 생성
+    const customId = generateCustomerId(data.name);
+    
     // 노션 API 형식에 맞게 데이터 변환
     const properties: any = {
+      'id': {
+        [CUSTOMER_SCHEMA.id.type]: [{ 
+          type: 'text', 
+          text: { content: customId } 
+        }]
+      },
       '고객명': {
         [CUSTOMER_SCHEMA.고객명.type]: [{ type: 'text', text: { content: data.name } }]
       }
@@ -153,7 +163,11 @@ export async function POST(request: Request) {
       properties: properties
     });
     
-    return NextResponse.json({ success: true, customer: response });
+    return NextResponse.json({ 
+      success: true, 
+      customer: response,
+      customId: customId // 생성된 ID 반환
+    });
   } catch (error) {
     console.error('고객 정보 저장 오류:', error);
     return NextResponse.json({ error: '고객 정보 저장 중 오류가 발생했습니다.' }, { status: 500 });
