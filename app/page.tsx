@@ -11,17 +11,7 @@ export default function Home() {
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}
       >
-        <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '1.5rem 1rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <img 
-            src="/logo.png" 
-            alt="명성약국 로고" 
-            style={{ 
-              height: '40px',
-              width: 'auto',
-              objectFit: 'contain'
-            }}
-          />
-        </div>
+        
       </header>
 
       {/* 메인 컨텐츠 */}
@@ -48,7 +38,7 @@ export default function Home() {
                   src="/logo.png" 
                   alt="명성약국 로고" 
                   style={{ 
-                    height: '120px',
+                    height: '300px',
                     width: 'auto',
                     objectFit: 'contain'
                   }}
