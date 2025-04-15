@@ -31,6 +31,8 @@ jobs:
               env:
                 - name: HTTPS
                   value: "true"
+                - name: NEXT_PUBLIC_API_URL
+                  value: "https://port-0-mspharmhq-m9fqpsan0598a74a.sel4.cloudtype.app"
                 - name: NODE_TLS_REJECT_UNAUTHORIZED
                   value: "0"
                 - name: NOTION_API_KEY

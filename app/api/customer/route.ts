@@ -141,8 +141,8 @@ export async function POST(request: Request) {
     
     // 고객 폴더 ID가 있으면 추가
     if (customerFolderId) {
-      properties['폴더ID'] = {
-        [CUSTOMER_SCHEMA.폴더ID?.type || 'rich_text']: [{ 
+      properties['customerFolderId'] = {
+        [CUSTOMER_SCHEMA.customerFolderId?.type || 'rich_text']: [{ 
           type: 'text', 
           text: { content: customerFolderId } 
         }]

@@ -107,7 +107,8 @@ export const CUSTOMER_SCHEMA = {
   특이사항: { type: 'rich_text' },
   사진: { type: 'relation' },
   얼굴_임베딩: { type: 'rich_text' },
-  상담일지DB: { type: 'relation' }
+  상담일지DB: { type: 'relation' },
+  customerFolderId: { type: 'rich_text' }
 };
 
 // 상담일지 데이터베이스 스키마

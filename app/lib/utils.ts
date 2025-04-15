@@ -161,8 +161,6 @@ export function getApiBaseUrl() {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL
   
   if (baseUrl) {
-    // URL에 이미 프로토콜이 포함되어 있는지 확인
-    
     return baseUrl;
   }
     
