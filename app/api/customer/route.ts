@@ -93,6 +93,33 @@ export async function POST(request: Request) {
     const customId = `${serialNumber}_${baseId}`;
     console.log(`고객 ID 생성: "${data.name}" -> "${customId}" (${serialNumber}번째 고객)`);
     
+    // 구글 드라이브에 고객 폴더 생성
+    let customerFolderId = '';
+    try {
+      console.log('고객 폴더 생성 시작...');
+      const folderResponse = await fetch(new URL('/api/google-drive/folder', request.url).toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          folderName: customId, // 고객 ID를 폴더명으로 사용
+        }),
+      });
+      
+      const folderResult = await folderResponse.json();
+      
+      if (folderResponse.ok && folderResult.success) {
+        customerFolderId = folderResult.folderId;
+        console.log(`고객 폴더 생성 완료: ${folderResult.folderName} (${customerFolderId})`);
+      } else {
+        console.error('고객 폴더 생성 실패:', folderResult.error || '알 수 없는 오류');
+      }
+    } catch (error) {
+      console.error('고객 폴더 생성 중 예외 발생:', error);
+      // 폴더 생성 실패해도 고객 생성은 계속 진행
+    }
+    
     // 노션 API 형식에 맞게 데이터 변환
     const properties: any = {
       'id': {
@@ -105,6 +132,16 @@ export async function POST(request: Request) {
         [CUSTOMER_SCHEMA.고객명.type]: [{ type: 'text', text: { content: data.name } }]
       }
     };
+    
+    // 고객 폴더 ID가 있으면 추가
+    if (customerFolderId) {
+      properties['폴더ID'] = {
+        [CUSTOMER_SCHEMA.폴더ID?.type || 'rich_text']: [{ 
+          type: 'text', 
+          text: { content: customerFolderId } 
+        }]
+      };
+    }
     
     if (data.phone) {
       properties['전화번호'] = {

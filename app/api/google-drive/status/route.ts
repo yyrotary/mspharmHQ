@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
-import fs from 'fs';
 
 // 환경 변수 상태 확인
 function checkEnvironmentVariables() {
@@ -39,20 +38,20 @@ async function testGoogleDriveConnection() {
       throw new Error('GOOGLE_APPLICATION_CREDENTIALS 환경변수가 설정되지 않았습니다.');
     }
     
-    let auth;
-    
-    // JSON 문자열 파싱
+    let credentials;
     try {
-      const credentials = JSON.parse(credentialsEnv);
-      auth = new google.auth.GoogleAuth({
-        credentials,
-        scopes: ['https://www.googleapis.com/auth/drive.file']
-      });
+      credentials = JSON.parse(credentialsEnv);
     } catch (error) {
       throw new Error('GOOGLE_APPLICATION_CREDENTIALS 환경변수가 유효한 JSON 형식이 아닙니다.');
     }
     
-    // 인증 테스트
+    // 인증 객체 생성
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/drive']
+    });
+    
+    // 인증 클라이언트 가져오기
     const client = await auth.getClient();
     
     // 드라이브 API 연결 테스트

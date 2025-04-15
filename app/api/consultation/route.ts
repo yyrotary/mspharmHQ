@@ -103,6 +103,77 @@ export async function POST(request: Request) {
     const consultationId = generateConsultationId(realCustomerId, data.consultDate);
     console.log(`상담일지 ID 생성: "${realCustomerId}" + "${data.consultDate}" -> "${consultationId}"`);
     
+    // 고객 폴더 ID 조회 또는 생성
+    let customerFolderId = null;
+    try {
+      // 고객 폴더 이름으로 고객 ID 사용
+      const folderResponse = await fetch('/api/google-drive/folder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          folderName: realCustomerId
+        }),
+      });
+      
+      if (folderResponse.ok) {
+        const folderData = await folderResponse.json();
+        if (folderData.success) {
+          customerFolderId = folderData.folderId;
+          console.log(`고객 폴더 ID: ${customerFolderId}, 새 폴더 생성: ${folderData.isNew}`);
+        }
+      }
+    } catch (error) {
+      console.error('고객 폴더 조회/생성 오류:', error);
+      // 폴더 생성 실패는 무시하고 계속 진행 (기본 폴더에 저장)
+    }
+    
+    // 이미지 데이터가 있는 경우 업로드
+    let processedImageIds = [];
+    if (data.imageDataArray && Array.isArray(data.imageDataArray) && data.imageDataArray.length > 0) {
+      console.log(`${data.imageDataArray.length}개의 이미지 업로드 시작`);
+      
+      // 이미지 업로드 함수
+      const uploadImage = async (imageData: string, index: number) => {
+        try {
+          const uploadResponse = await fetch('/api/google-drive', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              imageData: imageData,
+              customerFolderId: customerFolderId,
+              consultationId: consultationId,
+              imageIndex: index + 1
+            }),
+          });
+          
+          if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json();
+            if (uploadResult.success) {
+              console.log(`이미지 ${index + 1} 업로드 성공: ${uploadResult.fileId}`);
+              return uploadResult.fileId;
+            }
+          }
+          console.error(`이미지 ${index + 1} 업로드 실패`);
+          return null;
+        } catch (error) {
+          console.error(`이미지 ${index + 1} 업로드 오류:`, error);
+          return null;
+        }
+      };
+      
+      // 병렬 업로드 처리
+      const uploadPromises = data.imageDataArray.map(uploadImage);
+      const uploadResults = await Promise.all(uploadPromises);
+      
+      // 성공적으로 업로드된 이미지 ID만 추출
+      processedImageIds = uploadResults.filter(id => id !== null);
+      console.log(`${processedImageIds.length}개의 이미지 업로드 완료`);
+    }
+    
     // 노션 API 형식으로 데이터 변환
     const properties: any = {
       'id': {
