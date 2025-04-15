@@ -193,8 +193,17 @@ export async function POST(request: Request) {
     
     // Notion 페이지 속성 설정
     const properties = {
-      [CUSTOMER_SCHEMA.NAME.name]: {
+      'id': {
         title: [
+          {
+            text: {
+              content: customId,
+            },
+          },
+        ],
+      },
+      '고객명': {
+        rich_text: [
           {
             text: {
               content: data.name,
@@ -202,22 +211,16 @@ export async function POST(request: Request) {
           },
         ],
       },
-      [CUSTOMER_SCHEMA.PHONE.name]: {
-        rich_text: data.phone ? [
-          {
-            text: {
-              content: data.phone,
-            },
-          },
-        ] : [],
+      '전화번호': {
+        phone_number: data.phone || null,
       },
-      [CUSTOMER_SCHEMA.GENDER.name]: {
+      '성별': {
         select: data.gender ? { name: data.gender } : null,
       },
-      [CUSTOMER_SCHEMA.BIRTH.name]: {
+      '생년월일': {
         date: data.birth ? { start: data.birth } : null,
       },
-      [CUSTOMER_SCHEMA.ADDRESS.name]: {
+      '주소': {
         rich_text: data.address ? [
           {
             text: {
@@ -226,19 +229,16 @@ export async function POST(request: Request) {
           },
         ] : [],
       },
-      [CUSTOMER_SCHEMA.EMAIL.name]: {
-        email: data.email || null,
-      },
-      [CUSTOMER_SCHEMA.CUSTOM_ID.name]: {
-        rich_text: [
+      '특이사항': {
+        rich_text: data.specialNote ? [
           {
             text: {
-              content: customId,
+              content: data.specialNote,
             },
           },
-        ],
+        ] : [],
       },
-      [CUSTOMER_SCHEMA.FOLDER_ID.name]: {
+      'customerFolderId': {
         rich_text: customerFolderId ? [
           {
             text: {
