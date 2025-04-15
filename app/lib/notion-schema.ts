@@ -214,6 +214,11 @@ export interface NotionCustomer {
       type: 'relation';
       relation: Array<{id: string}> | [];
     };
+    customerFolderId?: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
   };
 }
 

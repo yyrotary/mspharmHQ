@@ -93,6 +93,18 @@ export async function PUT(
       };
     }
     
+    if (data.customerFolderId !== undefined) {
+      properties[CUSTOMER_SCHEMA.CUSTOMER_FOLDER_ID.name] = {
+        rich_text: data.customerFolderId ? [
+          {
+            text: {
+              content: data.customerFolderId,
+            },
+          },
+        ] : [],
+      };
+    }
+    
     // 고객 정보 업데이트
     console.log(`고객 ID ${id} 정보 업데이트 중...`, properties);
     

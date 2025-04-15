@@ -12,7 +12,7 @@ async function getAuthClient() {
     
     // JSON 문자열 처리
     try {
-      const credentials = JSON.parse(credentialsEnv);
+      const credentials = JSON.parse(credentialsEnv || '{}');
       console.log('JSON 형식의 인증 정보를 사용합니다.');
       
       const auth = new google.auth.GoogleAuth({
