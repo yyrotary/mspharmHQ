@@ -70,14 +70,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '상담내용은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
-    // 상담일지 ID 생성
-    const consultationId = generateConsultationId(data.customerId, data.consultDate);
+    // 변수 분리 - 페이지 ID와 고객 ID 값을 구분
+    let customerPageId = data.customerId;  // Notion 페이지 ID (relation에 사용)
+    let customerIdValue = data.customerId; // 고객 ID 텍스트 값 (ID 생성에 사용)
+    
+    // data.customerId가 Notion 페이지 ID(UUID)인 경우, 해당 고객의 실제 ID 값을 조회
+    if (data.customerId.includes('-')) {
+      try {
+        // 고객 페이지를 조회하여 실제 ID 값 가져오기
+        const customerPage = await notion.pages.retrieve({
+          page_id: data.customerId
+        });
+        
+        // @ts-expect-error - 타입 정의 문제
+        const idField = customerPage.properties?.id?.title?.[0]?.text?.content;
+        
+        if (idField) {
+          customerIdValue = idField; // 고객 ID 값만 업데이트
+          console.log(`고객 페이지 ID(${data.customerId})에서 실제 ID 값(${customerIdValue})을 추출했습니다.`);
+        }
+      } catch (error) {
+        console.warn('고객 ID 조회 중 오류가 발생했습니다. 제공된 ID를 그대로 사용합니다:', error);
+      }
+    }
+    
+    // 상담일지 ID 생성 - 고객 ID 텍스트 값 사용
+    const consultationId = generateConsultationId(customerIdValue, data.consultDate);
     
     // 노션 API 형식으로 데이터 변환
     const properties: any = {
+      // ID 필드는 title 타입임
       'id': {
         [CONSULTATION_SCHEMA.id.type]: [{ 
-          type: 'text', 
           text: { content: consultationId } 
         }]
       },
@@ -89,7 +113,7 @@ export async function POST(request: Request) {
       '고객': {
         [CONSULTATION_SCHEMA.고객.type]: [
           {
-            id: data.customerId
+            id: customerPageId // 관계 필드에는 페이지 ID를 사용
           }
         ]
       },

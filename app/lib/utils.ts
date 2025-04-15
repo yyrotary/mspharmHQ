@@ -42,7 +42,8 @@ export function koreanLastNameToRoman(lastName: string): string {
     '위': 'wi', '사': 'sa'
   };
   
-  return lastNameMap[lastName] || lastName;
+  const romanized = lastNameMap[lastName] || lastName;
+  return romanized.toLowerCase(); // 항상 소문자로 반환
 }
 
 /**
@@ -52,9 +53,11 @@ export function koreanLastNameToRoman(lastName: string): string {
  */
 export function koreanFirstNameToInitials(firstName: string): string {
   // 간단한 구현: 첫 번째 문자와 두 번째 문자만 추출
-  return firstName.length > 1 
+  const result = firstName.length > 1 
     ? firstName.charAt(0).toLowerCase() + firstName.charAt(1).toLowerCase()
     : firstName.toLowerCase();
+  
+  return result;
 }
 
 /**
@@ -69,6 +72,9 @@ export function generateCustomerId(fullName: string): string {
   
   const romanLastName = koreanLastNameToRoman(lastName);
   const initials = koreanFirstNameToInitials(firstName);
+  
+  // 디버그 로그
+  console.log(`이름 변환: ${fullName} -> 성: ${lastName}(${romanLastName}), 이름: ${firstName}(${initials})`);
   
   return `${romanLastName}${initials}`;
 }
@@ -97,5 +103,9 @@ export function formatDateToShort(date: string | Date): string {
  */
 export function generateConsultationId(customerId: string, consultDate: string): string {
   const dateShort = formatDateToShort(consultDate);
+  
+  // 디버그 로그
+  console.log(`상담 ID 생성: 고객 ID ${customerId}, 날짜 ${consultDate} -> ${customerId}_${dateShort}`);
+  
   return `${customerId}_${dateShort}`;
 } 

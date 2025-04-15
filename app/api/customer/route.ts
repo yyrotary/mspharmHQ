@@ -84,7 +84,6 @@ export async function POST(request: Request) {
     const properties: any = {
       'id': {
         [CUSTOMER_SCHEMA.id.type]: [{ 
-          type: 'text', 
           text: { content: customId } 
         }]
       },
