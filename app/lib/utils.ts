@@ -2,6 +2,16 @@
  * 유틸리티 함수 모음
  */
 
+// Node.js 타입 정의
+declare const process: {
+  env: {
+    [key: string]: string | undefined;
+    NEXT_PUBLIC_API_URL?: string;
+    VERCEL_URL?: string;
+    PORT?: string;
+  }
+};
+
 /**
  * 한글 이름에서 성(姓)을 추출합니다.
  * @param fullName 전체 이름
@@ -151,7 +161,12 @@ export function getApiBaseUrl() {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.VERCEL_URL;
   
   if (baseUrl) {
-    // 개발 환경에 따라 적절한 프로토콜 결정
+    // URL에 이미 프로토콜이 포함되어 있는지 확인
+    if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
+      return baseUrl;
+    }
+    
+    // 프로토콜이 없는 경우 도메인에 따라 적절한 프로토콜 추가
     return baseUrl.startsWith('localhost') 
       ? `http://${baseUrl}` 
       : `https://${baseUrl}`;

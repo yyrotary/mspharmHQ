@@ -99,6 +99,7 @@ export async function POST(request: Request) {
       console.log('고객 폴더 생성 시작...');
       // API 기본 URL을 이용해 폴더 API URL 생성
       const apiBaseUrl = getApiBaseUrl();
+      console.log(`API 기본 URL: ${apiBaseUrl}`);
       const apiUrl = `${apiBaseUrl}/api/google-drive/folder`;
       console.log(`폴더 생성 API 호출: ${apiUrl}`);
       
