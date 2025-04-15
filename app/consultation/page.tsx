@@ -372,32 +372,64 @@ export default function ConsultationPage() {
     
     try {
       const uploadedUrls: string[] = [];
+      let failedUploads = 0;
+      let errorMessages: string[] = [];
       
-      for (const image of newConsultation.images) {
-        const response = await fetch('/api/google-drive', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            imageData: image.data,
-            fileName: image.fileName
-          }),
-        });
+      for (let i = 0; i < newConsultation.images.length; i++) {
+        const image = newConsultation.images[i];
+        setMessage(`이미지 업로드 중 (${i+1}/${newConsultation.images.length})...`);
         
-        const result = await response.json();
+        try {
+          const response = await fetch('/api/google-drive', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              imageData: image.data,
+              fileName: image.fileName
+            }),
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok && result.success) {
+            // 구글 드라이브 뷰 URL을 사용하여 노션에서 임베드 가능하게 함
+            uploadedUrls.push(result.viewUrl);
+          } else {
+            failedUploads++;
+            const errorMessage = result.error || '알 수 없는 오류';
+            errorMessages.push(errorMessage);
+            console.error(`이미지 ${i+1} 업로드 실패:`, errorMessage);
+          }
+        } catch (error) {
+          failedUploads++;
+          console.error(`이미지 ${i+1} 업로드 중 예외 발생:`, error);
+          errorMessages.push('네트워크 오류');
+        }
+      }
+      
+      // 업로드 결과 요약
+      if (failedUploads > 0) {
+        const totalImages = newConsultation.images.length;
+        const successCount = totalImages - failedUploads;
         
-        if (response.ok && result.success) {
-          // 구글 드라이브 뷰 URL을 사용하여 노션에서 임베드 가능하게 함
-          uploadedUrls.push(result.viewUrl);
-        } else {
-          console.error('이미지 업로드 실패:', result.error);
+        let errorSummary = errorMessages.length > 0 
+          ? ` 오류: ${errorMessages[0]}${errorMessages.length > 1 ? ` 외 ${errorMessages.length - 1}건` : ''}`
+          : '';
+          
+        setMessage(`이미지 ${successCount}/${totalImages}개 업로드 성공.${errorSummary}`);
+        
+        // 모든 이미지 업로드 실패 시 
+        if (successCount === 0) {
+          throw new Error(`모든 이미지 업로드 실패. ${errorMessages[0]}`);
         }
       }
       
       return uploadedUrls;
     } catch (error) {
       console.error('이미지 업로드 오류:', error);
+      setMessage(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       return [];
     }
   };
@@ -408,37 +440,156 @@ export default function ConsultationPage() {
     
     try {
       const uploadedUrls: string[] = [];
+      let failedUploads = 0;
+      let errorMessages: string[] = [];
       
-      for (const image of editFormData.images) {
-        const response = await fetch('/api/google-drive', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            imageData: image.data,
-            fileName: image.fileName
-          }),
-        });
+      for (let i = 0; i < editFormData.images.length; i++) {
+        const image = editFormData.images[i];
+        setMessage(`이미지 업로드 중 (${i+1}/${editFormData.images.length})...`);
         
-        const result = await response.json();
+        try {
+          const response = await fetch('/api/google-drive', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              imageData: image.data,
+              fileName: image.fileName
+            }),
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok && result.success) {
+            // 구글 드라이브 뷰 URL을 사용하여 노션에서 임베드 가능하게 함
+            uploadedUrls.push(result.viewUrl);
+          } else {
+            failedUploads++;
+            const errorMessage = result.error || '알 수 없는 오류';
+            errorMessages.push(errorMessage);
+            console.error(`이미지 ${i+1} 업로드 실패:`, errorMessage);
+          }
+        } catch (error) {
+          failedUploads++;
+          console.error(`이미지 ${i+1} 업로드 중 예외 발생:`, error);
+          errorMessages.push('네트워크 오류');
+        }
+      }
+      
+      // 업로드 결과 요약
+      if (failedUploads > 0) {
+        const totalImages = editFormData.images.length;
+        const successCount = totalImages - failedUploads;
         
-        if (response.ok && result.success) {
-          // 구글 드라이브 뷰 URL을 사용하여 노션에서 임베드 가능하게 함
-          uploadedUrls.push(result.viewUrl);
-        } else {
-          console.error('이미지 업로드 실패:', result.error);
+        let errorSummary = errorMessages.length > 0 
+          ? ` 오류: ${errorMessages[0]}${errorMessages.length > 1 ? ` 외 ${errorMessages.length - 1}건` : ''}`
+          : '';
+          
+        setMessage(`이미지 ${successCount}/${totalImages}개 업로드 성공.${errorSummary}`);
+        
+        // 모든 이미지 업로드 실패 시 
+        if (successCount === 0) {
+          throw new Error(`모든 이미지 업로드 실패. ${errorMessages[0]}`);
         }
       }
       
       return uploadedUrls;
     } catch (error) {
       console.error('이미지 업로드 오류:', error);
+      setMessage(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       return [];
     }
   };
   
-  // 상담일지 저장
+  // 1. 추가: 시스템 상태 진단 기능
+  const [systemStatus, setSystemStatus] = useState<{ 
+    googleDrive: 'unknown' | 'checking' | 'ok' | 'error',
+    googleDriveMessage: string
+  }>({
+    googleDrive: 'unknown',
+    googleDriveMessage: ''
+  });
+
+  // 시스템 상태 진단 함수
+  const checkSystemStatus = async () => {
+    // 구글 드라이브 연결 상태 확인
+    try {
+      setSystemStatus(prev => ({ ...prev, googleDrive: 'checking', googleDriveMessage: '구글 드라이브 연결 확인 중...' }));
+      
+      const response = await fetch('/api/google-drive/status', {
+        method: 'GET'
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setSystemStatus(prev => ({ 
+            ...prev, 
+            googleDrive: 'ok', 
+            googleDriveMessage: '구글 드라이브 연결 정상'
+          }));
+        } else {
+          setSystemStatus(prev => ({ 
+            ...prev, 
+            googleDrive: 'error', 
+            googleDriveMessage: `구글 드라이브 연결 오류: ${result.error || '알 수 없는 오류'}`
+          }));
+        }
+      } else {
+        setSystemStatus(prev => ({ 
+          ...prev, 
+          googleDrive: 'error', 
+          googleDriveMessage: '구글 드라이브 상태 확인 API 연결 실패'
+        }));
+      }
+    } catch (error) {
+      setSystemStatus(prev => ({ 
+        ...prev, 
+        googleDrive: 'error', 
+        googleDriveMessage: `구글 드라이브 연결 확인 중 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      }));
+    }
+  };
+  
+  // 이미지 업로드 문제 발생 시 재시도 및 진단 기능
+  const troubleshootImageUpload = async () => {
+    setLoading(true);
+    setMessage('이미지 업로드 시스템 진단 중...');
+    
+    try {
+      // 시스템 상태 확인
+      await checkSystemStatus();
+      
+      // 간단한 테스트 이미지 업로드 시도
+      const testImageData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFeAJ3jyYOzAAAAABJRU5ErkJggg=='; // 1x1 투명 픽셀
+      
+      const response = await fetch('/api/google-drive', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageData: testImageData,
+          fileName: 'test_image.png'
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        setMessage('테스트 이미지 업로드 성공. 이제 다시 시도해보세요.');
+      } else {
+        setMessage(`테스트 이미지 업로드 실패: ${result.error || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      setMessage(`진단 중 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // 2. 상담 내용 저장 부분 수정
   const saveConsultation = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -457,8 +608,24 @@ export default function ConsultationPage() {
       setMessage('상담일지 저장 중...');
       
       // 1. 이미지 업로드
-      setMessage('이미지 업로드 중...');
-      const imageUrls = await uploadImages();
+      let imageUrls: string[] = [];
+      if (newConsultation.images.length > 0) {
+        setMessage('이미지 업로드 중...');
+        imageUrls = await uploadImages();
+        
+        // 이미지 업로드 모두 실패한 경우 진단 버튼 표시
+        if (imageUrls.length === 0 && newConsultation.images.length > 0) {
+          setMessage('이미지 업로드 실패. 시스템 진단이 필요합니다.');
+          setLoading(false);
+          
+          // 알림 추가
+          if (confirm('이미지 업로드에 실패했습니다. 시스템 진단을 실행하시겠습니까?')) {
+            await troubleshootImageUpload();
+            return;
+          }
+          return;
+        }
+      }
       
       // 2. 상담일지 저장
       const response = await fetch('/api/consultation', {
@@ -1450,6 +1617,52 @@ export default function ConsultationPage() {
                   >
                     등록하기
                   </button>
+                )}
+                {message.includes('업로드 실패') && (
+                  <button
+                    onClick={troubleshootImageUpload}
+                    style={{ marginLeft: '0.5rem', textDecoration: 'underline', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    시스템 진단하기
+                  </button>
+                )}
+                
+                {/* 시스템 상태 표시 */}
+                {systemStatus.googleDrive !== 'unknown' && (
+                  <div style={{ 
+                    marginTop: '0.75rem',
+                    padding: '0.75rem', 
+                    backgroundColor: systemStatus.googleDrive === 'ok' ? '#f0fdf4' : '#fef2f2',
+                    borderRadius: '0.25rem',
+                    fontSize: '0.875rem',
+                    border: `1px solid ${systemStatus.googleDrive === 'ok' ? '#86efac' : '#fecaca'}`
+                  }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      color: systemStatus.googleDrive === 'ok' ? '#166534' : '#b91c1c'
+                    }}>
+                      <span style={{ marginRight: '0.5rem' }}>
+                        {systemStatus.googleDrive === 'checking' ? '⏳' : 
+                         systemStatus.googleDrive === 'ok' ? '✅' : '❌'}
+                      </span>
+                      <strong>구글 드라이브 상태:</strong> 
+                      <span style={{ marginLeft: '0.5rem' }}>{systemStatus.googleDriveMessage}</span>
+                    </div>
+                    
+                    {systemStatus.googleDrive === 'error' && (
+                      <div style={{ marginTop: '0.5rem', color: '#b91c1c' }}>
+                        <p>문제 해결 방법:</p>
+                        <ol style={{ paddingLeft: '1.5rem', marginTop: '0.25rem' }}>
+                          <li>서비스 계정 키(JSON) 파일이 올바른 위치에 있는지 확인하세요.</li>
+                          <li>환경 변수 GOOGLE_APPLICATION_CREDENTIALS가 올바르게
+                          설정되었는지 확인하세요.</li>
+                          <li>서비스 계정에 Google Drive API 권한이 있는지 확인하세요.</li>
+                          <li>서버를 재시작해 보세요.</li>
+                        </ol>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
