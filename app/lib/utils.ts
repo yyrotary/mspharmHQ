@@ -175,4 +175,4 @@ export function getApiBaseUrl() {
   // 기본 개발 환경 URL
   const port = process.env.PORT || 3000;
   return `http://localhost:${port}`;
-} 
+}
