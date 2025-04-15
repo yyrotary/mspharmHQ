@@ -21,18 +21,31 @@ function checkEnvironmentVariables() {
     } else {
       console.log(`✅ ${name} = ${value.substring(0, 10)}...`);
       
-      // 자격 증명 파일 존재 확인
+      // 인증 정보 확인
       if (name === 'GOOGLE_APPLICATION_CREDENTIALS') {
-        try {
-          if (fs.existsSync(value)) {
-            console.log(`✅ 자격 증명 파일이 존재합니다: ${value}`);
-          } else {
-            console.error(`❌ 자격 증명 파일이 존재하지 않습니다: ${value}`);
+        // JSON 문자열인지 파일 경로인지 확인
+        if (value.trim().startsWith('{')) {
+          try {
+            // JSON 형식 검증
+            JSON.parse(value);
+            console.log(`✅ 유효한 JSON 형식의 인증 정보가 확인되었습니다.`);
+          } catch (err) {
+            console.error(`❌ 유효한 JSON 형식이 아닙니다: ${err}`);
             hasError = true;
           }
-        } catch (err) {
-          console.error(`❌ 자격 증명 파일 확인 중 오류 발생: ${err}`);
-          hasError = true;
+        } else {
+          // 자격 증명 파일 존재 확인
+          try {
+            if (fs.existsSync(value)) {
+              console.log(`✅ 자격 증명 파일이 존재합니다: ${value}`);
+            } else {
+              console.error(`❌ 자격 증명 파일이 존재하지 않습니다: ${value}`);
+              hasError = true;
+            }
+          } catch (err) {
+            console.error(`❌ 자격 증명 파일 확인 중 오류 발생: ${err}`);
+            hasError = true;
+          }
         }
       }
     }
@@ -49,20 +62,29 @@ checkEnvironmentVariables();
 async function getAuthClient() {
   try {
     // 환경 변수 검증
-    const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-    if (!credentialsPath) {
+    const credentialsEnv = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    if (!credentialsEnv) {
       throw new Error('GOOGLE_APPLICATION_CREDENTIALS 환경변수가 설정되지 않았습니다.');
     }
     
-    const auth = new google.auth.GoogleAuth({
-      // 환경 변수에서 자동으로 GOOGLE_APPLICATION_CREDENTIALS 경로를 읽어옴
-      scopes: ['https://www.googleapis.com/auth/drive.file']
-    });
-    
-    // 인증 테스트
-    await auth.getClient();
-    console.log('구글 인증 성공');
-    return auth;
+    // JSON 문자열 처리
+    try {
+      const credentials = JSON.parse(credentialsEnv);
+      console.log('JSON 형식의 인증 정보를 사용합니다.');
+      
+      const auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: ['https://www.googleapis.com/auth/drive.file']
+      });
+      
+      // 인증 테스트
+      await auth.getClient();
+      console.log('구글 인증 성공');
+      return auth;
+    } catch (error) {
+      console.error('JSON 파싱 오류:', error);
+      throw new Error('GOOGLE_APPLICATION_CREDENTIALS 환경변수가 유효한 JSON 형식이 아닙니다.');
+    }
   } catch (error) {
     console.error('구글 인증 오류:', error);
     throw error;

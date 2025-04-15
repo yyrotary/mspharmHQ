@@ -16,11 +16,11 @@ function checkEnvironmentVariables() {
       issues.push(`${name} 환경 변수가 설정되지 않았습니다.`);
     } else if (name === 'GOOGLE_APPLICATION_CREDENTIALS') {
       try {
-        if (!fs.existsSync(value)) {
-          issues.push(`자격 증명 파일이 존재하지 않습니다: ${value}`);
-        }
+        // JSON 형식 검증
+        JSON.parse(value);
+        console.log('JSON 형식의 인증 정보가 확인되었습니다.');
       } catch (err) {
-        issues.push(`자격 증명 파일 확인 중 오류 발생: ${err}`);
+        issues.push(`GOOGLE_APPLICATION_CREDENTIALS가 유효한 JSON 형식이 아닙니다: ${err}`);
       }
     }
   }
@@ -34,14 +34,23 @@ function checkEnvironmentVariables() {
 // 구글 드라이브 연결 확인
 async function testGoogleDriveConnection() {
   try {
-    const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-    if (!credentialsPath) {
+    const credentialsEnv = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    if (!credentialsEnv) {
       throw new Error('GOOGLE_APPLICATION_CREDENTIALS 환경변수가 설정되지 않았습니다.');
     }
     
-    const auth = new google.auth.GoogleAuth({
-      scopes: ['https://www.googleapis.com/auth/drive.file']
-    });
+    let auth;
+    
+    // JSON 문자열 파싱
+    try {
+      const credentials = JSON.parse(credentialsEnv);
+      auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: ['https://www.googleapis.com/auth/drive.file']
+      });
+    } catch (error) {
+      throw new Error('GOOGLE_APPLICATION_CREDENTIALS 환경변수가 유효한 JSON 형식이 아닙니다.');
+    }
     
     // 인증 테스트
     const client = await auth.getClient();
