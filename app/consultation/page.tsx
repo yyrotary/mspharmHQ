@@ -249,10 +249,10 @@ export default function ConsultationPage() {
       if (response.ok && result.success) {
         setMessage('새 고객이 등록되었습니다.');
         setShowCustomerForm(false);
-        setCustomer(result.customer);
+        //setCustomer(result.customer);
         
         // 상담일지 폼 열기
-        setShowNewForm(true);
+        //setShowNewForm(true);
       } else {
         throw new Error(result.error || '고객 정보 저장 중 오류가 발생했습니다.');
       }
