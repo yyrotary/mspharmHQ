@@ -43,7 +43,17 @@ export default function Home() {
               gap: '1rem', 
               marginBottom: '1rem' 
             }}>
-              <div style={{ fontSize: '4rem' }}>💊</div>
+              <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '1.5rem 1rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <img 
+                  src="/logo.png" 
+                  alt="명성약국 로고" 
+                  style={{ 
+                    height: '120px',
+                    width: 'auto',
+                    objectFit: 'contain'
+                  }}
+                />
+              </div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>건강을 위한 최선의 선택</h2>
               <p style={{ fontSize: '1.125rem', textAlign: 'center', color: '#4b5563', maxWidth: '42rem' }}>
                 고객의 건강을 최우선으로 생각하는 명성약국입니다.
