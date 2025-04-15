@@ -402,6 +402,42 @@ export default function ConsultationPage() {
     }
   };
   
+  // 수정 폼용 이미지 업로드 함수
+  const uploadEditImages = async () => {
+    if (editFormData.images.length === 0) return [];
+    
+    try {
+      const uploadedUrls: string[] = [];
+      
+      for (const image of editFormData.images) {
+        const response = await fetch('/api/google-drive', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: image.data,
+            fileName: image.fileName
+          }),
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+          // 구글 드라이브 뷰 URL을 사용하여 노션에서 임베드 가능하게 함
+          uploadedUrls.push(result.viewUrl);
+        } else {
+          console.error('이미지 업로드 실패:', result.error);
+        }
+      }
+      
+      return uploadedUrls;
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error);
+      return [];
+    }
+  };
+  
   // 상담일지 저장
   const saveConsultation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1082,7 +1118,7 @@ export default function ConsultationPage() {
       let imageUrls: string[] = [];
       if (editFormData.images.length > 0) {
         setMessage('이미지 업로드 중...');
-        imageUrls = await uploadImages();
+        imageUrls = await uploadEditImages();
       }
       
       // 2. 상담일지 업데이트
@@ -2179,7 +2215,122 @@ export default function ConsultationPage() {
                       증상 이미지
                     </label>
                     
-                    {/* ... existing image upload UI ... */}
+                    {/* 이미지 업로드 버튼 추가 */}
+                    <div style={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: '0.75rem', 
+                      marginBottom: '0.75rem' 
+                    }}>
+                      <button
+                        type="button"
+                        onClick={openCamera}
+                        style={{ 
+                          backgroundColor: '#2563eb', 
+                          color: 'white', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          borderRadius: '0.5rem', 
+                          display: 'flex', 
+                          alignItems: 'center',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <span style={{ marginRight: '0.5rem' }}>📷</span> 카메라
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        style={{ 
+                          backgroundColor: '#10b981', 
+                          color: 'white', 
+                          padding: '1rem', 
+                          fontSize: '1.125rem', 
+                          borderRadius: '0.5rem', 
+                          display: 'flex', 
+                          alignItems: 'center',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <span style={{ marginRight: '0.5rem' }}>📁</span> 파일 업로드
+                      </button>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                        multiple
+                      />
+                      <input
+                        type="file"
+                        ref={cameraInputRef}
+                        onChange={handleCameraCapture}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                        capture="environment"
+                      />
+                    </div>
+                    
+                    {/* 이미지 미리보기 */}
+                    {newConsultation.images.length > 0 && (
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(2, 1fr)', 
+                        gap: '0.75rem', 
+                        marginTop: '0.75rem' 
+                      }}>
+                        {newConsultation.images.map((image, index) => (
+                          <div 
+                            key={index} 
+                            style={{ 
+                              position: 'relative', 
+                              borderRadius: '0.5rem', 
+                              overflow: 'hidden', 
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+                              aspectRatio: '1', 
+                              transition: 'transform 0.2s', 
+                              backgroundColor: '#f3f4f6' 
+                            }}
+                          >
+                            <img 
+                              src={image.data} 
+                              alt={`증상 이미지 ${index + 1}`} 
+                              style={{ 
+                                width: '100%', 
+                                height: '100%', 
+                                objectFit: 'cover' 
+                              }} 
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              style={{ 
+                                position: 'absolute', 
+                                top: '0.25rem', 
+                                right: '0.25rem', 
+                                backgroundColor: 'rgba(239, 68, 68, 0.8)', 
+                                color: 'white', 
+                                width: '1.75rem', 
+                                height: '1.75rem', 
+                                borderRadius: '50%', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                fontSize: '1rem', 
+                                fontWeight: 'bold',
+                                border: 'none',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   
                   <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>

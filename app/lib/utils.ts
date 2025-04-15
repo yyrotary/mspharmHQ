@@ -76,7 +76,7 @@ export function getInitials(name: string): string {
   const initialToRoman: {[key: string]: string} = {
     'ㄱ': 'g', 'ㄲ': 'kk', 'ㄴ': 'n', 'ㄷ': 'd', 'ㄸ': 'dd',
     'ㄹ': 'r', 'ㅁ': 'm', 'ㅂ': 'b', 'ㅃ': 'bb', 'ㅅ': 's',
-    'ㅆ': 'ss', 'ㅇ': '', 'ㅈ': 'j', 'ㅉ': 'jj', 'ㅊ': 'ch',
+    'ㅆ': 'ss', 'ㅇ': 'i', 'ㅈ': 'j', 'ㅉ': 'jj', 'ㅊ': 'ch',
     'ㅋ': 'k', 'ㅌ': 't', 'ㅍ': 'p', 'ㅎ': 'h'
   };
   
