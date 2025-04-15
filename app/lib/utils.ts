@@ -140,4 +140,24 @@ export function generateConsultationId(customerId: string, consultDate: string):
   
   const dateShort = formatDateToShort(consultDate);
   return `${customerId}_${dateShort}`;
+}
+
+/**
+ * API 호출을 위한 기본 URL을 반환하는 함수
+ * 개발 환경에서는 localhost, 프로덕션 환경에서는 실제 도메인을 사용
+ */
+export function getApiBaseUrl() {
+  // 환경 변수에서 URL을 가져오거나 기본값으로 localhost 사용
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.VERCEL_URL;
+  
+  if (baseUrl) {
+    // 개발 환경에 따라 적절한 프로토콜 결정
+    return baseUrl.startsWith('localhost') 
+      ? `http://${baseUrl}` 
+      : `https://${baseUrl}`;
+  }
+  
+  // 기본 개발 환경 URL
+  const port = process.env.PORT || 3000;
+  return `http://localhost:${port}`;
 } 

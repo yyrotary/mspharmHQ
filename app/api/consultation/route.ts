@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import { CONSULTATION_SCHEMA, NOTION_ENV_VARS, NotionConsultation } from '@/app/lib/notion-schema';
-import { generateConsultationId } from '@/app/lib/utils';
+import { generateConsultationId, getApiBaseUrl } from '@/app/lib/utils';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
@@ -106,9 +106,9 @@ export async function POST(request: Request) {
     // 고객 폴더 ID 조회 또는 생성
     let customerFolderId = null;
     try {
-      // request.url에서 origin 추출
-      const requestUrl = new URL(request.url);
-      const folderApiUrl = `${requestUrl.origin}/api/google-drive/folder`;
+      // API 기본 URL을 이용해 폴더 API URL 생성
+      const apiBaseUrl = getApiBaseUrl();
+      const folderApiUrl = `${apiBaseUrl}/api/google-drive/folder`;
       console.log(`폴더 생성 API 호출: ${folderApiUrl}`);
       
       // 고객 폴더 이름으로 고객 ID 사용
@@ -139,9 +139,9 @@ export async function POST(request: Request) {
     if (data.imageDataArray && Array.isArray(data.imageDataArray) && data.imageDataArray.length > 0) {
       console.log(`${data.imageDataArray.length}개의 이미지 업로드 시작`);
       
-      // request.url에서 origin 추출
-      const requestUrl = new URL(request.url);
-      const uploadApiUrl = `${requestUrl.origin}/api/google-drive`;
+      // API 기본 URL을 이용해 이미지 업로드 API URL 생성
+      const apiBaseUrl = getApiBaseUrl();
+      const uploadApiUrl = `${apiBaseUrl}/api/google-drive`;
       
       // 이미지 업로드 함수
       const uploadImage = async (imageData: string, index: number) => {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import { CUSTOMER_SCHEMA, NOTION_ENV_VARS, NotionCustomer } from '@/app/lib/notion-schema';
-import { generateCustomerId } from '@/app/lib/utils';
+import { generateCustomerId, getApiBaseUrl } from '@/app/lib/utils';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
@@ -97,9 +97,9 @@ export async function POST(request: Request) {
     let customerFolderId = '';
     try {
       console.log('고객 폴더 생성 시작...');
-      // URL 생성 - request.url에서 origin 추출
-      const requestUrl = new URL(request.url);
-      const apiUrl = `${requestUrl.origin}/api/google-drive/folder`;
+      // API 기본 URL을 이용해 폴더 API URL 생성
+      const apiBaseUrl = getApiBaseUrl();
+      const apiUrl = `${apiBaseUrl}/api/google-drive/folder`;
       console.log(`폴더 생성 API 호출: ${apiUrl}`);
       
       const folderResponse = await fetch(apiUrl, {
