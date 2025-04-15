@@ -92,7 +92,8 @@ export async function POST(req: NextRequest) {
       
       // 타깃 폴더 - form 데이터에서 전달된 값 또는 기본 폴더 사용
       const customFolderId = formData.get('targetFolderId') as string;
-      if (customFolderId) {
+      console.log(`폼 데이터에서 추출한 대상 폴더 ID: ${customFolderId}`);
+      if (customFolderId && customFolderId.length > 5) {  // 유효한 ID인지 간단히 체크
         targetFolderId = customFolderId;
       }
     } else {
@@ -117,10 +118,14 @@ export async function POST(req: NextRequest) {
       
       // 파일명 설정
       fileName = data.fileName || `image_${Date.now()}.jpg`;
+      console.log(`설정된 파일명: ${fileName}`);
       
       // 고객 폴더 ID 확인
       if (data.customerFolderId) {
         targetFolderId = data.customerFolderId;
+        console.log(`고객 폴더 ID 할당: ${targetFolderId}`);
+      } else {
+        console.log(`고객 폴더 ID 없음, 기본 폴더 사용: ${targetFolderId}`);
       }
     }
     
@@ -153,13 +158,18 @@ export async function POST(req: NextRequest) {
       }
     });
 
+    // 공개 URL 가져오기
+    const webViewLink = response.data.webViewLink;
+    
+    console.log(`파일 업로드 완료: ${fileName}, ID: ${response.data.id}, URL: ${webViewLink}`);
+
     return NextResponse.json({
       success: true,
       message: '파일 업로드 성공',
       file: {
         id: response.data.id,
         name: response.data.name,
-        link: response.data.webViewLink
+        link: webViewLink || `https://drive.google.com/file/d/${response.data.id}/view`
       },
       // 이전 호환성을 위한 필드
       fileId: response.data.id
@@ -174,4 +184,4 @@ export async function POST(req: NextRequest) {
       error: errorMessage 
     }, { status: 500 });
   }
-} 
+}

@@ -157,13 +157,19 @@ export function generateConsultationId(customerId: string, consultDate: string):
  * 개발 환경에서는 localhost, 프로덕션 환경에서는 실제 도메인을 사용
  */
 export function getApiBaseUrl() {
-  // 환경 변수에서 URL을 가져오거나 기본값으로 localhost 사용
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL
+  // 브라우저 환경인지 체크
+  if (typeof window !== 'undefined') {
+    // 브라우저에서는 현재 창의 origin 사용
+    return window.location.origin;
+  }
+  
+  // 서버사이드 환경
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
   
   if (baseUrl) {
     return baseUrl;
   }
-    
+  
   // 기본 개발 환경 URL
   const port = process.env.PORT || 3000;
   return `http://localhost:${port}`;

@@ -136,7 +136,7 @@ export async function POST(request: Request) {
     }
     
     // 이미지 데이터가 있는 경우 업로드
-    let processedImageIds = [];
+    let processedImageUrls = [];
     if (data.imageDataArray && Array.isArray(data.imageDataArray) && data.imageDataArray.length > 0) {
       console.log(`${data.imageDataArray.length}개의 이미지 업로드 시작`);
       
@@ -147,46 +147,30 @@ export async function POST(request: Request) {
       // 이미지 업로드 함수
       const uploadImage = async (imageData: string, index: number) => {
         try {
-          // Base64 이미지 데이터 추출
-          let base64Data = imageData;
-          if (imageData.includes(';base64,')) {
-            base64Data = imageData.split(';base64,')[1];
-          }
-          
-          // FormData 생성
-          const formData = new FormData();
-          
-          // Base64 문자열을 Blob으로 변환 (웹 브라우저 호환)
-          const byteString = Buffer.from(base64Data, 'base64').toString('binary');
-          const bytes = new Uint8Array(byteString.length);
-          for (let i = 0; i < byteString.length; i++) {
-            bytes[i] = byteString.charCodeAt(i);
-          }
-          
-          // Blob 생성 및 FormData에 추가
+          // 파일명 생성
           const fileName = `${consultationId}_${index + 1}.jpg`;
-          const blob = new Blob([bytes], { type: 'image/jpeg' });
-          formData.append('file', blob, fileName);
-          formData.append('fileName', fileName);
+          console.log(`이미지 파일명: ${fileName}`);
           
-          // 고객 폴더 ID가 있으면 추가
-          if (customerFolderId) {
-            formData.append('targetFolderId', customerFolderId);
-          }
-          
-          console.log(`이미지 ${index + 1} 업로드 준비 완료: ${fileName}`);
-          
-          // multipart/form-data로 전송
+          // JSON 방식으로 이미지 및 폴더 정보 전송
           const uploadResponse = await fetch(uploadApiUrl, {
             method: 'POST',
-            body: formData,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              imageData: imageData,
+              fileName: fileName,
+              customerFolderId: customerFolderId, // 고객 폴더 ID
+              consultationId: consultationId      // 상담일지 ID
+            }),
           });
           
           if (uploadResponse.ok) {
             const uploadResult = await uploadResponse.json();
             if (uploadResult.success) {
-              console.log(`이미지 ${index + 1} 업로드 성공: ${uploadResult.file.id}`);
-              return uploadResult.file.id;
+              const fileUrl = uploadResult.file?.link || uploadResult.file?.webViewLink;
+              console.log(`이미지 ${index + 1} 업로드 성공: ${uploadResult.file?.id || uploadResult.fileId}, URL: ${fileUrl}`);
+              return fileUrl; // 파일 URL 반환
             }
           }
           console.error(`이미지 ${index + 1} 업로드 실패`);
@@ -201,9 +185,9 @@ export async function POST(request: Request) {
       const uploadPromises = data.imageDataArray.map(uploadImage);
       const uploadResults = await Promise.all(uploadPromises);
       
-      // 성공적으로 업로드된 이미지 ID만 추출
-      processedImageIds = uploadResults.filter(id => id !== null);
-      console.log(`${processedImageIds.length}개의 이미지 업로드 완료`);
+      // 성공적으로 업로드된 이미지 URL만 추출
+      processedImageUrls = uploadResults.filter(url => url !== null && url !== undefined);
+      console.log(`${processedImageUrls.length}개의 이미지 업로드 완료`);
     }
     
     // 노션 API 형식으로 데이터 변환
@@ -308,40 +292,53 @@ export async function POST(request: Request) {
       };
     }
     
-    // 증상 이미지 URL이 제공된 경우
-    if (data.imageUrls && Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
+    // 업로드된 이미지 URL 처리
+    if (processedImageUrls.length > 0) {
       properties['증상이미지'] = {
-        [CONSULTATION_SCHEMA.증상이미지.type]: data.imageUrls.map((url: string, index: number) => ({
+        [CONSULTATION_SCHEMA.증상이미지.type]: processedImageUrls.map((url, index) => ({
           type: 'external',
-          name: `증상이미지_${index + 1}.jpg`,
+          name: `${consultationId}_${index + 1}.jpg`,
           external: {
             url: url
           }
         }))
       };
     }
-    
-    // 이미지 ID가 제공된 경우 (Google Drive 파일 ID)
-    else if (data.imageIds && Array.isArray(data.imageIds) && data.imageIds.length > 0) {
-      // Google Drive 링크 생성
-      const imageUrls = data.imageIds.map((id: string) => {
-        // 이미 전체 URL인 경우 그대로 사용
-        if (id.includes('drive.google.com')) {
-          return id;
-        }
-        // ID만 전달된 경우 Google Drive 링크 형식으로 변환
-        return `https://drive.google.com/file/d/${id}/view`;
-      });
-      
+    // 기존 이미지 URL이 제공된 경우
+    else if (data.imageUrls && Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
       properties['증상이미지'] = {
-        [CONSULTATION_SCHEMA.증상이미지.type]: imageUrls.map((url: string, index: number) => ({
+        [CONSULTATION_SCHEMA.증상이미지.type]: data.imageUrls.map((url: string, index: number) => ({
           type: 'external',
-          name: `증상이미지_${index + 1}.jpg`,
+          name: `${consultationId}_${index + 1}.jpg`,
           external: {
             url: url
           }
         }))
       };
+    }
+    // 이미지 ID가 제공된 경우 (Google Drive 파일 ID)
+    else if (data.imageIds && Array.isArray(data.imageIds) && data.imageIds.length > 0) {
+      // Google Drive 링크 생성
+      const imageUrls = data.imageIds.map((id: string) => {
+        // 이미 전체 URL인 경우 그대로 사용
+        if (id && id.includes('drive.google.com')) {
+          return id;
+        }
+        // ID만 전달된 경우 Google Drive 링크 형식으로 변환
+        return id ? `https://drive.google.com/file/d/${id}/view` : null;
+      }).filter(url => url !== null);
+      
+      if (imageUrls.length > 0) {
+        properties['증상이미지'] = {
+          [CONSULTATION_SCHEMA.증상이미지.type]: imageUrls.map((url: string, index: number) => ({
+            type: 'external',
+            name: `${consultationId}_${index + 1}.jpg`,
+            external: {
+              url: url
+            }
+          }))
+        };
+      }
     }
     
     // 상담일지 생성
