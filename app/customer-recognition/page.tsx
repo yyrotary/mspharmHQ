@@ -845,23 +845,37 @@ export default function CustomerRecognitionPage() {
                     onClick={() => {
                       // 해당 고객 선택 시 신규 등록 폼 닫기
                       setShowForm(false);
-                      setMessage(`${getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type)} 고객을 선택했습니다.`);
+                      // customer.properties가 없거나 고객명이 없는 경우 처리
+                      const customerName = customer.properties && customer.properties.고객명 
+                        ? getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type)
+                        : (customer.name || '알 수 없음');
+                      setMessage(`${customerName} 고객을 선택했습니다.`);
                     }}
                   >
                     <h3 className="font-bold text-lg">
-                      {getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type)}
+                      {customer.properties && customer.properties.고객명 
+                        ? getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type) 
+                        : (customer.name || '알 수 없음')}
                     </h3>
                     <p className="text-gray-600">
-                      전화번호: {getNotionPropertyValue(customer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type)}
+                      전화번호: {customer.properties && customer.properties.전화번호 
+                        ? getNotionPropertyValue(customer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type) 
+                        : ''}
                     </p>
                     <p className="text-gray-600">
-                      성별: {getNotionPropertyValue(customer.properties.성별, CUSTOMER_SCHEMA.성별.type)}
+                      성별: {customer.properties && customer.properties.성별 
+                        ? getNotionPropertyValue(customer.properties.성별, CUSTOMER_SCHEMA.성별.type) 
+                        : ''}
                     </p>
                     <p className="text-gray-600">
-                      생년월일: {getNotionPropertyValue(customer.properties.생년월일, CUSTOMER_SCHEMA.생년월일.type)}
+                      생년월일: {customer.properties && customer.properties.생년월일 
+                        ? getNotionPropertyValue(customer.properties.생년월일, CUSTOMER_SCHEMA.생년월일.type) 
+                        : ''}
                     </p>
                     <p className="text-gray-600">
-                      주소: {getNotionPropertyValue(customer.properties.주소, CUSTOMER_SCHEMA.주소.type)}
+                      주소: {customer.properties && customer.properties.주소 
+                        ? getNotionPropertyValue(customer.properties.주소, CUSTOMER_SCHEMA.주소.type) 
+                        : ''}
                     </p>
                   </div>
                 ))}
