@@ -163,6 +163,48 @@ export async function POST(request: Request) {
       };
     }
     
+    // 상태분석 정보가 있는 경우
+    if (data.stateAnalysis) {
+      properties['상태분석'] = {
+        [CONSULTATION_SCHEMA.상태분석.type]: [
+          { 
+            type: 'text', 
+            text: { 
+              content: data.stateAnalysis 
+            } 
+          }
+        ]
+      };
+    }
+    
+    // 설진분석 정보가 있는 경우
+    if (data.tongueAnalysis) {
+      properties['설진분석'] = {
+        [CONSULTATION_SCHEMA.설진분석.type]: [
+          { 
+            type: 'text', 
+            text: { 
+              content: data.tongueAnalysis 
+            } 
+          }
+        ]
+      };
+    }
+    
+    // 특이사항 정보가 있는 경우
+    if (data.specialNote) {
+      properties['특이사항'] = {
+        [CONSULTATION_SCHEMA.특이사항.type]: [
+          { 
+            type: 'text', 
+            text: { 
+              content: data.specialNote 
+            } 
+          }
+        ]
+      };
+    }
+    
     // 증상 이미지 URL이 제공된 경우
     if (data.imageUrls && Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
       properties['증상이미지'] = {

@@ -15,6 +15,9 @@ interface FormattedConsultation {
   symptomImages: string[];
   prescription: string;
   result: string;
+  stateAnalysis?: string;  // 상태분석 필드 추가
+  tongueAnalysis?: string; // 설진분석 필드 추가
+  specialNote?: string;    // 특이사항 필드 추가
 }
 
 // 새 상담일지 폼 데이터 타입
@@ -23,6 +26,9 @@ interface NewConsultation {
   content: string;
   medicine: string;
   result: string;
+  stateAnalysis: string;  // 상태분석 필드 추가
+  tongueAnalysis: string; // 설진분석 필드 추가
+  specialNote: string;    // 특이사항 필드 추가
   images: Array<{
     data: string;
     fileName: string;
@@ -55,6 +61,9 @@ export default function ConsultationPage() {
     content: '',
     medicine: '',
     result: '',
+    stateAnalysis: '',  // 상태분석 필드 추가
+    tongueAnalysis: '', // 설진분석 필드 추가
+    specialNote: '',    // 특이사항 필드 추가
     images: [] as {data: string, fileName: string}[]
   });
   
@@ -154,6 +163,28 @@ export default function ConsultationPage() {
               console.warn('결과 추출 중 오류 발생');
             }
             
+            // 상태분석, 설진분석, 특이사항 가져오기
+            let stateAnalysis = '';
+            try {
+              stateAnalysis = getNotionPropertyValue(consultation.properties.상태분석, CONSULTATION_SCHEMA.상태분석.type) || '';
+            } catch (error) {
+              console.warn('상태분석 추출 중 오류 발생');
+            }
+            
+            let tongueAnalysis = '';
+            try {
+              tongueAnalysis = getNotionPropertyValue(consultation.properties.설진분석, CONSULTATION_SCHEMA.설진분석.type) || '';
+            } catch (error) {
+              console.warn('설진분석 추출 중 오류 발생');
+            }
+            
+            let specialNote = '';
+            try {
+              specialNote = getNotionPropertyValue(consultation.properties.특이사항, CONSULTATION_SCHEMA.특이사항.type) || '';
+            } catch (error) {
+              console.warn('특이사항 추출 중 오류 발생');
+            }
+            
             return {
               id: consultation.id,
               customerName,
@@ -162,7 +193,10 @@ export default function ConsultationPage() {
               consultationContent,
               symptomImages: images,
               prescription,
-              result
+              result,
+              stateAnalysis,
+              tongueAnalysis,
+              specialNote
             } as FormattedConsultation;
           });
           setConsultations(formattedConsultations);
@@ -402,6 +436,9 @@ export default function ConsultationPage() {
           content: newConsultation.content,
           medicine: newConsultation.medicine,
           result: newConsultation.result,
+          stateAnalysis: newConsultation.stateAnalysis,   // 상태분석 추가
+          tongueAnalysis: newConsultation.tongueAnalysis, // 설진분석 추가
+          specialNote: newConsultation.specialNote,       // 특이사항 추가
           imageUrls
         }),
       });
@@ -417,6 +454,9 @@ export default function ConsultationPage() {
           content: '',
           medicine: '',
           result: '',
+          stateAnalysis: '',  // 상태분석 초기화
+          tongueAnalysis: '', // 설진분석 초기화
+          specialNote: '',    // 특이사항 초기화
           images: []
         });
         
@@ -472,6 +512,28 @@ export default function ConsultationPage() {
               console.warn('결과 추출 중 오류 발생');
             }
             
+            // 상태분석, 설진분석, 특이사항 가져오기
+            let stateAnalysis = '';
+            try {
+              stateAnalysis = getNotionPropertyValue(consultation.properties.상태분석, CONSULTATION_SCHEMA.상태분석.type) || '';
+            } catch (error) {
+              console.warn('상태분석 추출 중 오류 발생');
+            }
+            
+            let tongueAnalysis = '';
+            try {
+              tongueAnalysis = getNotionPropertyValue(consultation.properties.설진분석, CONSULTATION_SCHEMA.설진분석.type) || '';
+            } catch (error) {
+              console.warn('설진분석 추출 중 오류 발생');
+            }
+            
+            let specialNote = '';
+            try {
+              specialNote = getNotionPropertyValue(consultation.properties.특이사항, CONSULTATION_SCHEMA.특이사항.type) || '';
+            } catch (error) {
+              console.warn('특이사항 추출 중 오류 발생');
+            }
+            
             return {
               id: consultation.id,
               customerName,
@@ -480,7 +542,10 @@ export default function ConsultationPage() {
               consultationContent,
               symptomImages: images,
               prescription,
-              result
+              result,
+              stateAnalysis,
+              tongueAnalysis,
+              specialNote
             } as FormattedConsultation;
           });
           
@@ -935,6 +1000,9 @@ export default function ConsultationPage() {
     content: '',
     medicine: '',
     result: '',
+    stateAnalysis: '',  // 상태분석 필드 추가
+    tongueAnalysis: '', // 설진분석 필드 추가
+    specialNote: '',    // 특이사항 필드 추가
     images: [] as {data: string, fileName: string}[]
   });
   
@@ -983,6 +1051,9 @@ export default function ConsultationPage() {
       content: consultation.consultationContent || '',
       medicine: consultation.prescription || '',
       result: consultation.result || '',
+      stateAnalysis: consultation.stateAnalysis || '',  // 상태분석 추가
+      tongueAnalysis: consultation.tongueAnalysis || '', // 설진분석 추가
+      specialNote: consultation.specialNote || '',       // 특이사항 추가
       images: [] // 새 이미지만 추가, 기존 이미지는 symptomImages에서 참조
     });
     
@@ -1025,6 +1096,9 @@ export default function ConsultationPage() {
           content: editFormData.content,
           medicine: editFormData.medicine,
           result: editFormData.result,
+          stateAnalysis: editFormData.stateAnalysis,   // 상태분석 추가
+          tongueAnalysis: editFormData.tongueAnalysis, // 설진분석 추가
+          specialNote: editFormData.specialNote,       // 특이사항 추가
           imageUrls: imageUrls, // 새로 업로드된 이미지 URL들만 전송
           // 기존 이미지는 서버에서 유지
         }),
@@ -1087,6 +1161,28 @@ export default function ConsultationPage() {
               console.warn('결과 추출 중 오류 발생');
             }
             
+            // 상태분석, 설진분석, 특이사항 가져오기
+            let stateAnalysis = '';
+            try {
+              stateAnalysis = getNotionPropertyValue(consultation.properties.상태분석, CONSULTATION_SCHEMA.상태분석.type) || '';
+            } catch (error) {
+              console.warn('상태분석 추출 중 오류 발생');
+            }
+            
+            let tongueAnalysis = '';
+            try {
+              tongueAnalysis = getNotionPropertyValue(consultation.properties.설진분석, CONSULTATION_SCHEMA.설진분석.type) || '';
+            } catch (error) {
+              console.warn('설진분석 추출 중 오류 발생');
+            }
+            
+            let specialNote = '';
+            try {
+              specialNote = getNotionPropertyValue(consultation.properties.특이사항, CONSULTATION_SCHEMA.특이사항.type) || '';
+            } catch (error) {
+              console.warn('특이사항 추출 중 오류 발생');
+            }
+            
             return {
               id: consultation.id,
               customerName,
@@ -1095,7 +1191,10 @@ export default function ConsultationPage() {
               consultationContent,
               symptomImages: images,
               prescription,
-              result
+              result,
+              stateAnalysis,
+              tongueAnalysis,
+              specialNote
             } as FormattedConsultation;
           });
           
@@ -1110,6 +1209,9 @@ export default function ConsultationPage() {
           content: '',
           medicine: '',
           result: '',
+          stateAnalysis: '',  // 상태분석 초기화
+          tongueAnalysis: '', // 설진분석 초기화
+          specialNote: '',    // 특이사항 초기화
           images: []
         });
       } else {
@@ -1842,296 +1944,283 @@ export default function ConsultationPage() {
             </div>
           )}
 
-          {/* 새 상담일지 입력 폼 */}
-          {showNewForm && customer && (
+          {/* 새 상담일지 폼 */}
+          {showNewForm && (
             <div style={{ 
-              backgroundColor: 'white', 
-              borderRadius: '0.75rem', 
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-              padding: '1.5rem', 
-              marginBottom: '1.5rem',
-              border: '1px solid #e5e7eb'
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem'
             }}>
-              <h2 style={{ 
-                fontSize: '1.25rem', 
-                fontWeight: 'bold', 
-                marginBottom: '1rem', 
-                color: '#1e40af',
-                display: 'flex',
-                alignItems: 'center'
+              <div style={{ 
+                width: '100%',
+                maxWidth: '640px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                backgroundColor: 'white',
+                borderRadius: '0.75rem',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2)',
+                padding: '1.5rem'
               }}>
-                새 상담일지
-              </h2>
-              <form onSubmit={saveConsultation} style={{ 
-                backgroundColor: '#eff6ff', 
-                padding: '1.25rem', 
-                borderRadius: '0.5rem', 
-                borderLeft: '4px solid #3b82f6'
-              }}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    상담일자 *
-                  </label>
-                  <input
-                    type="date"
-                    value={newConsultation.consultDate}
-                    onChange={(e) => setNewConsultation({...newConsultation, consultDate: e.target.value})}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s'
-                    }}
-                    required
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    상담내용 *
-                  </label>
-                  <textarea
-                    ref={contentTextareaRef}
-                    value={newConsultation.content}
-                    onChange={(e) => setNewConsultation({...newConsultation, content: e.target.value})}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s',
-                      minHeight: '6rem'
-                    }}
-                    rows={4}
-                    required
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    처방약
-                  </label>
-                  <textarea
-                    value={newConsultation.medicine}
-                    onChange={(e) => setNewConsultation({...newConsultation, medicine: e.target.value})}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s'
-                    }}
-                    rows={2}
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    결과
-                  </label>
-                  <textarea
-                    value={newConsultation.result}
-                    onChange={(e) => setNewConsultation({...newConsultation, result: e.target.value})}
-                    style={{ 
-                      width: '100%', 
-                      padding: '1rem', 
-                      fontSize: '1.125rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      transition: 'all 0.2s'
-                    }}
-                    rows={2}
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ 
-                    display: 'block', 
-                    marginBottom: '0.5rem', 
-                    fontWeight: '600',
-                    color: '#1e40af' 
-                  }}>
-                    <span style={{ marginRight: '0.25rem' }}>📷</span> 증상 이미지
-                  </label>
-                  <div style={{ 
-                    display: 'flex', 
-                    flexWrap: 'wrap', 
-                    gap: '0.75rem', 
-                    marginBottom: '0.75rem' 
-                  }}>
-                    <button
-                      type="button"
-                      onClick={openCamera}
-                      style={{ 
-                        backgroundColor: '#2563eb', 
-                        color: 'white', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        borderRadius: '0.5rem', 
-                        display: 'flex', 
-                        alignItems: 'center',
-                        border: 'none',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <span style={{ marginRight: '0.5rem' }}>📷</span> 카메라
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      style={{ 
-                        backgroundColor: '#10b981', 
-                        color: 'white', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        borderRadius: '0.5rem', 
-                        display: 'flex', 
-                        alignItems: 'center',
-                        border: 'none',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <span style={{ marginRight: '0.5rem' }}>📁</span> 파일 업로드
-                    </button>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      style={{ display: 'none' }}
-                      accept="image/*"
-                      multiple
-                    />
-                    <input
-                      type="file"
-                      ref={cameraInputRef}
-                      onChange={handleCameraCapture}
-                      style={{ display: 'none' }}
-                      accept="image/*"
-                      capture="environment"
-                    />
-                  </div>
-                  {/* 이미지 미리보기 */}
-                  {newConsultation.images.length > 0 && (
-                    <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: 'repeat(2, 1fr)', 
-                      gap: '0.75rem', 
-                      marginTop: '0.75rem' 
-                    }}>
-                      {newConsultation.images.map((image, index) => (
-                        <div 
-                          key={index} 
-                          style={{ 
-                            position: 'relative', 
-                            borderRadius: '0.5rem', 
-                            overflow: 'hidden', 
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                            transition: 'transform 0.2s', 
-                            transform: 'scale(1)'
-                          }}
-                          className="hover:scale-105"
-                        >
-                          <img 
-                            src={image.data} 
-                            alt={`증상 이미지 ${index + 1}`} 
-                            style={{ 
-                              width: '100%', 
-                              height: '8rem', 
-                              objectFit: 'cover' 
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            style={{ 
-                              position: 'absolute', 
-                              top: '0.5rem', 
-                              right: '0.5rem', 
-                              backgroundColor: '#ef4444', 
-                              color: 'white', 
-                              borderRadius: '50%', 
-                              width: '2rem', 
-                              height: '2rem', 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center', 
-                              opacity: '1', 
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                              fontSize: '1.25rem', 
-                              fontWeight: 'bold',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>
+                    새 상담일지
+                  </h2>
                   <button
-                    type="button"
                     onClick={() => setShowNewForm(false)}
                     style={{ 
-                      width: '100%', 
-                      backgroundColor: '#e5e7eb', 
-                      color: '#1f2937', 
-                      padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
+                      backgroundColor: 'transparent', 
+                      border: 'none',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer'
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      borderRadius: '50%',
+                      color: '#6b7280'
                     }}
                   >
-                    취소
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    style={{ 
-                      width: '100%', 
-                      backgroundColor: '#10b981', 
-                      color: 'white', 
-                      padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {loading ? '저장 중...' : '저장'}
+                    ✕
                   </button>
                 </div>
-              </form>
+                
+                <form onSubmit={saveConsultation} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      상담일자 *
+                    </label>
+                    <input
+                      type="date"
+                      value={newConsultation.consultDate}
+                      onChange={(e) => setNewConsultation({...newConsultation, consultDate: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      상담내용 *
+                    </label>
+                    <textarea
+                      value={newConsultation.content}
+                      onChange={(e) => setNewConsultation({...newConsultation, content: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={4}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      상태분석
+                    </label>
+                    <textarea
+                      value={newConsultation.stateAnalysis}
+                      onChange={(e) => setNewConsultation({...newConsultation, stateAnalysis: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={3}
+                      placeholder="상태분석 내용을 입력하세요"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      설진분석
+                    </label>
+                    <textarea
+                      value={newConsultation.tongueAnalysis}
+                      onChange={(e) => setNewConsultation({...newConsultation, tongueAnalysis: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={3}
+                      placeholder="설진분석 내용을 입력하세요"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      처방약
+                    </label>
+                    <textarea
+                      value={newConsultation.medicine}
+                      onChange={(e) => setNewConsultation({...newConsultation, medicine: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={3}
+                      placeholder="처방약 정보를 입력하세요"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      결과
+                    </label>
+                    <textarea
+                      value={newConsultation.result}
+                      onChange={(e) => setNewConsultation({...newConsultation, result: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={3}
+                      placeholder="상담 결과를 입력하세요"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      특이사항
+                    </label>
+                    <textarea
+                      value={newConsultation.specialNote}
+                      onChange={(e) => setNewConsultation({...newConsultation, specialNote: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={3}
+                      placeholder="특이사항이 있으면 입력하세요"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      증상 이미지
+                    </label>
+                    
+                    {/* ... existing image upload UI ... */}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      style={{ 
+                        flex: 1,
+                        backgroundColor: '#10b981', 
+                        color: 'white', 
+                        padding: '1rem',
+                        fontSize: '1.125rem', 
+                        borderRadius: '0.5rem', 
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {loading ? '저장 중...' : '저장하기'}
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => setShowNewForm(false)}
+                      style={{ 
+                        flex: 1,
+                        backgroundColor: '#e5e7eb', 
+                        color: '#1f2937', 
+                        padding: '1rem',
+                        fontSize: '1.125rem', 
+                        borderRadius: '0.5rem', 
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      취소
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           )}
 
@@ -2381,6 +2470,66 @@ export default function ConsultationPage() {
                           </p>
                         </div>
                       )}
+
+                      {/* 상태분석 정보 */}
+                      {consultation.stateAnalysis && (
+                        <div 
+                          style={{
+                            border: '2px solid #f3f4f6', 
+                            borderRadius: '0.5rem', 
+                            padding: '1rem',
+                            backgroundColor: '#f9fafb',
+                            marginTop: '0.75rem'
+                          }}
+                        >
+                          <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
+                            상태분석
+                          </h3>
+                          <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
+                            {consultation.stateAnalysis}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* 설진분석 정보 */}
+                      {consultation.tongueAnalysis && (
+                        <div 
+                          style={{
+                            border: '2px solid #f3f4f6', 
+                            borderRadius: '0.5rem', 
+                            padding: '1rem',
+                            backgroundColor: '#f9fafb',
+                            marginTop: '0.75rem'
+                          }}
+                        >
+                          <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
+                            설진분석
+                          </h3>
+                          <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
+                            {consultation.tongueAnalysis}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* 특이사항 정보 */}
+                      {consultation.specialNote && (
+                        <div 
+                          style={{
+                            border: '2px solid #f3f4f6', 
+                            borderRadius: '0.5rem', 
+                            padding: '1rem',
+                            backgroundColor: '#f9fafb',
+                            marginTop: '0.75rem'
+                          }}
+                        >
+                          <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
+                            특이사항
+                          </h3>
+                          <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
+                            {consultation.specialNote}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
                     {/* 수정 폼 (해당 상담일지가 수정 중일 때만 표시) */}
@@ -2484,6 +2633,75 @@ export default function ConsultationPage() {
                             <textarea
                               value={editFormData.result}
                               onChange={(e) => setEditFormData({...editFormData, result: e.target.value})}
+                              style={{ 
+                                width: '100%', 
+                                padding: '1rem', 
+                                fontSize: '1.125rem', 
+                                border: '1px solid #d1d5db', 
+                                borderRadius: '0.5rem',
+                                transition: 'all 0.2s'
+                              }}
+                              rows={2}
+                            />
+                          </div>
+                          <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: '0.5rem', 
+                              fontWeight: '600',
+                              color: '#1e40af' 
+                            }}>
+                              상태분석
+                            </label>
+                            <textarea
+                              value={editFormData.stateAnalysis}
+                              onChange={(e) => setEditFormData({...editFormData, stateAnalysis: e.target.value})}
+                              style={{ 
+                                width: '100%', 
+                                padding: '1rem', 
+                                fontSize: '1.125rem', 
+                                border: '1px solid #d1d5db', 
+                                borderRadius: '0.5rem',
+                                transition: 'all 0.2s'
+                              }}
+                              rows={2}
+                            />
+                          </div>
+                          <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: '0.5rem', 
+                              fontWeight: '600',
+                              color: '#1e40af' 
+                            }}>
+                              설진분석
+                            </label>
+                            <textarea
+                              value={editFormData.tongueAnalysis}
+                              onChange={(e) => setEditFormData({...editFormData, tongueAnalysis: e.target.value})}
+                              style={{ 
+                                width: '100%', 
+                                padding: '1rem', 
+                                fontSize: '1.125rem', 
+                                border: '1px solid #d1d5db', 
+                                borderRadius: '0.5rem',
+                                transition: 'all 0.2s'
+                              }}
+                              rows={2}
+                            />
+                          </div>
+                          <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: '0.5rem', 
+                              fontWeight: '600',
+                              color: '#1e40af' 
+                            }}>
+                              특이사항
+                            </label>
+                            <textarea
+                              value={editFormData.specialNote}
+                              onChange={(e) => setEditFormData({...editFormData, specialNote: e.target.value})}
                               style={{ 
                                 width: '100%', 
                                 padding: '1rem', 

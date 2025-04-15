@@ -77,6 +77,48 @@ export async function PUT(
       };
     }
     
+    // 상태분석 정보가 있는 경우
+    if (data.stateAnalysis) {
+      properties['상태분석'] = {
+        [CONSULTATION_SCHEMA.상태분석.type]: [
+          { 
+            type: 'text', 
+            text: { 
+              content: data.stateAnalysis 
+            } 
+          }
+        ]
+      };
+    }
+    
+    // 설진분석 정보가 있는 경우
+    if (data.tongueAnalysis) {
+      properties['설진분석'] = {
+        [CONSULTATION_SCHEMA.설진분석.type]: [
+          { 
+            type: 'text', 
+            text: { 
+              content: data.tongueAnalysis 
+            } 
+          }
+        ]
+      };
+    }
+    
+    // 특이사항 정보가 있는 경우
+    if (data.specialNote) {
+      properties['특이사항'] = {
+        [CONSULTATION_SCHEMA.특이사항.type]: [
+          { 
+            type: 'text', 
+            text: { 
+              content: data.specialNote 
+            } 
+          }
+        ]
+      };
+    }
+    
     // 새 이미지 URL이 제공된 경우, 기존 이미지를 업데이트 (추가)
     if (data.imageUrls && Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
       // 먼저 현재 이미지 가져오기
