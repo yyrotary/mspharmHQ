@@ -158,20 +158,14 @@ export function generateConsultationId(customerId: string, consultDate: string):
  */
 export function getApiBaseUrl() {
   // 환경 변수에서 URL을 가져오거나 기본값으로 localhost 사용
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.VERCEL_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL
   
   if (baseUrl) {
     // URL에 이미 프로토콜이 포함되어 있는지 확인
-    if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
-      return baseUrl;
-    }
     
-    // 프로토콜이 없는 경우 도메인에 따라 적절한 프로토콜 추가
-    return baseUrl.startsWith('localhost') 
-      ? `http://${baseUrl}` 
-      : `https://${baseUrl}`;
+    return baseUrl;
   }
-  
+    
   // 기본 개발 환경 URL
   const port = process.env.PORT || 3000;
   return `http://localhost:${port}`;
