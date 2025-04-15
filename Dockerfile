@@ -13,6 +13,7 @@ RUN npm ci
 # 빌드 단계
 FROM dependencies AS builder
 COPY . .
+# 린트 에러와 타입 체크를 무시하고 빌드합니다
 RUN npm run build
 
 # 실행 단계
