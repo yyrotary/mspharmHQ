@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import { CUSTOMER_SCHEMA, NOTION_ENV_VARS, NotionCustomer } from '@/app/lib/notion-schema';
 
@@ -9,10 +9,10 @@ const notion = new Client({
 
 // 고객 정보 업데이트
 export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  context: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const id = context.params.id;
   
   if (!id) {
     return NextResponse.json({ error: '고객 ID가 필요합니다.' }, { status: 400 });
@@ -93,10 +93,10 @@ export async function PUT(
 
 // 고객 정보 삭제 (아카이브)
 export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  context: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const id = context.params.id;
   
   if (!id) {
     return NextResponse.json({ error: '고객 ID가 필요합니다.' }, { status: 400 });

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import { CONSULTATION_SCHEMA, NOTION_ENV_VARS } from '@/app/lib/notion-schema';
 
@@ -9,10 +9,10 @@ const notion = new Client({
 
 // 상담일지 수정
 export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: { id: string } }
 ) {
-  const id = params.id;
+  const id = context.params.id;
   
   if (!id) {
     return NextResponse.json({ error: '상담일지 ID가 필요합니다.' }, { status: 400 });
@@ -124,10 +124,10 @@ export async function PUT(
 
 // 상담일지 삭제
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: { id: string } }
 ) {
-  const id = params.id;
+  const id = context.params.id;
   
   if (!id) {
     return NextResponse.json({ error: '상담일지 ID가 필요합니다.' }, { status: 400 });
