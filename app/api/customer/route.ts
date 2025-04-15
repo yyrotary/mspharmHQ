@@ -97,7 +97,12 @@ export async function POST(request: Request) {
     let customerFolderId = '';
     try {
       console.log('고객 폴더 생성 시작...');
-      const folderResponse = await fetch(new URL('/api/google-drive/folder', request.url).toString(), {
+      // URL 생성 - request.url에서 origin 추출
+      const requestUrl = new URL(request.url);
+      const apiUrl = `${requestUrl.origin}/api/google-drive/folder`;
+      console.log(`폴더 생성 API 호출: ${apiUrl}`);
+      
+      const folderResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -17,7 +17,7 @@ async function getAuthClient() {
       
       const auth = new google.auth.GoogleAuth({
         credentials,
-        scopes: ['https://www.googleapis.com/auth/drive.file']
+        scopes: ['https://www.googleapis.com/auth/drive']
       });
       
       // 인증 테스트

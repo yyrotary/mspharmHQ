@@ -106,8 +106,13 @@ export async function POST(request: Request) {
     // 고객 폴더 ID 조회 또는 생성
     let customerFolderId = null;
     try {
+      // request.url에서 origin 추출
+      const requestUrl = new URL(request.url);
+      const folderApiUrl = `${requestUrl.origin}/api/google-drive/folder`;
+      console.log(`폴더 생성 API 호출: ${folderApiUrl}`);
+      
       // 고객 폴더 이름으로 고객 ID 사용
-      const folderResponse = await fetch('/api/google-drive/folder', {
+      const folderResponse = await fetch(folderApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -134,10 +139,14 @@ export async function POST(request: Request) {
     if (data.imageDataArray && Array.isArray(data.imageDataArray) && data.imageDataArray.length > 0) {
       console.log(`${data.imageDataArray.length}개의 이미지 업로드 시작`);
       
+      // request.url에서 origin 추출
+      const requestUrl = new URL(request.url);
+      const uploadApiUrl = `${requestUrl.origin}/api/google-drive`;
+      
       // 이미지 업로드 함수
       const uploadImage = async (imageData: string, index: number) => {
         try {
-          const uploadResponse = await fetch('/api/google-drive', {
+          const uploadResponse = await fetch(uploadApiUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

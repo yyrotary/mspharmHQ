@@ -38,7 +38,7 @@ export function koreanLastNameToRoman(lastName: string): string {
     '민': 'min', '나': 'na', '진': 'jin', '지': 'ji',
     '엄': 'uhm', '채': 'chae', '원': 'won', '천': 'chun', '방': 'bang',
     '공': 'kong', '반': 'ban', '명': 'myung', '석': 'seok', '길': 'gil',
-    '여': 'yeo', '추': 'choo', '변': 'byun', '소': 'so', '위': 'wi', '사': 'sa'
+    '여': 'yeo', '추': 'choo', '변': 'byun', '소': 'so', '위': 'wi', '사': 'sa', '함': 'ham'
   };
   
   return lastNameMap[lastName] || lastName.toLowerCase();
