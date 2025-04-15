@@ -38,7 +38,7 @@ export default function Home() {
                   src="/logo.png" 
                   alt="명성약국 로고" 
                   style={{ 
-                    height: '300px',
+                    height: '350px',
                     width: 'auto',
                     objectFit: 'contain'
                   }}

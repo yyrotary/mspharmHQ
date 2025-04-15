@@ -706,6 +706,44 @@ export default function CustomerRecognitionPage() {
           birth: '',
           address: '',
         });
+        
+        // 저장 성공 후 해당 고객 정보 조회
+        if (result.customer && result.customer.name) {
+          try {
+            // 등록된 고객 정보 조회
+            const searchResponse = await fetch(`/api/customer?name=${encodeURIComponent(result.customer.name)}`);
+            const searchResult = await searchResponse.json();
+            
+            if (searchResponse.ok && searchResult.success && searchResult.customers.length > 0) {
+              // 조회된 고객 정보로 customers 배열 업데이트
+              setCustomers(searchResult.customers);
+            } else {
+              // API에서 반환한 제한된 고객 정보만 있는 경우
+              console.log('등록된 고객 정보로 직접 설정:', result.customer);
+              
+              // 임시 NotionCustomer 객체를 생성하여 설정
+              const tempCustomer = {
+                id: result.customer.id,
+                properties: {
+                  고객명: { 
+                    type: 'rich_text', 
+                    rich_text: [{ plain_text: result.customer.name }] 
+                  },
+                  // 다른 필드들은 빈 값으로 설정
+                  전화번호: { type: 'phone_number', phone_number: '' },
+                  성별: { type: 'select', select: null },
+                  생년월일: { type: 'date', date: null },
+                  주소: { type: 'rich_text', rich_text: [] }
+                }
+              };
+              
+              setCustomers([tempCustomer as any]);
+            }
+          } catch (error) {
+            console.error('고객 조회 오류:', error);
+            // 조회 오류 시 메시지는 변경하지 않고 유지
+          }
+        }
       } else {
         throw new Error(result.error || '고객 정보 저장 중 오류가 발생했습니다.');
       }
