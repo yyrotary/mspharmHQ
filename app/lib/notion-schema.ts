@@ -6,23 +6,119 @@
  * 노션 DB 구조가 변경될 경우 이 파일만 수정하면 됩니다.
  */
 
+// 노션 데이터 타입 정의
+export interface NotionText {
+  type: string;
+  text: {
+    content: string;
+    link: null | { url: string };
+  };
+  annotations: {
+    bold: boolean;
+    italic: boolean;
+    strikethrough: boolean;
+    underline: boolean;
+    code: boolean;
+    color: string;
+  };
+  plain_text: string;
+  href: null | string;
+}
+
+export interface NotionRichTextProperty {
+  id: string;
+  type: 'rich_text';
+  rich_text: { content?: string };
+}
+
+export interface NotionTitleProperty {
+  id: string;
+  name: string;
+  type: 'title';
+  title: {}; 
+}
+
+export interface NotionPhoneNumberProperty {
+  id: string;
+  name: string;
+  type: 'phone_number'; 
+  phone_number: {}; 
+}
+
+export interface NotionSelectOption {
+  id: string;
+  name: string;
+  color: string;
+  description: null | string;
+}
+
+export interface NotionSelectProperty {
+  id: string;
+  name: string;
+  type: 'select';
+  select: {
+    options: NotionSelectOption[];
+  };
+}
+
+export interface NotionDateProperty {
+  id: string;
+  name: string;
+  type: 'date';
+  date: {}; 
+}
+
+export interface NotionFilesProperty {
+  id: string;
+  name: string;
+  type: 'files';
+  files: {};
+}
+
+export interface NotionRelationProperty {
+  id: string;
+  name: string;
+  type: 'relation';
+  relation: {
+    database_id: string;
+    type: string;
+    dual_property: {
+      synced_property_name: string;
+      synced_property_id: string;
+    };
+  };
+}
+
+export interface NotionCreatedTimeProperty {
+  id: string;
+  name: string;
+  type: 'created_time';
+  created_time: {};
+}
+
 // 고객 데이터베이스 스키마
 export const CUSTOMER_SCHEMA = {
+  id: { type: 'title' },
   고객명: { type: 'rich_text' },
   전화번호: { type: 'phone_number' },
   성별: { type: 'select' },
   생년월일: { type: 'date' },
   주소: { type: 'rich_text' },
   특이사항: { type: 'rich_text' },
-  사진: { type: 'files' },
-  얼굴_임베딩: { type: 'rich_text' }  // 얼굴 인식 데이터를 텍스트로 저장
+  사진: { type: 'relation' },
+  얼굴_임베딩: { type: 'rich_text' },
+  상담일지DB: { type: 'relation' }
 };
 
 // 상담일지 데이터베이스 스키마
 export const CONSULTATION_SCHEMA = {
+  id: { type: 'title' },
   상담일자: { type: 'date' },
   고객: { type: 'relation' },
   상담내용: { type: 'rich_text' },
+  상태분석: { type: 'rich_text' },
+  설진분석: { type: 'rich_text' },
+  특이사항: { type: 'rich_text' },
   증상이미지: { type: 'files' },
   처방약: { type: 'rich_text' },
   결과: { type: 'rich_text' },
@@ -59,14 +155,64 @@ export const getNotionPropertyValue = (property: any, type: string) => {
 export interface NotionCustomer {
   id: string;
   properties: {
-    고객명: any;
-    전화번호: any;
-    성별: any;
-    생년월일: any;
-    주소: any;
-    특이사항: any;
-    사진?: any;
-    얼굴_임베딩?: any;
+    id: {
+      id: string;
+      type: 'title';
+      title: Array<NotionText> | [];
+    };
+    고객명: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
+    전화번호: {
+      id: string;
+      type: 'phone_number';
+      phone_number: string | null;
+    };
+    성별: {
+      id: string;
+      type: 'select';
+      select: {
+        id: string;
+        name: string;
+        color: string;
+      } | null;
+    };
+    생년월일: {
+      id: string;
+      type: 'date';
+      date: {
+        start: string;
+        end: string | null;
+        time_zone: string | null;
+      } | null;
+    };
+    주소: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
+    특이사항: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
+    사진?: {
+      id: string;
+      type: 'relation';
+      relation: Array<{id: string}> | [];
+    };
+    얼굴_임베딩?: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
+    상담일지DB?: {
+      id: string;
+      type: 'relation';
+      relation: Array<{id: string}> | [];
+    };
   };
 }
 
@@ -74,13 +220,70 @@ export interface NotionCustomer {
 export interface NotionConsultation {
   id: string;
   properties: {
-    상담일자: any;
-    고객: any;
-    상담내용: any;
-    증상이미지: any;
-    처방약: any;
-    결과: any;
-    생성일시: any;
+    id: {
+      id: string;
+      type: 'title';
+      title: Array<NotionText> | [];
+    };
+    상담일자: {
+      id: string;
+      type: 'date';
+      date: {
+        start: string;
+        end: string | null;
+        time_zone: string | null;
+      } | null;
+    };
+    고객: {
+      id: string;
+      type: 'relation';
+      relation: Array<{id: string}> | [];
+    };
+    상담내용: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
+    상태분석: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
+    설진분석: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
+    특이사항: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
+    증상이미지: {
+      id: string;
+      type: 'files';
+      files: Array<{
+        name: string;
+        type: 'external' | 'file';
+        external?: { url: string };
+        file?: { url: string; expiry_time: string };
+      }> | [];
+    };
+    처방약: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
+    결과: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
+    생성일시: {
+      id: string;
+      type: 'created_time';
+      created_time: string;
+    };
   };
 }
 
