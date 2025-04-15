@@ -12,7 +12,15 @@ export default function Home() {
         }}
       >
         <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '1.5rem 1rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>명성약국</h1>
+          <img 
+            src="/logo.png" 
+            alt="명성약국 로고" 
+            style={{ 
+              height: '40px',
+              width: 'auto',
+              objectFit: 'contain'
+            }}
+          />
         </div>
       </header>
 
