@@ -164,34 +164,8 @@ export async function POST(request: Request) {
     // 고객 ID 생성 (일련번호 + 기존 ID)
     const baseId = generateCustomerId(data.name);
     const customId = `${serialNumber}_${baseId}`;
-    console.log(`고객 ID 생성: "${data.name}" -> "${customId}" (${serialNumber}번째 고객)`);
     
-    // 구글 드라이브에 고객 폴더 생성
-    let customerFolderId = '';
-    try {
-      console.log('고객 폴더 생성 시작...');
-      const apiBaseUrl = getApiBaseUrl();
-      const response = await fetch(`${apiBaseUrl}/api/google-drive/folder`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ folderName: customId }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Google Drive 폴더 생성 실패: ${response.status}`);
-      }
-      
-      const folderData = await response.json();
-      customerFolderId = folderData.folderId;
-      console.log(`고객 폴더 생성 완료: ${customerFolderId}`);
-    } catch (error) {
-      console.error('고객 폴더 생성 오류:', error);
-      // 폴더 생성 실패해도 고객 정보는 저장 계속 진행
-    }
-    
-    // Notion 페이지 속성 설정
+    // Notion 페이지 속성 설정 (임시로 폴더 ID 없이)
     const properties = {
       'id': {
         title: [
@@ -238,11 +212,12 @@ export async function POST(request: Request) {
           },
         ] : [],
       },
-      'customerFolderId': {
-        rich_text: customerFolderId ? [
+      // 얼굴 임베딩 데이터 저장
+      '얼굴_임베딩': {
+        rich_text: data.faceEmbedding ? [
           {
             text: {
-              content: customerFolderId,
+              content: data.faceEmbedding,
             },
           },
         ] : [],
@@ -256,17 +231,74 @@ export async function POST(request: Request) {
       },
       properties: properties
     });
+
+    // 병렬로 처리할 작업들
+    const tasks = [];
     
-    // Master DB에 고객 연결
-    await linkCustomerToMasterDB(response.id);
+    // 1. Master DB에 고객 연결 (비동기로 처리)
+    tasks.push(
+      linkCustomerToMasterDB(response.id).catch(err => {
+        console.error('Master DB 연결 오류:', err);
+      })
+    );
     
+    // 2. 구글 드라이브에 고객 폴더 생성 (비동기로 처리)
+    let customerFolderId = '';
+    const folderCreationPromise = (async () => {
+      try {
+        const apiBaseUrl = getApiBaseUrl();
+        const folderResponse = await fetch(`${apiBaseUrl}/api/google-drive/folder`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ folderName: customId }),
+        });
+        
+        if (folderResponse.ok) {
+          const folderData = await folderResponse.json();
+          customerFolderId = folderData.folderId;
+          
+          // 폴더 ID를 고객 데이터에 업데이트 (중요하지 않은 업데이트이므로 비동기로 처리)
+          if (customerFolderId) {
+            notion.pages.update({
+              page_id: response.id,
+              properties: {
+                'customerFolderId': {
+                  rich_text: [
+                    {
+                      text: {
+                        content: customerFolderId,
+                      },
+                    },
+                  ],
+                },
+              }
+            }).catch(err => {
+              console.error('폴더 ID 업데이트 오류:', err);
+            });
+          }
+        }
+      } catch (error) {
+        console.error('고객 폴더 생성 오류:', error);
+      }
+    })();
+    
+    tasks.push(folderCreationPromise);
+    
+    // 비동기 작업들을 백그라운드에서 실행 (결과를 기다리지 않음)
+    Promise.all(tasks).catch(err => {
+      console.error('백그라운드 작업 오류:', err);
+    });
+    
+    // 즉시 성공 응답 반환
     return NextResponse.json({ 
       success: true,
       customer: {
         id: response.id,
         customId: customId,
         name: data.name,
-        folderId: customerFolderId,
+        folderId: customerFolderId, // 빈 값일 수 있음 (비동기 처리 때문)
       }
     });
   } catch (error: any) {

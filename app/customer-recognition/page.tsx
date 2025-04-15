@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { CUSTOMER_SCHEMA, getNotionPropertyValue, NotionCustomer } from '@/app/lib/notion-schema';
 import * as tf from '@tensorflow/tfjs';
@@ -28,6 +28,9 @@ export default function CustomerRecognitionPage() {
   const detectionInterval = useRef<number | null>(null);
   const [modelLoading, setModelLoading] = useState(true);
   const [cameraMode, setCameraMode] = useState<'user' | 'environment'>('environment');
+
+  // 임시 저장된 임베딩 데이터 참조
+  const faceEmbeddingRef = useRef<any>(null);
 
   // 컴포넌트 마운트/언마운트 시 카메라 처리
   useEffect(() => {
@@ -533,13 +536,13 @@ export default function CustomerRecognitionPage() {
     }, 500);
   };
 
-  // 사진 촬영 및 고객 검색
-  const captureAndSearch = async () => {
+  // 사진 촬영 및 고객 검색 (useCallback으로 최적화)
+  const captureAndSearch = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current) return;
     
     try {
       setLoading(true);
-      setMessage('');
+      setMessage('고객 검색 중...');
       setCustomers([]);
       
       const video = videoRef.current;
@@ -570,14 +573,12 @@ export default function CustomerRecognitionPage() {
       const formData = new FormData();
       formData.append('image', blob);
       
-      setMessage('얼굴 인식 중...');
       const embeddingResponse = await fetch('/api/face-embedding', {
         method: 'POST',
         body: formData
       });
       
       const embeddingResult = await embeddingResponse.json();
-      console.log('얼굴 임베딩 결과:', embeddingResult);
       
       // 오류 메시지가 있지만 기본 데이터가 생성된 경우
       if (embeddingResult.note) {
@@ -601,7 +602,10 @@ export default function CustomerRecognitionPage() {
         throw new Error('얼굴 특징 데이터를 추출할 수 없습니다.');
       }
       
-      setMessage('고객 매칭 중...');
+      // 임베딩 데이터 직접 저장 (localStorage 사용 대신 메모리에 저장)
+      const embeddingData = embeddingResult.data.embedding;
+      faceEmbeddingRef.current = embeddingData;
+      
       // 얼굴 임베딩 데이터로 고객 검색
       const customerResponse = await fetch('/api/customer', {
         method: 'PUT',
@@ -609,7 +613,7 @@ export default function CustomerRecognitionPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          faceEmbedding: embeddingResult.data.embedding
+          faceEmbedding: embeddingData
         })
       });
       
@@ -631,14 +635,11 @@ export default function CustomerRecognitionPage() {
           // 유사도가 80% 이하인 경우 신규 고객으로 간주하되, 유사한 고객 정보도 함께 표시
           setMessage(`유사한 고객이 있으나 유사도가 낮습니다(${Math.round(similarity * 100)}%). 같은 고객이면 선택하고, 아니면 새 고객을 등록하세요.`);
           setShowForm(true);
-          
-          // 새 고객 등록 시 임베딩 데이터 저장을 위해 임시 저장
-          window.localStorage.setItem('tempFaceEmbedding', JSON.stringify(embeddingResult.data.embedding));
         }
       } else {
         // 얼굴 임베딩으로 찾지 못했을 때 성별 기반 대체 검색
         const gender = embeddingResult.data.gender || '';
-        setMessage('성별 기반 검색 중...');
+        
         const fallbackResponse = await fetch(`/api/customer${gender ? `?gender=${gender}` : ''}`);
         const fallbackResult = await fallbackResponse.json();
         
@@ -648,9 +649,6 @@ export default function CustomerRecognitionPage() {
         } else {
           setMessage('일치하는 고객을 찾을 수 없습니다. 새 고객을 등록하시겠습니까?');
           setShowForm(true);
-          
-          // 새 고객 등록 시 임베딩 데이터 저장을 위해 임시 저장
-          window.localStorage.setItem('tempFaceEmbedding', JSON.stringify(embeddingResult.data.embedding));
         }
       }
     } catch (err) {
@@ -659,10 +657,10 @@ export default function CustomerRecognitionPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // 새 고객 정보 저장
-  const saveNewCustomer = async (e: React.FormEvent) => {
+  // 새 고객 정보 저장 (useCallback으로 최적화)
+  const saveNewCustomer = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newCustomer.name) {
@@ -673,8 +671,9 @@ export default function CustomerRecognitionPage() {
     try {
       setLoading(true);
       
-      // 임시 저장된 얼굴 임베딩 데이터 가져오기
-      const faceEmbedding = window.localStorage.getItem('tempFaceEmbedding');
+      // 임시 저장된 얼굴 임베딩 데이터 가져오기 (메모리에서 직접 가져옴)
+      const faceEmbedding = faceEmbeddingRef.current ? 
+        JSON.stringify(faceEmbeddingRef.current) : null;
       
       const response = await fetch('/api/customer', {
         method: 'POST',
@@ -687,7 +686,7 @@ export default function CustomerRecognitionPage() {
           gender: newCustomer.gender,
           birth: newCustomer.birth,
           address: newCustomer.address,
-          faceEmbedding: faceEmbedding
+          faceEmbedding: faceEmbedding // 그대로 전달
         }),
       });
       
@@ -695,10 +694,13 @@ export default function CustomerRecognitionPage() {
       
       if (response.ok && result.success) {
         // 임시 저장 데이터 삭제
-        window.localStorage.removeItem('tempFaceEmbedding');
+        faceEmbeddingRef.current = null;
         
+        // 저장 성공 메시지 표시
         setMessage('새 고객이 등록되었습니다.');
         setShowForm(false);
+        
+        // 폼 초기화
         setNewCustomer({
           name: '',
           phone: '',
@@ -707,42 +709,36 @@ export default function CustomerRecognitionPage() {
           address: '',
         });
         
-        // 저장 성공 후 해당 고객 정보 조회
-        if (result.customer && result.customer.name) {
-          try {
-            // 등록된 고객 정보 조회
-            const searchResponse = await fetch(`/api/customer?name=${encodeURIComponent(result.customer.name)}`);
-            const searchResult = await searchResponse.json();
-            
-            if (searchResponse.ok && searchResult.success && searchResult.customers.length > 0) {
-              // 조회된 고객 정보로 customers 배열 업데이트
-              setCustomers(searchResult.customers);
-            } else {
-              // API에서 반환한 제한된 고객 정보만 있는 경우
-              console.log('등록된 고객 정보로 직접 설정:', result.customer);
-              
-              // 임시 NotionCustomer 객체를 생성하여 설정
-              const tempCustomer = {
-                id: result.customer.id,
-                properties: {
-                  고객명: { 
-                    type: 'rich_text', 
-                    rich_text: [{ plain_text: result.customer.name }] 
-                  },
-                  // 다른 필드들은 빈 값으로 설정
-                  전화번호: { type: 'phone_number', phone_number: '' },
-                  성별: { type: 'select', select: null },
-                  생년월일: { type: 'date', date: null },
-                  주소: { type: 'rich_text', rich_text: [] }
-                }
-              };
-              
-              setCustomers([tempCustomer as any]);
+        // API 응답으로 받은 고객 정보로 바로 NotionCustomer 객체 생성
+        if (result.customer) {
+          const customerObj = {
+            id: result.customer.id,
+            properties: {
+              고객명: { 
+                type: 'rich_text', 
+                rich_text: [{ plain_text: result.customer.name }] 
+              },
+              전화번호: { 
+                type: 'phone_number', 
+                phone_number: newCustomer.phone || '' 
+              },
+              성별: { 
+                type: 'select', 
+                select: newCustomer.gender ? { name: newCustomer.gender } : null 
+              },
+              생년월일: { 
+                type: 'date', 
+                date: newCustomer.birth ? { start: newCustomer.birth } : null 
+              },
+              주소: { 
+                type: 'rich_text', 
+                rich_text: newCustomer.address ? [{ plain_text: newCustomer.address }] : [] 
+              }
             }
-          } catch (error) {
-            console.error('고객 조회 오류:', error);
-            // 조회 오류 시 메시지는 변경하지 않고 유지
-          }
+          };
+          
+          // 고객 목록 업데이트
+          setCustomers([customerObj as any]);
         }
       } else {
         throw new Error(result.error || '고객 정보 저장 중 오류가 발생했습니다.');
@@ -753,7 +749,7 @@ export default function CustomerRecognitionPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [newCustomer]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -845,37 +841,23 @@ export default function CustomerRecognitionPage() {
                     onClick={() => {
                       // 해당 고객 선택 시 신규 등록 폼 닫기
                       setShowForm(false);
-                      // customer.properties가 없거나 고객명이 없는 경우 처리
-                      const customerName = customer.properties && customer.properties.고객명 
-                        ? getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type)
-                        : (customer.name || '알 수 없음');
-                      setMessage(`${customerName} 고객을 선택했습니다.`);
+                      setMessage(`${getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type)} 고객을 선택했습니다.`);
                     }}
                   >
                     <h3 className="font-bold text-lg">
-                      {customer.properties && customer.properties.고객명 
-                        ? getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type) 
-                        : (customer.name || '알 수 없음')}
+                      {getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type)}
                     </h3>
                     <p className="text-gray-600">
-                      전화번호: {customer.properties && customer.properties.전화번호 
-                        ? getNotionPropertyValue(customer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type) 
-                        : ''}
+                      전화번호: {getNotionPropertyValue(customer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type)}
                     </p>
                     <p className="text-gray-600">
-                      성별: {customer.properties && customer.properties.성별 
-                        ? getNotionPropertyValue(customer.properties.성별, CUSTOMER_SCHEMA.성별.type) 
-                        : ''}
+                      성별: {getNotionPropertyValue(customer.properties.성별, CUSTOMER_SCHEMA.성별.type)}
                     </p>
                     <p className="text-gray-600">
-                      생년월일: {customer.properties && customer.properties.생년월일 
-                        ? getNotionPropertyValue(customer.properties.생년월일, CUSTOMER_SCHEMA.생년월일.type) 
-                        : ''}
+                      생년월일: {getNotionPropertyValue(customer.properties.생년월일, CUSTOMER_SCHEMA.생년월일.type)}
                     </p>
                     <p className="text-gray-600">
-                      주소: {customer.properties && customer.properties.주소 
-                        ? getNotionPropertyValue(customer.properties.주소, CUSTOMER_SCHEMA.주소.type) 
-                        : ''}
+                      주소: {getNotionPropertyValue(customer.properties.주소, CUSTOMER_SCHEMA.주소.type)}
                     </p>
                   </div>
                 ))}
