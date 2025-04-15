@@ -77,9 +77,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '이름은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
-    // 고객 ID 생성
-    const customId = generateCustomerId(data.name);
-    console.log(`고객 ID 생성: "${data.name}" -> "${customId}"`);
+    // 전체 고객 수 조회하여 일련번호 생성
+    const totalCustomersResponse = await notion.databases.query({
+      database_id: customerDbId,
+      page_size: 1, // 결과는 필요 없고 total만 필요
+    });
+    
+    // 현재 고객 수 + 1을 5자리 문자열로 변환 (e.g., "00030")
+    const totalCustomers = totalCustomersResponse.total_results || totalCustomersResponse.results.length;
+    const newCustomerNumber = totalCustomers + 1;
+    const serialNumber = String(newCustomerNumber).padStart(5, '0');
+    
+    // 고객 ID 생성 (일련번호 + 기존 ID)
+    const baseId = generateCustomerId(data.name);
+    const customId = `${serialNumber}_${baseId}`;
+    console.log(`고객 ID 생성: "${data.name}" -> "${customId}" (${serialNumber}번째 고객)`);
     
     // 노션 API 형식에 맞게 데이터 변환
     const properties: any = {

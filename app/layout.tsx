@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "노션 데이터베이스 관리",
-  description: "노션 API를 활용한 일일 수입/지출 관리 웹앱",
+  title: "명성약국 MSLINK 시스템",
+  description: "명성약국 MSLINK 시스템",
 };
 
 export const viewport: Viewport = {
