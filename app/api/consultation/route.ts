@@ -147,24 +147,46 @@ export async function POST(request: Request) {
       // 이미지 업로드 함수
       const uploadImage = async (imageData: string, index: number) => {
         try {
+          // Base64 이미지 데이터 추출
+          let base64Data = imageData;
+          if (imageData.includes(';base64,')) {
+            base64Data = imageData.split(';base64,')[1];
+          }
+          
+          // FormData 생성
+          const formData = new FormData();
+          
+          // Base64 문자열을 Blob으로 변환 (웹 브라우저 호환)
+          const byteString = Buffer.from(base64Data, 'base64').toString('binary');
+          const bytes = new Uint8Array(byteString.length);
+          for (let i = 0; i < byteString.length; i++) {
+            bytes[i] = byteString.charCodeAt(i);
+          }
+          
+          // Blob 생성 및 FormData에 추가
+          const fileName = `${consultationId}_${index + 1}.jpg`;
+          const blob = new Blob([bytes], { type: 'image/jpeg' });
+          formData.append('file', blob, fileName);
+          formData.append('fileName', fileName);
+          
+          // 고객 폴더 ID가 있으면 추가
+          if (customerFolderId) {
+            formData.append('targetFolderId', customerFolderId);
+          }
+          
+          console.log(`이미지 ${index + 1} 업로드 준비 완료: ${fileName}`);
+          
+          // multipart/form-data로 전송
           const uploadResponse = await fetch(uploadApiUrl, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              imageData: imageData,
-              customerFolderId: customerFolderId,
-              consultationId: consultationId,
-              imageIndex: index + 1
-            }),
+            body: formData,
           });
           
           if (uploadResponse.ok) {
             const uploadResult = await uploadResponse.json();
             if (uploadResult.success) {
-              console.log(`이미지 ${index + 1} 업로드 성공: ${uploadResult.fileId}`);
-              return uploadResult.fileId;
+              console.log(`이미지 ${index + 1} 업로드 성공: ${uploadResult.file.id}`);
+              return uploadResult.file.id;
             }
           }
           console.error(`이미지 ${index + 1} 업로드 실패`);

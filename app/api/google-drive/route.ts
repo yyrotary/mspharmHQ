@@ -67,19 +67,64 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // 이미지 파일과 메타데이터 파싱
-    const formData = await req.formData();
-    const file = formData.get('file') as File;
-    const targetFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
-
-    if (!file) {
-      return NextResponse.json({ success: false, message: '파일이 없습니다.' }, { status: 400 });
+    // 요청 유형 확인 (formData 또는 JSON)
+    const contentType = req.headers.get('content-type') || '';
+    
+    // 파일 및 메타데이터 변수
+    let fileName = '';
+    let buffer: Buffer;
+    let mimeType = 'image/jpeg';
+    let targetFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+    
+    if (contentType.includes('multipart/form-data')) {
+      // FormData에서 파일 및 메타데이터 파싱
+      console.log('multipart/form-data 요청 처리');
+      const formData = await req.formData();
+      const file = formData.get('file') as File;
+      
+      if (!file) {
+        return NextResponse.json({ success: false, message: '파일이 없습니다.' }, { status: 400 });
+      }
+      
+      fileName = formData.get('fileName') as string || file.name;
+      buffer = Buffer.from(await file.arrayBuffer());
+      mimeType = file.type;
+      
+      // 타깃 폴더 - form 데이터에서 전달된 값 또는 기본 폴더 사용
+      const customFolderId = formData.get('targetFolderId') as string;
+      if (customFolderId) {
+        targetFolderId = customFolderId;
+      }
+    } else {
+      // JSON 데이터에서 이미지 및 메타데이터 파싱
+      console.log('JSON 요청 처리');
+      const data = await req.json();
+      
+      // Base64 이미지 데이터 확인
+      const imageBase64 = data.imageBase64 || data.imageData;
+      if (!imageBase64) {
+        return NextResponse.json({ success: false, message: '이미지 데이터가 없습니다.' }, { status: 400 });
+      }
+      
+      // Base64 이미지 데이터 처리
+      let base64Data = imageBase64;
+      if (base64Data.includes(';base64,')) {
+        base64Data = base64Data.split(';base64,')[1];
+      }
+      
+      // Buffer 생성
+      buffer = Buffer.from(base64Data, 'base64');
+      
+      // 파일명 설정
+      fileName = data.fileName || `image_${Date.now()}.jpg`;
+      
+      // 고객 폴더 ID 확인
+      if (data.customerFolderId) {
+        targetFolderId = data.customerFolderId;
+      }
     }
-
-    // 파일 메타데이터 설정
-    const fileName = formData.get('fileName') as string || file.name;
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const mimeType = file.type;
+    
+    console.log(`업로드 정보: 파일명=${fileName}, 대상 폴더=${targetFolderId}`);
 
     // 구글 드라이브 클라이언트 초기화
     const auth = await getAuthClient();
@@ -115,7 +160,9 @@ export async function POST(req: NextRequest) {
         id: response.data.id,
         name: response.data.name,
         link: response.data.webViewLink
-      }
+      },
+      // 이전 호환성을 위한 필드
+      fileId: response.data.id
     });
   } catch (error) {
     console.error('파일 업로드 오류:', error);
