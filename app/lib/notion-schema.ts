@@ -292,5 +292,39 @@ export interface NotionConsultation {
 export const NOTION_ENV_VARS = {
   API_KEY: 'NOTION_API_KEY',
   CUSTOMER_DB_ID: 'NOTION_CUSTOMER_DB_ID',
-  CONSULTATION_DB_ID: 'NOTION_CONSULTATION_DB_ID'
-}; 
+  CONSULTATION_DB_ID: 'NOTION_CONSULTATION_DB_ID',
+  MASTER_DB_ID: 'NOTION_MASTER_DB_ID'
+};
+
+// Master DB 스키마
+export const MASTER_DB_SCHEMA = {
+  Name: { type: 'title' },
+  고객DB: { type: 'relation' },
+  고객수: { type: 'rollup' }
+};
+
+// Master DB 인터페이스
+export interface NotionMasterDB {
+  id: string;
+  properties: {
+    Name: {
+      id: string;
+      type: 'title';
+      title: Array<NotionText> | [];
+    };
+    고객DB: {
+      id: string;
+      type: 'relation';
+      relation: Array<{id: string}> | [];
+    };
+    고객수: {
+      id: string;
+      type: 'rollup';
+      rollup: {
+        type: 'number';
+        number: number;
+        function: 'not_empty'; 
+      };
+    };
+  };
+} 

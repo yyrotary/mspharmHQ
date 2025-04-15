@@ -147,9 +147,10 @@ export async function POST(request: Request) {
       // 이미지 업로드 함수
       const uploadImage = async (imageData: string, index: number) => {
         try {
-          // 파일명 생성
-          const fileName = `${consultationId}_${index + 1}.jpg`;
-          console.log(`이미지 파일명: ${fileName}`);
+          // 파일명 생성 (1부터 시작하는 인덱스)
+          const fileIndex = index + 1;
+          const fileName = `${consultationId}_${fileIndex}.jpg`;
+          console.log(`이미지 #${fileIndex} 파일명: ${fileName}, 배열 인덱스: ${index}`);
           
           // JSON 방식으로 이미지 및 폴더 정보 전송
           const uploadResponse = await fetch(uploadApiUrl, {
@@ -161,7 +162,8 @@ export async function POST(request: Request) {
               imageData: imageData,
               fileName: fileName,
               customerFolderId: customerFolderId, // 고객 폴더 ID
-              consultationId: consultationId      // 상담일지 ID
+              consultationId: consultationId,     // 상담일지 ID
+              imageIndex: fileIndex               // 1부터 시작하는 이미지 인덱스
             }),
           });
           
@@ -169,25 +171,37 @@ export async function POST(request: Request) {
             const uploadResult = await uploadResponse.json();
             if (uploadResult.success) {
               const fileUrl = uploadResult.file?.link || uploadResult.file?.webViewLink;
-              console.log(`이미지 ${index + 1} 업로드 성공: ${uploadResult.file?.id || uploadResult.fileId}, URL: ${fileUrl}`);
-              return fileUrl; // 파일 URL 반환
+              console.log(`이미지 #${fileIndex} 업로드 성공: ${uploadResult.file?.id || uploadResult.fileId}, URL: ${fileUrl}`);
+              // 인덱스 정보도 함께 반환
+              return { url: fileUrl, index: fileIndex }; 
             }
           }
-          console.error(`이미지 ${index + 1} 업로드 실패`);
+          console.error(`이미지 #${fileIndex} 업로드 실패`);
           return null;
         } catch (error) {
-          console.error(`이미지 ${index + 1} 업로드 오류:`, error);
+          console.error(`이미지 업로드 오류 (인덱스 ${index+1}):`, error);
           return null;
         }
       };
+      
+      // 배열 인덱스 로깅
+      console.log('이미지 배열 내용:');
+      data.imageDataArray.forEach((_, i) => console.log(`- 배열 항목 #${i}, 파일 인덱스: ${i+1}`));
       
       // 병렬 업로드 처리
       const uploadPromises = data.imageDataArray.map(uploadImage);
       const uploadResults = await Promise.all(uploadPromises);
       
-      // 성공적으로 업로드된 이미지 URL만 추출
-      processedImageUrls = uploadResults.filter(url => url !== null && url !== undefined);
+      // 성공적으로 업로드된 이미지 URL만 추출 (null 필터링)
+      const validResults = uploadResults.filter(result => result !== null && result !== undefined);
+      processedImageUrls = validResults.map(result => result.url);
+      
       console.log(`${processedImageUrls.length}개의 이미지 업로드 완료`);
+      
+      // 업로드 결과 로깅
+      validResults.forEach((result, i) => {
+        console.log(`- 결과 #${i}: 파일 인덱스 ${result.index}, URL: ${result.url.substring(0, 50)}...`);
+      });
     }
     
     // 노션 API 형식으로 데이터 변환
@@ -294,14 +308,22 @@ export async function POST(request: Request) {
     
     // 업로드된 이미지 URL 처리
     if (processedImageUrls.length > 0) {
-      properties['증상이미지'] = {
-        [CONSULTATION_SCHEMA.증상이미지.type]: processedImageUrls.map((url, index) => ({
+      console.log('Notion에 이미지 URL 저장 시작...');
+      
+      // 정확한 인덱스를 가진 외부 이미지 항목 생성 
+      const externalImages = processedImageUrls.map((url, idx) => {
+        console.log(`Notion 이미지 #${idx+1}: ${url.substring(0, 30)}...`);
+        return {
           type: 'external',
-          name: `${consultationId}_${index + 1}.jpg`,
+          name: `${consultationId}_${idx+1}.jpg`,
           external: {
             url: url
           }
-        }))
+        };
+      });
+      
+      properties['증상이미지'] = {
+        [CONSULTATION_SCHEMA.증상이미지.type]: externalImages
       };
     }
     // 기존 이미지 URL이 제공된 경우

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
-import { CUSTOMER_SCHEMA, NOTION_ENV_VARS, NotionCustomer } from '@/app/lib/notion-schema';
+import { CUSTOMER_SCHEMA, NOTION_ENV_VARS, NotionCustomer, MASTER_DB_SCHEMA, NotionMasterDB } from '@/app/lib/notion-schema';
 import { generateCustomerId, getApiBaseUrl } from '@/app/lib/utils';
 
 // 노션 클라이언트 초기화
@@ -10,6 +10,83 @@ const notion = new Client({
 
 // 고객 데이터베이스 ID
 const customerDbId = process.env[NOTION_ENV_VARS.CUSTOMER_DB_ID];
+// Master 데이터베이스 ID
+const masterDbId = process.env[NOTION_ENV_VARS.MASTER_DB_ID];
+
+// Master DB에서 고객 수 조회
+async function getCustomerCount(): Promise<number> {
+  try {
+    if (!masterDbId) {
+      console.warn('Master DB ID가 설정되지 않았습니다. 기본값 0을 반환합니다.');
+      return 0;
+    }
+
+    // Master DB 조회
+    const response = await notion.databases.query({
+      database_id: masterDbId as string,
+      page_size: 1, // 첫 번째 레코드만 가져옴
+    });
+
+    if (response.results.length === 0) {
+      console.warn('Master DB에 레코드가 없습니다. 기본값 0을 반환합니다.');
+      return 0;
+    }
+
+    // 첫 번째 레코드에서 '고객수' 값 추출
+    const masterData = response.results[0] as any;
+    const customerCount = masterData.properties?.고객수?.rollup?.number || 0;
+    
+    console.log(`Master DB에서 고객 수 조회: ${customerCount}`);
+    return customerCount;
+  } catch (error) {
+    console.error('Master DB 조회 오류:', error);
+    return 0; // 오류 발생 시 0 반환
+  }
+}
+
+// Master DB에 고객 연결
+async function linkCustomerToMasterDB(customerPageId: string): Promise<boolean> {
+  try {
+    if (!masterDbId) {
+      console.warn('Master DB ID가 설정되지 않았습니다. 연결을 건너뜁니다.');
+      return false;
+    }
+
+    // Master DB 조회
+    const response = await notion.databases.query({
+      database_id: masterDbId as string,
+      page_size: 1,
+    });
+
+    if (response.results.length === 0) {
+      console.warn('Master DB에 레코드가 없습니다. 연결을 건너뜁니다.');
+      return false;
+    }
+
+    // 첫 번째 레코드 ID
+    const masterPageId = response.results[0].id;
+    
+    // 기존 고객DB 관계 가져오기
+    const masterPage = await notion.pages.retrieve({ page_id: masterPageId });
+    const existingRelations = (masterPage as any).properties?.고객DB?.relation || [];
+    
+    // 새 고객 추가
+    await notion.pages.update({
+      page_id: masterPageId,
+      properties: {
+        '고객DB': {
+          relation: [...existingRelations, { id: customerPageId }]
+        }
+      }
+    });
+    
+    console.log(`Master DB(${masterPageId})에 고객(${customerPageId}) 연결 완료`);
+    return true;
+  } catch (error) {
+    console.error('Master DB 연결 오류:', error);
+    return false;
+  }
+}
 
 // 고객 정보 조회
 export async function GET(request: Request) {
@@ -77,15 +154,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '이름은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
-    // 전체 고객 수 조회하여 일련번호 생성
-    const totalCustomersResponse = await notion.databases.query({
-      database_id: customerDbId,
-      page_size: 1, // 결과는 필요 없고 total만 필요
-    });
+    // Master DB에서 고객 수 조회
+    const customerCount = await getCustomerCount();
     
     // 현재 고객 수 + 1을 5자리 문자열로 변환 (e.g., "00030")
-    const totalCustomers = totalCustomersResponse.total_results || totalCustomersResponse.results.length;
-    const newCustomerNumber = totalCustomers + 1;
+    const newCustomerNumber = customerCount + 1;
     const serialNumber = String(newCustomerNumber).padStart(5, '0');
     
     // 고객 ID 생성 (일련번호 + 기존 ID)
@@ -97,136 +170,111 @@ export async function POST(request: Request) {
     let customerFolderId = '';
     try {
       console.log('고객 폴더 생성 시작...');
-      // API 기본 URL을 이용해 폴더 API URL 생성
       const apiBaseUrl = getApiBaseUrl();
-      console.log(`API 기본 URL: ${apiBaseUrl}`);
-      const apiUrl = `${apiBaseUrl}/api/google-drive/folder`;
-      console.log(`폴더 생성 API 호출: ${apiUrl}`);
-      
-      const folderResponse = await fetch(apiUrl, {
+      const response = await fetch(`${apiBaseUrl}/api/google-drive/folder`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          folderName: customId, // 고객 ID를 폴더명으로 사용
-        }),
+        body: JSON.stringify({ folderName: customId }),
       });
       
-      const folderResult = await folderResponse.json();
-      
-      if (folderResponse.ok && folderResult.success) {
-        customerFolderId = folderResult.folderId;
-        console.log(`고객 폴더 생성 완료: ${folderResult.folderName} (${customerFolderId})`);
-      } else {
-        console.error('고객 폴더 생성 실패:', folderResult.error || '알 수 없는 오류');
+      if (!response.ok) {
+        throw new Error(`Google Drive 폴더 생성 실패: ${response.status}`);
       }
+      
+      const folderData = await response.json();
+      customerFolderId = folderData.folderId;
+      console.log(`고객 폴더 생성 완료: ${customerFolderId}`);
     } catch (error) {
-      console.error('고객 폴더 생성 중 예외 발생:', error);
-      // 폴더 생성 실패해도 고객 생성은 계속 진행
+      console.error('고객 폴더 생성 오류:', error);
+      // 폴더 생성 실패해도 고객 정보는 저장 계속 진행
     }
     
-    // 노션 API 형식에 맞게 데이터 변환
-    const properties: any = {
-      'id': {
-        [CUSTOMER_SCHEMA.id.type]: [{ 
-          type: 'text', 
-          text: { content: customId } 
-        }]
+    // Notion 페이지 속성 설정
+    const properties = {
+      [CUSTOMER_SCHEMA.NAME.name]: {
+        title: [
+          {
+            text: {
+              content: data.name,
+            },
+          },
+        ],
       },
-      '고객명': {
-        [CUSTOMER_SCHEMA.고객명.type]: [{ type: 'text', text: { content: data.name } }]
-      }
+      [CUSTOMER_SCHEMA.PHONE.name]: {
+        rich_text: data.phone ? [
+          {
+            text: {
+              content: data.phone,
+            },
+          },
+        ] : [],
+      },
+      [CUSTOMER_SCHEMA.GENDER.name]: {
+        select: data.gender ? { name: data.gender } : null,
+      },
+      [CUSTOMER_SCHEMA.BIRTH.name]: {
+        date: data.birth ? { start: data.birth } : null,
+      },
+      [CUSTOMER_SCHEMA.ADDRESS.name]: {
+        rich_text: data.address ? [
+          {
+            text: {
+              content: data.address,
+            },
+          },
+        ] : [],
+      },
+      [CUSTOMER_SCHEMA.EMAIL.name]: {
+        email: data.email || null,
+      },
+      [CUSTOMER_SCHEMA.CUSTOM_ID.name]: {
+        rich_text: [
+          {
+            text: {
+              content: customId,
+            },
+          },
+        ],
+      },
+      [CUSTOMER_SCHEMA.FOLDER_ID.name]: {
+        rich_text: customerFolderId ? [
+          {
+            text: {
+              content: customerFolderId,
+            },
+          },
+        ] : [],
+      },
     };
     
-    // 고객 폴더 ID가 있으면 추가
-    if (customerFolderId) {
-      properties['customerFolderId'] = {
-        [CUSTOMER_SCHEMA.customerFolderId?.type || 'rich_text']: [{ 
-          type: 'text', 
-          text: { content: customerFolderId } 
-        }]
-      };
-    }
-    
-    if (data.phone) {
-      properties['전화번호'] = {
-        [CUSTOMER_SCHEMA.전화번호.type]: data.phone
-      };
-    }
-    
-    if (data.gender) {
-      properties['성별'] = {
-        [CUSTOMER_SCHEMA.성별.type]: {
-          name: data.gender
-        }
-      };
-    }
-    
-    if (data.birth) {
-      properties['생년월일'] = {
-        [CUSTOMER_SCHEMA.생년월일.type]: {
-          start: data.birth
-        }
-      };
-    }
-    
-    if (data.address) {
-      properties['주소'] = {
-        [CUSTOMER_SCHEMA.주소.type]: [{ type: 'text', text: { content: data.address } }]
-      };
-    }
-    
-    // 사진 URL이 제공된 경우
-    if (data.photoUrl) {
-      // URL 길이 확인 - 노션 API 제한(2000자)
-      if (data.photoUrl.length <= 2000) {
-        properties['사진'] = {
-          [CUSTOMER_SCHEMA.사진.type]: [
-            {
-              type: 'external',
-              name: `${data.name}_photo.jpg`,
-              external: {
-                url: data.photoUrl
-              }
-            }
-          ]
-        };
-      } else {
-        console.warn('사진 URL이 너무 길어 저장하지 않습니다 (길이: ' + data.photoUrl.length + ')');
-      }
-    }
-    
-    // 얼굴 임베딩 데이터가 제공된 경우
-    if (data.faceEmbedding) {
-      properties['얼굴_임베딩'] = {
-        [CUSTOMER_SCHEMA.얼굴_임베딩.type]: [
-          { 
-            type: 'text', 
-            text: { 
-              content: typeof data.faceEmbedding === 'string' 
-                ? data.faceEmbedding 
-                : JSON.stringify(data.faceEmbedding) 
-            } 
-          }
-        ]
-      };
-    }
-    
-    // 새 고객 생성
+    // Notion에 고객 페이지 생성
     const response = await notion.pages.create({
-      parent: { database_id: customerDbId },
+      parent: {
+        database_id: customerDbId,
+      },
       properties: properties
     });
     
+    // Master DB에 고객 연결
+    await linkCustomerToMasterDB(response.id);
+    
     return NextResponse.json({ 
-      success: true, 
-      customer: response,
-      customId: customId // 생성된 ID 반환
+      success: true,
+      customer: {
+        id: response.id,
+        customId: customId,
+        name: data.name,
+        folderId: customerFolderId,
+      }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('고객 정보 저장 오류:', error);
-    return NextResponse.json({ error: '고객 정보 저장 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json(
+      { error: `고객 정보 저장 중 오류가 발생했습니다: ${error.message}` },
+      { status: 500 }
+    );
   }
 }
 

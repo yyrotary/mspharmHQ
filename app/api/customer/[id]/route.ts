@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
-import { CUSTOMER_SCHEMA, NOTION_ENV_VARS, NotionCustomer } from '@/app/lib/notion-schema';
+import { CUSTOMER_SCHEMA, NOTION_ENV_VARS } from '@/app/lib/notion-schema';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
@@ -26,44 +26,70 @@ export async function PUT(
       return NextResponse.json({ error: '이름은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
-    // 노션 API 형식에 맞게 데이터 변환
+    // 노션 페이지 속성 설정
     const properties: any = {
-      '고객명': {
-        [CUSTOMER_SCHEMA.고객명.type]: [{ type: 'text', text: { content: data.name } }]
+      [CUSTOMER_SCHEMA.NAME.name]: {
+        title: [
+          {
+            text: {
+              content: data.name,
+            },
+          },
+        ],
       }
     };
     
     if (data.phone !== undefined) {
-      properties['전화번호'] = {
-        [CUSTOMER_SCHEMA.전화번호.type]: data.phone
+      properties[CUSTOMER_SCHEMA.PHONE.name] = {
+        rich_text: data.phone ? [
+          {
+            text: {
+              content: data.phone,
+            },
+          },
+        ] : [],
       };
     }
     
     if (data.gender !== undefined) {
-      properties['성별'] = {
-        [CUSTOMER_SCHEMA.성별.type]: {
-          name: data.gender
-        }
+      properties[CUSTOMER_SCHEMA.GENDER.name] = {
+        select: data.gender ? { name: data.gender } : null,
       };
     }
     
     if (data.birth !== undefined) {
-      properties['생년월일'] = {
-        [CUSTOMER_SCHEMA.생년월일.type]: data.birth ? {
-          start: data.birth
-        } : null
+      properties[CUSTOMER_SCHEMA.BIRTH.name] = {
+        date: data.birth ? { start: data.birth } : null,
       };
     }
     
     if (data.address !== undefined) {
-      properties['주소'] = {
-        [CUSTOMER_SCHEMA.주소.type]: [{ type: 'text', text: { content: data.address } }]
+      properties[CUSTOMER_SCHEMA.ADDRESS.name] = {
+        rich_text: data.address ? [
+          {
+            text: {
+              content: data.address,
+            },
+          },
+        ] : [],
+      };
+    }
+    
+    if (data.email !== undefined) {
+      properties[CUSTOMER_SCHEMA.EMAIL.name] = {
+        email: data.email || null,
       };
     }
     
     if (data.specialNote !== undefined) {
-      properties['특이사항'] = {
-        [CUSTOMER_SCHEMA.특이사항.type]: [{ type: 'text', text: { content: data.specialNote } }]
+      properties[CUSTOMER_SCHEMA.SPECIAL_NOTE.name] = {
+        rich_text: data.specialNote ? [
+          {
+            text: {
+              content: data.specialNote,
+            },
+          },
+        ] : [],
       };
     }
     
@@ -80,13 +106,16 @@ export async function PUT(
     return NextResponse.json({ 
       success: true, 
       message: '고객 정보가 업데이트되었습니다.',
-      customer: response 
+      customer: {
+        id: response.id,
+        name: data.name,
+      }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('고객 정보 업데이트 오류:', error);
     return NextResponse.json({ 
       success: false,
-      error: '고객 정보 업데이트 중 오류가 발생했습니다.' 
+      error: `고객 정보 업데이트 중 오류가 발생했습니다: ${error.message}`
     }, { status: 500 });
   }
 }
@@ -113,11 +142,11 @@ export async function DELETE(
       success: true, 
       message: '고객 정보가 삭제되었습니다.' 
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('고객 정보 삭제 오류:', error);
     return NextResponse.json({ 
       success: false,
-      error: '고객 정보 삭제 중 오류가 발생했습니다.' 
+      error: `고객 정보 삭제 중 오류가 발생했습니다: ${error.message}`
     }, { status: 500 });
   }
 } 

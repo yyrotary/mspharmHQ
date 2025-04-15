@@ -116,8 +116,17 @@ export async function POST(req: NextRequest) {
       // Buffer 생성
       buffer = Buffer.from(base64Data, 'base64');
       
-      // 파일명 설정
-      fileName = data.fileName || `image_${Date.now()}.jpg`;
+      // 파일명 설정 (imageIndex 파라미터가 있으면 사용)
+      let imageIndex = data.imageIndex || 0;
+      if (imageIndex > 0) {
+        console.log(`전달받은 이미지 인덱스: ${imageIndex}`);
+      }
+      
+      fileName = data.fileName || 
+                (data.consultationId && imageIndex ? 
+                  `${data.consultationId}_${imageIndex}.jpg` : 
+                  `image_${Date.now()}.jpg`);
+      
       console.log(`설정된 파일명: ${fileName}`);
       
       // 고객 폴더 ID 확인
