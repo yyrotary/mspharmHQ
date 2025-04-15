@@ -79,11 +79,13 @@ export async function POST(request: Request) {
     
     // 고객 ID 생성
     const customId = generateCustomerId(data.name);
+    console.log(`고객 ID 생성: "${data.name}" -> "${customId}"`);
     
     // 노션 API 형식에 맞게 데이터 변환
     const properties: any = {
       'id': {
         [CUSTOMER_SCHEMA.id.type]: [{ 
+          type: 'text', 
           text: { content: customId } 
         }]
       },
