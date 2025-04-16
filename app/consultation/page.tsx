@@ -1254,6 +1254,18 @@ export default function ConsultationPage() {
     try {
       setLoading(true);
       
+      // 고객 폴더 ID 추출
+      let customerFolderId = null;
+      
+      // @ts-expect-error - 타입 정의 문제 해결
+      customerFolderId = customer?.properties?.customerFolderId?.rich_text?.[0]?.text?.content || null;
+      if (customerFolderId) {
+        console.log(`사용할 고객 폴더 ID: ${customerFolderId}`);
+      } else {
+        console.log('고객 폴더 ID가 없습니다');
+      }
+      
+      
       const response = await fetch(`/api/customer/${customer.id}`, {
         method: 'PUT',
         headers: {
@@ -1265,6 +1277,7 @@ export default function ConsultationPage() {
           gender: editCustomer.gender,
           birth: editCustomer.birth,
           address: editCustomer.address,
+          customerFolderId: customerFolderId,
           specialNote: editCustomer.specialNote
         }),
       });

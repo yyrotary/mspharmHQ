@@ -4,7 +4,7 @@ import { CUSTOMER_SCHEMA, NOTION_ENV_VARS } from '@/app/lib/notion-schema';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
-  auth: process.env[NOTION_ENV_VARS.API_KEY],
+  auth: process.env.NOTION_API_KEY,
 });
 
 // 고객 정보 업데이트
@@ -12,11 +12,7 @@ export async function PUT(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  const id = context.params.id;
-  
-  if (!id) {
-    return NextResponse.json({ error: '고객 ID가 필요합니다.' }, { status: 400 });
-  }
+  const customId = context.params.id;
   
   try {
     const data = await request.json();
@@ -26,45 +22,36 @@ export async function PUT(
       return NextResponse.json({ error: '이름은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
-    // 노션 페이지 속성 설정
-    const properties: any = {
-      [CUSTOMER_SCHEMA.NAME.name]: {
+    // Notion 페이지 속성 설정 (임시로 폴더 ID 없이)
+    const properties = {
+      'id': {
         title: [
+          {
+            text: {
+              content: customId,
+            },
+          },
+        ],
+      },
+      '고객명': {
+        rich_text: [
           {
             text: {
               content: data.name,
             },
           },
         ],
-      }
-    };
-    
-    if (data.phone !== undefined) {
-      properties[CUSTOMER_SCHEMA.PHONE.name] = {
-        rich_text: data.phone ? [
-          {
-            text: {
-              content: data.phone,
-            },
-          },
-        ] : [],
-      };
-    }
-    
-    if (data.gender !== undefined) {
-      properties[CUSTOMER_SCHEMA.GENDER.name] = {
+      },
+      '전화번호': {
+        phone_number: data.phone || null,
+      },
+      '성별': {
         select: data.gender ? { name: data.gender } : null,
-      };
-    }
-    
-    if (data.birth !== undefined) {
-      properties[CUSTOMER_SCHEMA.BIRTH.name] = {
+      },
+      '생년월일': {
         date: data.birth ? { start: data.birth } : null,
-      };
-    }
-    
-    if (data.address !== undefined) {
-      properties[CUSTOMER_SCHEMA.ADDRESS.name] = {
+      },
+      '주소': {
         rich_text: data.address ? [
           {
             text: {
@@ -72,29 +59,8 @@ export async function PUT(
             },
           },
         ] : [],
-      };
-    }
-    
-    if (data.email !== undefined) {
-      properties[CUSTOMER_SCHEMA.EMAIL.name] = {
-        email: data.email || null,
-      };
-    }
-    
-    if (data.specialNote !== undefined) {
-      properties[CUSTOMER_SCHEMA.SPECIAL_NOTE.name] = {
-        rich_text: data.specialNote ? [
-          {
-            text: {
-              content: data.specialNote,
-            },
-          },
-        ] : [],
-      };
-    }
-    
-    if (data.customerFolderId !== undefined) {
-      properties[CUSTOMER_SCHEMA.CUSTOMER_FOLDER_ID.name] = {
+      },
+      'customerFolderId': {
         rich_text: data.customerFolderId ? [
           {
             text: {
@@ -102,8 +68,19 @@ export async function PUT(
             },
           },
         ] : [],
-      };
-    }
+      },
+      '특이사항': {
+        rich_text: data.specialNote ? [
+          {
+            text: {
+              content: data.specialNote,
+            },
+          },
+        ] : [],
+      },
+      
+    };
+    
     
     // 고객 정보 업데이트
     console.log(`고객 ID ${id} 정보 업데이트 중...`, properties);
