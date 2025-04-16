@@ -242,8 +242,8 @@ export async function POST(request: Request) {
     let customerFolderId = '';
     const folderCreationPromise = (async () => {
       try {
-        const apiBaseUrl = getApiBaseUrl();
-        const folderResponse = await fetch(`${apiBaseUrl}/api/google-drive/folder`, {
+        //const apiBaseUrl = getApiBaseUrl();
+        const folderResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/google-drive/folder`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -253,27 +253,26 @@ export async function POST(request: Request) {
         
         if (folderResponse.ok) {
           const folderData = await folderResponse.json();
-          customerFolderId = folderData.folderId;
+          //customerFolderId = folderData.folderId;
           
-          // 폴더 ID를 고객 데이터에 업데이트 (중요하지 않은 업데이트이므로 비동기로 처리)
-          if (customerFolderId) {
-            notion.pages.update({
-              page_id: response.id,
-              properties: {
-                'customerFolderId': {
-                  rich_text: [
-                    {
-                      text: {
-                        content: customerFolderId,
-                      },
+          
+          notion.pages.update({
+            page_id: response.id,
+            properties: {
+              'customerFolderId': {
+                rich_text: [
+                  {
+                    text: {
+                      content: folderData.folderId,
                     },
-                  ],
-                },
-              }
-            }).catch(err => {
-              console.error('폴더 ID 업데이트 오류:', err);
-            });
-          }
+                  },
+                ],
+              },
+            }
+          }).catch(err => {
+            console.error('폴더 ID 업데이트 오류:', err);
+          });
+          
         }
       } catch (error) {
         console.error('고객 폴더 생성 오류:', error);
