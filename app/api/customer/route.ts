@@ -159,11 +159,7 @@ export async function POST(request: Request) {
     
     // 현재 고객 수 + 1을 5자리 문자열로 변환 (e.g., "00030")
     const newCustomerNumber = customerCount + 1;
-    const serialNumber = String(newCustomerNumber).padStart(5, '0');
-    
-    // 고객 ID 생성 (일련번호 + 기존 ID)
-    const baseId = generateCustomerId(data.name);
-    const customId = `${serialNumber}_${baseId}`;
+    const customId = String(newCustomerNumber).padStart(5, '0');
     
     // Notion 페이지 속성 설정 (임시로 폴더 ID 없이)
     const properties = {

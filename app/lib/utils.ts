@@ -94,24 +94,16 @@ export function getInitials(name: string): string {
 }
 
 /**
- * 한글 이름을 기반으로 고객 ID를 생성합니다.
- * 예: "홍길동" -> "honggd"
+ * 고객 ID 생성 함수
+ * 이름만 반환하며 초성 변환 로직을 제거하였습니다.
  * @param fullName 고객 전체 이름
  * @returns 생성된 고객 ID
  */
 export function generateCustomerId(fullName: string): string {
   if (!fullName) return '';
   
-  const lastName = getLastName(fullName);
-  const firstName = getFirstName(fullName);
-  
-  // 성을 로마자로 변환
-  const romanLastName = koreanLastNameToRoman(lastName);
-  
-  // 이름의 각 글자 초성을 추출하여 로마자로 변환
-  const firstNameInitials = getInitials(firstName);
-  
-  return `${romanLastName}${firstNameInitials}`.toLowerCase();
+  // 공백 제거 및 소문자화
+  return fullName.replace(/\s+/g, '').toLowerCase();
 }
 
 /**
@@ -137,16 +129,6 @@ export function formatDateToShort(date: string | Date): string {
  * @returns 생성된 상담 ID
  */
 export function generateConsultationId(customerId: string, consultDate: string): string {
-  // customerId가 이미 Notion 페이지 ID인 경우 실제 고객 ID를 찾아야함
-  // 페이지 ID 패턴 체크 (UUID 포맷)
-  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  
-  // customerId가 UUID 형식이면 'id' 속성 값을 가져와야 함
-  if (uuidPattern.test(customerId)) {
-    console.warn('상담 ID 생성에 페이지 ID가 사용되었습니다. 고객 ID를 사용해야 합니다.');
-    // 여기서는 임시로 'unknown'을 반환
-    customerId = 'unknown';
-  }
   
   const dateShort = formatDateToShort(consultDate);
   return `${customerId}_${dateShort}`;

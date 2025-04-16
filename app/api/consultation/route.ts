@@ -101,7 +101,7 @@ export async function POST(request: Request) {
     
     // 상담일지 ID 생성 (실제 고객 ID 사용)
     const consultationId = generateConsultationId(realCustomerId, data.consultDate);
-    console.log(`상담일지 ID 생성: "${realCustomerId}" + "${data.consultDate}" -> "${consultationId}"`);
+    //console.log(`상담일지 ID 생성: "${realCustomerId}" + "${data.consultDate}" -> "${consultationId}"`);
     
     // 고객 폴더 ID 조회 또는 생성
     let customerFolderId = data.customerFolderId || null;
@@ -139,9 +139,9 @@ export async function POST(request: Request) {
         // 폴더 ID가 조회되지 않은 경우에만 새 폴더 생성 시도
         if (!customerFolderId) {
           // API 기본 URL을 이용해 폴더 API URL 생성
-          const apiBaseUrl = getApiBaseUrl();
-          console.log(`API 기본 URL: ${apiBaseUrl}`);
-          const folderApiUrl = `${apiBaseUrl}/api/google-drive/folder`;
+          //const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+          //console.log(`API 기본 URL: ${apiBaseUrl}`);
+          const folderApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/google-drive/folder`;
           console.log(`폴더 생성 API 호출: ${folderApiUrl}`);
           
           // 고객 폴더 이름으로 고객 ID 사용
@@ -163,25 +163,22 @@ export async function POST(request: Request) {
               
               // 새로 생성된 폴더 ID를 고객 정보에 업데이트
               if (folderData.isNew && data.customerId) {
-                try {
-                  console.log(`고객 정보에 폴더 ID 업데이트 시도: ${data.customerId}`);
-                  await notion.pages.update({
-                    page_id: data.customerId,
-                    properties: {
-                      'customerFolderId': {
-                        rich_text: [{
-                          text: {
-                            content: customerFolderId
-                          }
-                        }]
-                      }
+              
+                console.log(`고객 정보에 폴더 ID 업데이트 : ${data.customerId}`);
+                await notion.pages.update({
+                  page_id: data.customerId,
+                  properties: {
+                    'customerFolderId': {
+                      rich_text: [{
+                        text: {
+                          content: customerFolderId
+                        }
+                      }]
                     }
-                  });
-                  console.log(`고객 정보에 폴더 ID 업데이트 완료`);
-                } catch (updateError) {
-                  console.error('고객 정보 폴더 ID 업데이트 오류:', updateError);
-                  // 업데이트 실패는 무시하고 계속 진행
-                }
+                  }
+                });
+                console.log(`고객 정보에 폴더 ID 업데이트 완료`);
+              
               }
             }
           }
