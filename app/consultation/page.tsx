@@ -1213,7 +1213,8 @@ export default function ConsultationPage() {
   };
 
   // 고객 정보 수정 폼
-  const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);
+  const [showEditCustomerForm, setShowEditCustomerForm] = useState<boolean>(false);
+  
   const [editCustomer, setEditCustomer] = useState({
     name: '',
     phone: '',
@@ -1222,7 +1223,17 @@ export default function ConsultationPage() {
     address: '',
     specialNote: ''
   });
-
+  
+  // 고객 정보 수정 폼 필드 ref 추가
+  const editNameInputRef = useRef<HTMLInputElement>(null);
+  
+  // 고객 정보 수정 폼이 표시될 때 이름 필드에 포커스
+  useEffect(() => {
+    if (showEditCustomerForm && editNameInputRef.current) {
+      editNameInputRef.current.focus();
+    }
+  }, [showEditCustomerForm]);
+  
   // 고객 정보 수정 폼 초기화
   useEffect(() => {
     if (customer && showEditCustomerForm) {
@@ -2154,6 +2165,7 @@ export default function ConsultationPage() {
                       type="text"
                       value={editCustomer.name}
                       onChange={(e) => setEditCustomer({...editCustomer, name: e.target.value})}
+                      ref={editNameInputRef}
                       style={{ 
                         width: '100%', 
                         padding: '1rem', 
@@ -2162,7 +2174,6 @@ export default function ConsultationPage() {
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
-                      required
                     />
                   </div>
                   <div>

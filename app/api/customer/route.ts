@@ -1,33 +1,16 @@
 import { NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
-import { CUSTOMER_SCHEMA, NOTION_ENV_VARS, NotionCustomer, MASTER_DB_SCHEMA, NotionMasterDB } from '@/app/lib/notion-schema';
+import { CUSTOMER_SCHEMA, NotionMasterDB } from '@/app/lib/notion-schema';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
-  auth: process.env[NOTION_ENV_VARS.API_KEY],
+  auth: process.env.NOTION_API_KEY,
 });
 
 // 고객 데이터베이스 ID
-const customerDbId = process.env[NOTION_ENV_VARS.CUSTOMER_DB_ID];
+const customerDbId = process.env.NOTION_CUSTOMER_DB_ID;
 // Master 데이터베이스 ID
-const masterDbId = process.env[NOTION_ENV_VARS.MASTER_DB_ID];
-
-// Master DB에서 고객 수 조회
-async function getCustomerCount(): Promise<number> {
-    
-  // Master DB 조회
-  const response = await notion.databases.query({
-    database_id: masterDbId as string,
-    page_size: 1, // 첫 번째 레코드만 가져옴
-  });
-  // 첫 번째 레코드에서 '고객수' 값 추출
-  const masterData = response.results[0] as any;
-  const customerCount = masterData.properties?.고객수?.rollup?.number || 0;
- 
-  console.log(`Master DB에서 고객 수 조회: ${customerCount}`);
-  return customerCount;
- 
-}
+const masterDbId = process.env.NOTION_MASTER_DB_ID;
 
 // 고객 정보 조회
 export async function GET(request: Request) {
@@ -96,7 +79,14 @@ export async function POST(request: Request) {
     }
     
     // Master DB에서 고객 수 조회
-    const customerCount = await getCustomerCount();
+   // Master DB 조회
+    const responsem = await notion.databases.query({
+      database_id: masterDbId as string,
+      page_size: 1, // 첫 번째 레코드만 가져옴
+    });
+    // 첫 번째 레코드에서 '고객수' 값 추출
+    const masterData = responsem.results[0] as unknown as NotionMasterDB;
+    const customerCount = masterData.properties?.고객수?.rollup?.number;
     
     // 현재 고객 수 + 1을 5자리 문자열로 변환 (e.g., "00030")
     const newCustomerNumber = customerCount + 1;

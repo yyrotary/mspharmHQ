@@ -22,7 +22,8 @@ export async function PUT(
       return NextResponse.json({ error: '이름은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
-   
+    // 고객 ID가 없는 경우의 예외 처리
+    const customerId = data.customerId || '';
     
     // Notion 페이지 속성 설정
     const properties = {
@@ -30,7 +31,7 @@ export async function PUT(
         title: [
           {
             text: {
-              content: data.customerId,
+              content: customerId,
             },
           },
         ],
@@ -100,7 +101,7 @@ export async function PUT(
       customer: {
         id: response.id,
         name: data.name,
-        customerId: data.customerId
+        customerId: customerId
       }
     });
   } catch (error: any) {
