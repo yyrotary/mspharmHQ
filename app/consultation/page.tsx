@@ -389,56 +389,88 @@ export default function ConsultationPage() {
         }
       }
       
-      for (let i = 0; i < newConsultation.images.length; i++) {
-        const image = newConsultation.images[i];
-        setMessage(`이미지 업로드 중 (${i+1}/${newConsultation.images.length})...`);
-        
-        try {
+      // 각 이미지를 업로드하기 전에 리사이징
+      const processedImages = await Promise.all(
+        newConsultation.images.map(async (image, i) => {
           // 파일명 포맷 개선
           const customerId = getNotionPropertyValue(customer?.properties?.id, 'title') || 'unknown';
           const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
           const fileNamePrefix = `${customerId}_${timestamp}_${i+1}`;
           const fileName = `${fileNamePrefix}.jpg`;
           
-          console.log(`이미지 ${i+1} 업로드 시작: ${fileName}`);
-          
-          const response = await fetch('/api/google-drive', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              imageData: image.data,
-              fileName: fileName,
-              customerFolderId: customerFolderId  // 고객 폴더 ID 전달
-            }),
-          });
-          
-          const result = await response.json();
-          
-          if (response.ok && result.success) {
-            // 구글 드라이브 링크 사용
-            const fileUrl = result.file?.link || result.fileId 
-              ? `https://drive.google.com/file/d/${result.fileId || result.file?.id}/view`
-              : null;
-            
-            if (fileUrl) {
-              uploadedUrls.push(fileUrl);
-              console.log(`이미지 ${i+1} 업로드 성공: ${fileUrl.substring(0, 60)}...`);
-            } else {
-              throw new Error('유효한 파일 URL이 반환되지 않음');
+          return {
+            index: i,
+            data: image.data,
+            fileName: fileName
+          };
+        })
+      );
+      
+      // 병렬 처리를 위한 배치 크기 (한 번에 처리할 이미지 수)
+      const batchSize = 2;
+      
+      // 배치 단위로 처리
+      for (let i = 0; i < processedImages.length; i += batchSize) {
+        const batch = processedImages.slice(i, i + batchSize);
+        setMessage(`이미지 업로드 중 (${i+1}-${Math.min(i+batchSize, processedImages.length)}/${processedImages.length})...`);
+        
+        // 배치 내의 이미지 병렬 업로드
+        const batchResults = await Promise.all(
+          batch.map(async (img) => {
+            try {
+              console.log(`이미지 ${img.index+1} 업로드 시작: ${img.fileName}`);
+              
+              const response = await fetch('/api/google-drive', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  imageData: img.data,
+                  fileName: img.fileName,
+                  customerFolderId: customerFolderId  // 고객 폴더 ID 전달
+                }),
+              });
+              
+              const result = await response.json();
+              
+              if (response.ok && result.success) {
+                // 구글 드라이브 링크 사용
+                const fileUrl = result.file?.link || result.fileId 
+                  ? `https://drive.google.com/file/d/${result.fileId || result.file?.id}/view`
+                  : null;
+                
+                if (fileUrl) {
+                  console.log(`이미지 ${img.index+1} 업로드 성공: ${fileUrl.substring(0, 60)}...`);
+                  return { success: true, url: fileUrl, index: img.index };
+                } else {
+                  throw new Error('유효한 파일 URL이 반환되지 않음');
+                }
+              } else {
+                throw new Error(result.error || '알 수 없는 오류');
+              }
+            } catch (error) {
+              console.error(`이미지 ${img.index+1} 업로드 중 예외 발생:`, error);
+              return { 
+                success: false, 
+                index: img.index, 
+                error: error instanceof Error ? error.message : '네트워크 오류' 
+              };
             }
+          })
+        );
+        
+        // 결과 처리
+        batchResults.forEach(result => {
+          if (result.success && 'url' in result) {
+            uploadedUrls.push(result.url);
           } else {
             failedUploads++;
-            const errorMessage = result.error || '알 수 없는 오류';
-            errorMessages.push(errorMessage);
-            console.error(`이미지 ${i+1} 업로드 실패:`, errorMessage);
+            if ('error' in result) {
+              errorMessages.push(result.error);
+            }
           }
-        } catch (error) {
-          failedUploads++;
-          console.error(`이미지 ${i+1} 업로드 중 예외 발생:`, error);
-          errorMessages.push('네트워크 오류');
-        }
+        });
       }
       
       // 업로드 결과 요약
@@ -672,10 +704,24 @@ export default function ConsultationPage() {
       setLoading(true);
       setMessage('상담일지 저장 중...');
       
-      // 1. 이미지 업로드
+      // 상담일지 API 호출 데이터 준비
+      const apiData = {
+        customerId: customer.id,
+        consultDate: newConsultation.consultDate,
+        content: newConsultation.content,
+        medicine: newConsultation.medicine,
+        result: newConsultation.result,
+        stateAnalysis: newConsultation.stateAnalysis,
+        tongueAnalysis: newConsultation.tongueAnalysis,
+        specialNote: newConsultation.specialNote
+      };
+      
+      // 이미지 업로드 여부 확인
       let imageUrls: string[] = [];
+      
+      // 이미지 업로드 시작
       if (newConsultation.images.length > 0) {
-        setMessage('이미지 업로드 중...');
+        setMessage(`이미지 업로드 중... (${newConsultation.images.length}개)`);
         imageUrls = await uploadImages();
         
         // 이미지 업로드 모두 실패한 경우 진단 버튼 표시
@@ -692,23 +738,20 @@ export default function ConsultationPage() {
         }
       }
       
-      // 2. 상담일지 저장
+      // 이미지 URL 추가
+      if (imageUrls.length > 0) {
+        Object.assign(apiData, { imageUrls });
+      }
+      
+      setMessage('상담일지 저장 요청 전송 중...');
+      
+      // 상담일지 저장 API 호출
       const response = await fetch('/api/consultation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          customerId: customer.id,
-          consultDate: newConsultation.consultDate,
-          content: newConsultation.content,
-          medicine: newConsultation.medicine,
-          result: newConsultation.result,
-          stateAnalysis: newConsultation.stateAnalysis,   // 상태분석 추가
-          tongueAnalysis: newConsultation.tongueAnalysis, // 설진분석 추가
-          specialNote: newConsultation.specialNote,       // 특이사항 추가
-          imageUrls
-        }),
+        body: JSON.stringify(apiData),
       });
       
       const result = await response.json();
@@ -731,6 +774,7 @@ export default function ConsultationPage() {
         setShowNewForm(false);
         
         // 상담일지 목록 갱신
+        setMessage('상담일지 목록 갱신 중...');
         const consultationsResponse = await fetch(`/api/consultation?customerId=${customer.id}`);
         const consultationsData = await consultationsResponse.json();
         
@@ -739,14 +783,14 @@ export default function ConsultationPage() {
           const formattedConsultations = consultationsData.consultations.map((consultation: NotionConsultation) => {
             // 이미지 URL 추출 로직 개선
             const images: string[] = [];
-
+            
             try {
               // 증상이미지 프로퍼티 존재 확인
               if (consultation.properties.증상이미지) {
                 const filesArray = consultation.properties.증상이미지.files || [];
                 
                 // 각 이미지 파일 처리
-                filesArray.forEach((file: any, index: number) => {
+                filesArray.forEach((file: any) => {
                   const imageUrl = processImageUrl(file);
                   if (imageUrl) {
                     images.push(imageUrl);
@@ -764,43 +808,11 @@ export default function ConsultationPage() {
             // 상담 내용 가져오기
             const consultationDate = getNotionPropertyValue(consultation.properties.상담일자, CONSULTATION_SCHEMA.상담일자.type);
             const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
-            
-            // 처방약 및 결과 가져오기
-            let prescription = '';
-            try {
-              prescription = getNotionPropertyValue(consultation.properties.처방약, CONSULTATION_SCHEMA.처방약.type) || '';
-            } catch (error) {
-              console.warn('처방약 추출 중 오류 발생');
-            }
-            
-            let result = '';
-            try {
-              result = getNotionPropertyValue(consultation.properties.결과, CONSULTATION_SCHEMA.결과.type) || '';
-            } catch (error) {
-              console.warn('결과 추출 중 오류 발생');
-            }
-            
-            // 상태분석, 설진분석, 특이사항 가져오기
-            let stateAnalysis = '';
-            try {
-              stateAnalysis = getNotionPropertyValue(consultation.properties.상태분석, CONSULTATION_SCHEMA.상태분석.type) || '';
-            } catch (error) {
-              console.warn('상태분석 추출 중 오류 발생');
-            }
-            
-            let tongueAnalysis = '';
-            try {
-              tongueAnalysis = getNotionPropertyValue(consultation.properties.설진분석, CONSULTATION_SCHEMA.설진분석.type) || '';
-            } catch (error) {
-              console.warn('설진분석 추출 중 오류 발생');
-            }
-            
-            let specialNote = '';
-            try {
-              specialNote = getNotionPropertyValue(consultation.properties.특이사항, CONSULTATION_SCHEMA.특이사항.type) || '';
-            } catch (error) {
-              console.warn('특이사항 추출 중 오류 발생');
-            }
+            const medicine = getNotionPropertyValue(consultation.properties.처방약, CONSULTATION_SCHEMA.처방약.type);
+            const result = getNotionPropertyValue(consultation.properties.결과, CONSULTATION_SCHEMA.결과.type);
+            const stateAnalysis = getNotionPropertyValue(consultation.properties.상태분석, CONSULTATION_SCHEMA.상태분석.type);
+            const tongueAnalysis = getNotionPropertyValue(consultation.properties.설진분석, CONSULTATION_SCHEMA.설진분석.type);
+            const specialNote = getNotionPropertyValue(consultation.properties.특이사항, CONSULTATION_SCHEMA.특이사항.type);
             
             return {
               id: consultation.id,
@@ -809,16 +821,18 @@ export default function ConsultationPage() {
               consultationDate,
               consultationContent,
               symptomImages: images,
-              prescription,
+              prescription: medicine,
               result,
               stateAnalysis,
               tongueAnalysis,
               specialNote
-            } as FormattedConsultation;
+            };
           });
           
           setConsultations(formattedConsultations);
         }
+        
+        setMessage('');
       } else {
         throw new Error(result.error || '상담일지 저장 중 오류가 발생했습니다.');
       }
