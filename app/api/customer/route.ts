@@ -84,6 +84,8 @@ export async function POST(request: Request) {
       database_id: masterDbId as string,
       page_size: 1, // 첫 번째 레코드만 가져옴
     });
+
+    console.log(responsem);
     // 첫 번째 레코드에서 '고객수' 값 추출
     const masterData = responsem.results[0] as unknown as NotionMasterDB;
     const customerCount = masterData.properties?.고객수?.rollup?.number;
