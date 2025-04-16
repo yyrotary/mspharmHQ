@@ -87,9 +87,8 @@ export async function POST(request: Request) {
 
     console.log(responsem);
     // 첫 번째 레코드에서 '고객수' 값 추출
-    const masterData = responsem.results[0] as unknown as NotionMasterDB;
-    console.log(masterData);
-    const customerCount = masterData.properties?.고객수?.rollup?.number;
+    const masterData = responsem.results[0] as any;
+    const customerCount = masterData.properties?.고객수?.rollup?.number || 0;
     console.log(customerCount);
     // 현재 고객 수 + 1을 5자리 문자열로 변환 (e.g., "00030")
     const newCustomerNumber = customerCount + 1;
