@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
-import { CUSTOMER_SCHEMA, NOTION_ENV_VARS } from '@/app/lib/notion-schema';
+
 
 // 노션 클라이언트 초기화
 const notion = new Client({
@@ -12,7 +12,7 @@ export async function PUT(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  const customId = context.params.id;
+  const id = context.params.id;
   
   try {
     const data = await request.json();
@@ -22,13 +22,15 @@ export async function PUT(
       return NextResponse.json({ error: '이름은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
-    // Notion 페이지 속성 설정 (임시로 폴더 ID 없이)
+   
+    
+    // Notion 페이지 속성 설정
     const properties = {
       'id': {
         title: [
           {
             text: {
-              content: customId,
+              content: data.customerId,
             },
           },
         ],
@@ -98,6 +100,7 @@ export async function PUT(
       customer: {
         id: response.id,
         name: data.name,
+        customerId: data.customerId
       }
     });
   } catch (error: any) {

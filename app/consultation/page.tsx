@@ -1265,6 +1265,12 @@ export default function ConsultationPage() {
         console.log('고객 폴더 ID가 없습니다');
       }
       
+      // 고객 ID 추출
+      // @ts-expect-error - 타입 정의 문제 해결
+      const customerId = customer?.properties?.id?.title?.[0]?.text?.content || null;
+      if (customerId) {
+        console.log(`사용할 고객 ID: ${customerId}`);
+      }
       
       const response = await fetch(`/api/customer/${customer.id}`, {
         method: 'PUT',
@@ -1278,6 +1284,7 @@ export default function ConsultationPage() {
           birth: editCustomer.birth,
           address: editCustomer.address,
           customerFolderId: customerFolderId,
+          customerId: customerId,
           specialNote: editCustomer.specialNote
         }),
       });
