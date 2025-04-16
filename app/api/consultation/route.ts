@@ -1,31 +1,22 @@
 import { NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
-import { CONSULTATION_SCHEMA, NOTION_ENV_VARS, NotionConsultation } from '@/app/lib/notion-schema';
+import { CONSULTATION_SCHEMA } from '@/app/lib/notion-schema';
 import { generateConsultationId, getApiBaseUrl } from '@/app/lib/utils';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
-  auth: process.env[NOTION_ENV_VARS.API_KEY],
-});
-
+  auth: process.env.NOTION_API_KEY
 // 상담일지 데이터베이스 ID
-const consultationDbId = process.env[NOTION_ENV_VARS.CONSULTATION_DB_ID];
+const consultationDbId = process.env.NOTION_CONSULTATION_DB_ID
 // 고객 데이터베이스 ID
-const customerDbId = process.env[NOTION_ENV_VARS.CUSTOMER_DB_ID];
+const customerDbId = process.env.NOTION_CUSTOMER_DB_ID
 
 // 상담일지 목록 조회
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const customerId = searchParams.get('customerId');
   
-  if (!consultationDbId) {
-    return NextResponse.json({ error: '노션 상담일지 DB ID가 설정되지 않았습니다.' }, { status: 500 });
-  }
-  
-  if (!customerId) {
-    return NextResponse.json({ error: '고객 ID가 필요합니다.' }, { status: 400 });
-  }
-  
+ 
   try {
     const response = await notion.databases.query({
       database_id: consultationDbId,
@@ -52,22 +43,12 @@ export async function GET(request: Request) {
 
 // 상담일지 저장
 export async function POST(request: Request) {
-  if (!consultationDbId) {
-    return NextResponse.json({ error: '노션 상담일지 DB ID가 설정되지 않았습니다.' }, { status: 500 });
-  }
+  
   
   try {
     const data = await request.json();
     
-    // 필수 필드 검증
-    if (!data.customerId) {
-      return NextResponse.json({ error: '고객 ID는 필수 입력 항목입니다.' }, { status: 400 });
-    }
-    
-    if (!data.consultDate) {
-      return NextResponse.json({ error: '상담일자는 필수 입력 항목입니다.' }, { status: 400 });
-    }
-    
+
     if (!data.content) {
       return NextResponse.json({ error: '상담내용은 필수 입력 항목입니다.' }, { status: 400 });
     }
@@ -107,87 +88,59 @@ export async function POST(request: Request) {
     let customerFolderId = data.customerFolderId || null;
     
     // 클라이언트에서 폴더 ID를 직접 전달받은 경우 그대로 사용
-    if (customerFolderId && typeof customerFolderId === 'string' && customerFolderId.length > 5) {
+    if (customerFolderId) {
       console.log(`클라이언트에서 전달받은 고객 폴더 ID: ${customerFolderId}`);
     } 
-    // 폴더 ID가 없는 경우에만 조회 또는 생성
+    // 폴더 ID가 없는 경우 
     else {
-      try {
-        // 고객 정보에서 폴더 ID 조회
-        if (data.customerId && customerDbId) {
-          try {
-            // 고객 페이지 조회 (이미 위에서 조회한 경우 재사용)
-            const customerPage = await notion.pages.retrieve({
-              page_id: data.customerId
-            });
-            
-            // customerFolderId 필드 값 추출
-            // @ts-expect-error - 타입 정의 문제 해결
-            const folderIdField = customerPage.properties?.customerFolderId?.rich_text?.[0]?.text?.content;
-            
-            if (folderIdField && folderIdField.length > 5) {
-              customerFolderId = folderIdField;
-              console.log(`고객 정보에서 기존 폴더 ID 조회됨: ${customerFolderId}`);
-            } else {
-              console.log(`고객 정보에 폴더 ID가 없거나 유효하지 않음, 새 폴더 생성 시도`);
-            }
-          } catch (error) {
-            console.error('고객 정보 조회 오류:', error);
-          }
-        }
-        
-        // 폴더 ID가 조회되지 않은 경우에만 새 폴더 생성 시도
-        if (!customerFolderId) {
+       
           // API 기본 URL을 이용해 폴더 API URL 생성
           //const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
           //console.log(`API 기본 URL: ${apiBaseUrl}`);
-          const folderApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/google-drive/folder`;
-          console.log(`폴더 생성 API 호출: ${folderApiUrl}`);
+      const folderApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/google-drive/folder`;
+      console.log(`폴더 생성 API 호출: ${folderApiUrl}`);
           
           // 고객 폴더 이름으로 고객 ID 사용
-          const folderResponse = await fetch(folderApiUrl, {
-            method: 'POST',
-            headers: {
+      const folderResponse = await fetch(folderApiUrl, {
+        method: 'POST',
+        headers: {
               'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              folderName: realCustomerId
-            }),
-          });
+        },
+        body: JSON.stringify({
+          folderName: realCustomerId
+        }),
+      });
           
-          if (folderResponse.ok) {
-            const folderData = await folderResponse.json();
-            if (folderData.success) {
-              customerFolderId = folderData.folderId;
-              console.log(`고객 폴더 ID: ${customerFolderId}, 새 폴더 생성: ${folderData.isNew}`);
+      if (folderResponse.ok) {
+        const folderData = await folderResponse.json();
+        if (folderData.success) {
+          customerFolderId = folderData.folderId;
+          console.log(`고객 폴더 ID: ${customerFolderId}, 새 폴더 생성: ${folderData.isNew}`);
               
-              // 새로 생성된 폴더 ID를 고객 정보에 업데이트
-              if (folderData.isNew && data.customerId) {
+          // 새로 생성된 폴더 ID를 고객 정보에 업데이트
+          if (folderData.isNew && data.customerId) {
               
-                console.log(`고객 정보에 폴더 ID 업데이트 : ${data.customerId}`);
-                await notion.pages.update({
-                  page_id: data.customerId,
-                  properties: {
-                    'customerFolderId': {
-                      rich_text: [{
-                        text: {
-                          content: customerFolderId
-                        }
-                      }]
+            console.log(`고객 정보에 폴더 ID 업데이트 : ${data.customerId}`);
+            await notion.pages.update({
+              page_id: data.customerId,
+              properties: {
+                'customerFolderId': {
+                  rich_text: [{
+                    text: {
+                      content: customerFolderId
                     }
-                  }
-                });
-                console.log(`고객 정보에 폴더 ID 업데이트 완료`);
-              
+                  }]
+                }
               }
-            }
+            });
+            console.log(`고객 정보에 폴더 ID 업데이트 완료`);
+              
           }
         }
-      } catch (error) {
-        console.error('고객 폴더 조회/생성 오류:', error);
-        // 폴더 생성 실패는 무시하고 계속 진행 (기본 폴더에 저장)
       }
     }
+      
+    
     
     // 이미지 데이터가 있는 경우 업로드
     let processedImageUrls = [];
@@ -195,8 +148,8 @@ export async function POST(request: Request) {
       console.log(`${data.imageDataArray.length}개의 이미지 업로드 시작`);
       
       // API 기본 URL을 이용해 이미지 업로드 API URL 생성
-      const apiBaseUrl = getApiBaseUrl();
-      const uploadApiUrl = `${apiBaseUrl}/api/google-drive`;
+      //const apiBaseUrl = getApiBaseUrl();
+      const uploadApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/google-drive`;
       
       // 이미지 업로드 함수
       const uploadImage = async (imageData: string, index: number) => {
