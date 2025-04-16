@@ -367,27 +367,13 @@ export default function ConsultationPage() {
   };
   
   // 이미지 업로드 함수
-  const uploadImages = async () => {
+  const uploadImages = async (customerFolderId: string | null) => {
     if (newConsultation.images.length === 0) return [];
     
     try {
       const uploadedUrls: string[] = [];
       let failedUploads = 0;
       let errorMessages: string[] = [];
-      
-      // 고객 폴더 ID 가져오기
-      let customerFolderId = null;
-      if (customer) {
-        try {
-          // @ts-expect-error - 타입 정의 문제 해결
-          customerFolderId = customer.properties?.customerFolderId?.rich_text?.[0]?.text?.content || null;
-          if (customerFolderId) {
-            console.log(`고객 폴더 ID 확인: ${customerFolderId}`);
-          }
-        } catch (e) {
-          console.warn('고객 폴더 ID 추출 실패:', e);
-        }
-      }
       
       // 각 이미지를 업로드하기 전에 리사이징
       const processedImages = await Promise.all(
@@ -499,7 +485,7 @@ export default function ConsultationPage() {
   };
   
   // 수정 폼용 이미지 업로드 함수
-  const uploadEditImages = async () => {
+  const uploadEditImages = async (customerFolderId: string | null) => {
     if (editFormData.images.length === 0) return [];
     
     try {
@@ -507,25 +493,9 @@ export default function ConsultationPage() {
       let failedUploads = 0;
       let errorMessages: string[] = [];
       
-      // 고객 폴더 ID 가져오기
-      let customerFolderId = null;
-      if (customer) {
-        try {
-          // @ts-expect-error - 타입 정의 문제 해결
-          customerFolderId = customer.properties?.customerFolderId?.rich_text?.[0]?.text?.content || null;
-          if (customerFolderId) {
-            console.log(`고객 폴더 ID 확인: ${customerFolderId}`);
-          }
-        } catch (e) {
-          console.warn('고객 폴더 ID 추출 실패:', e);
-        }
-      }
-      
-      for (let i = 0; i < editFormData.images.length; i++) {
-        const image = editFormData.images[i];
-        setMessage(`이미지 업로드 중 (${i+1}/${editFormData.images.length})...`);
-        
-        try {
+      // 각 이미지를 업로드하기 전에 리사이징
+      const processedImages = await Promise.all(
+        editFormData.images.map(async (image, i) => {
           // 파일명 포맷 개선
           const customerId = getNotionPropertyValue(customer?.properties?.id, 'title') || 'unknown';
           const consultationId = editingConsultation?.id.substring(0, 10) || 'edit';
@@ -533,45 +503,79 @@ export default function ConsultationPage() {
           const fileNamePrefix = `${customerId}_${consultationId}_${timestamp}_${i+1}`;
           const fileName = `${fileNamePrefix}.jpg`;
           
-          console.log(`이미지 ${i+1} 업로드 시작: ${fileName}`);
-          
-          const response = await fetch('/api/google-drive', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              imageData: image.data,
-              fileName: fileName,
-              customerFolderId: customerFolderId  // 고객 폴더 ID 전달
-            }),
-          });
-          
-          const result = await response.json();
-          
-          if (response.ok && result.success) {
-            // 구글 드라이브 링크 사용
-            const fileUrl = result.file?.link || result.fileId 
-              ? `https://drive.google.com/file/d/${result.fileId || result.file?.id}/view`
-              : null;
-            
-            if (fileUrl) {
-              uploadedUrls.push(fileUrl);
-              console.log(`이미지 ${i+1} 업로드 성공: ${fileUrl.substring(0, 60)}...`);
-            } else {
-              throw new Error('유효한 파일 URL이 반환되지 않음');
+          return {
+            index: i,
+            data: image.data,
+            fileName: fileName
+          };
+        })
+      );
+      
+      // 병렬 처리를 위한 배치 크기 (한 번에 처리할 이미지 수)
+      const batchSize = 2;
+      
+      // 배치 단위로 처리
+      for (let i = 0; i < processedImages.length; i += batchSize) {
+        const batch = processedImages.slice(i, i + batchSize);
+        setMessage(`이미지 업로드 중 (${i+1}-${Math.min(i+batchSize, processedImages.length)}/${processedImages.length})...`);
+        
+        // 배치 내의 이미지 병렬 업로드
+        const batchResults = await Promise.all(
+          batch.map(async (img) => {
+            try {
+              console.log(`이미지 ${img.index+1} 업로드 시작: ${img.fileName}`);
+              
+              const response = await fetch('/api/google-drive', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  imageData: img.data,
+                  fileName: img.fileName,
+                  customerFolderId: customerFolderId  // 고객 폴더 ID 전달
+                }),
+              });
+              
+              const result = await response.json();
+              
+              if (response.ok && result.success) {
+                // 구글 드라이브 링크 사용
+                const fileUrl = result.file?.link || result.fileId 
+                  ? `https://drive.google.com/file/d/${result.fileId || result.file?.id}/view`
+                  : null;
+                
+                if (fileUrl) {
+                  console.log(`이미지 ${img.index+1} 업로드 성공: ${fileUrl.substring(0, 60)}...`);
+                  return { success: true, url: fileUrl, index: img.index };
+                } else {
+                  throw new Error('유효한 파일 URL이 반환되지 않음');
+                }
+              } else {
+                throw new Error(result.error || '알 수 없는 오류');
+              }
+            } catch (error) {
+              console.error(`이미지 ${img.index+1} 업로드 중 예외 발생:`, error);
+              return { 
+                success: false, 
+                index: img.index, 
+                error: error instanceof Error ? error.message : '네트워크 오류' 
+              };
             }
+          })
+        );
+        
+        // 결과 처리
+        batchResults.forEach(result => {
+          if (result.success && 'url' in result) {
+            uploadedUrls.push(result.url);
           } else {
             failedUploads++;
-            const errorMessage = result.error || '알 수 없는 오류';
-            errorMessages.push(errorMessage);
-            console.error(`이미지 ${i+1} 업로드 실패:`, errorMessage);
+            if ('error' in result) {
+              errorMessages.push(result.error);
+            }
           }
-        } catch (error) {
-          failedUploads++;
-          console.error(`이미지 ${i+1} 업로드 중 예외 발생:`, error);
-          errorMessages.push('네트워크 오류');
-        }
+        });
       }
       
       // 업로드 결과 요약
@@ -704,6 +708,20 @@ export default function ConsultationPage() {
       setLoading(true);
       setMessage('상담일지 저장 중...');
       
+      // 고객 폴더 ID 가져오기
+      let customerFolderId = null;
+      try {
+        // @ts-expect-error - 타입 정의 문제 해결
+        customerFolderId = customer.properties?.customerFolderId?.rich_text?.[0]?.text?.content || null;
+        if (customerFolderId) {
+          console.log(`고객 폴더 ID: ${customerFolderId}`);
+        } else {
+          console.log('고객 폴더 ID가 없습니다. 상담일지 저장 API에서 생성합니다.');
+        }
+      } catch (e) {
+        console.warn('고객 폴더 ID 추출 실패:', e);
+      }
+      
       // 상담일지 API 호출 데이터 준비
       const apiData = {
         customerId: customer.id,
@@ -713,7 +731,8 @@ export default function ConsultationPage() {
         result: newConsultation.result,
         stateAnalysis: newConsultation.stateAnalysis,
         tongueAnalysis: newConsultation.tongueAnalysis,
-        specialNote: newConsultation.specialNote
+        specialNote: newConsultation.specialNote,
+        customerFolderId: customerFolderId // 고객 폴더 ID 직접 전달
       };
       
       // 이미지 업로드 여부 확인
@@ -722,7 +741,9 @@ export default function ConsultationPage() {
       // 이미지 업로드 시작
       if (newConsultation.images.length > 0) {
         setMessage(`이미지 업로드 중... (${newConsultation.images.length}개)`);
-        imageUrls = await uploadImages();
+        
+        // 폴더 ID를 직접 전달
+        imageUrls = await uploadImages(customerFolderId);
         
         // 이미지 업로드 모두 실패한 경우 진단 버튼 표시
         if (imageUrls.length === 0 && newConsultation.images.length > 0) {
@@ -765,9 +786,9 @@ export default function ConsultationPage() {
           content: '',
           medicine: '',
           result: '',
-          stateAnalysis: '',  // 상태분석 초기화
-          tongueAnalysis: '', // 설진분석 초기화
-          specialNote: '',    // 특이사항 초기화
+          stateAnalysis: '',
+          tongueAnalysis: '',
+          specialNote: '',
           images: []
         });
         
@@ -1360,11 +1381,28 @@ export default function ConsultationPage() {
       setLoading(true);
       setMessage('상담일지 업데이트 중...');
       
+      // 고객 폴더 ID 가져오기
+      let customerFolderId = null;
+      try {
+        // @ts-expect-error - 타입 정의 문제 해결
+        customerFolderId = customer?.properties?.customerFolderId?.rich_text?.[0]?.text?.content || null;
+        if (customerFolderId) {
+          console.log(`고객 폴더 ID: ${customerFolderId}`);
+        }
+      } catch (e) {
+        console.warn('고객 폴더 ID 추출 실패:', e);
+      }
+      
       // 1. 새 이미지 업로드
       let imageUrls: string[] = [];
       if (editFormData.images.length > 0) {
         setMessage('이미지 업로드 중...');
-        imageUrls = await uploadEditImages();
+        imageUrls = await uploadEditImages(customerFolderId);
+        
+        // 모든 이미지 업로드 실패 시
+        if (imageUrls.length === 0 && editFormData.images.length > 0) {
+          throw new Error('모든 이미지 업로드에 실패했습니다.');
+        }
       }
       
       // 2. 상담일지 업데이트
@@ -1378,11 +1416,11 @@ export default function ConsultationPage() {
           content: editFormData.content,
           medicine: editFormData.medicine,
           result: editFormData.result,
-          stateAnalysis: editFormData.stateAnalysis,   // 상태분석 추가
-          tongueAnalysis: editFormData.tongueAnalysis, // 설진분석 추가
-          specialNote: editFormData.specialNote,       // 특이사항 추가
+          stateAnalysis: editFormData.stateAnalysis,
+          tongueAnalysis: editFormData.tongueAnalysis,
+          specialNote: editFormData.specialNote,
+          customerFolderId: customerFolderId, // 고객 폴더 ID 전달
           imageUrls: imageUrls, // 새로 업로드된 이미지 URL들만 전송
-          // 기존 이미지는 서버에서 유지
         }),
       });
       

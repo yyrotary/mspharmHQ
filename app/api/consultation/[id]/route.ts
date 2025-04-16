@@ -133,12 +133,27 @@ export async function PUT(
         existingImages = pageResponse.properties.증상이미지.files;
       }
       
+      // 이미지 이름 패턴 생성 (고객 ID 포함)
+      let imageNamePrefix = "";
+      try {
+        // @ts-expect-error - 타입 정의 문제 해결
+        const idTitle = pageResponse.properties?.id?.title?.[0]?.text?.content || "";
+        if (idTitle) {
+          const parts = idTitle.split('_');
+          if (parts.length > 0) {
+            imageNamePrefix = parts[0]; // 첫 부분을 고객 ID로 가정
+          }
+        }
+      } catch (error) {
+        console.warn('이미지 이름 패턴 생성 오류:', error);
+      }
+      
       // 새 이미지를 기존 이미지에 추가 (Notion에 보낼 형식)
       const allImages = [
         ...existingImages,
         ...data.imageUrls.map((url: string, index: number) => ({
           type: 'external',
-          name: `새로운_이미지_${index + 1}.jpg`,
+          name: `${imageNamePrefix ? imageNamePrefix + '_' : ''}${Date.now()}_${index + 1}.jpg`,
           external: {
             url: url
           }
@@ -157,7 +172,12 @@ export async function PUT(
       properties: properties
     });
     
-    return NextResponse.json({ success: true, consultation: response });
+    return NextResponse.json({ 
+      success: true, 
+      consultation: response,
+      // 고객 폴더 ID를 응답에도 포함 (클라이언트가 사용할 수 있도록)
+      customerFolderId: data.customerFolderId || null
+    });
   } catch (error) {
     console.error('상담일지 수정 오류:', error);
     return NextResponse.json({ error: '상담일지 수정 중 오류가 발생했습니다.' }, { status: 500 });

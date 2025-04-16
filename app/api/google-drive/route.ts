@@ -9,36 +9,23 @@ function checkEnvironmentVariables() {
     GOOGLE_DRIVE_FOLDER_ID: process.env.GOOGLE_DRIVE_FOLDER_ID
   };
   
-  console.log('\n==== 구글 드라이브 환경 변수 진단 ====');
-  
+  // 사일런트 체크 (로그 없이 확인만)
   let hasError = false;
   Object.entries(requiredVars).forEach(([name, value]) => {
     if (!value) {
-      console.error(`❌ ${name} 환경 변수가 설정되지 않았습니다.`);
       hasError = true;
-    } else {
-      console.log(`✅ ${name} = ${value.substring(0, 10)}...`);
-      
-      // 인증 정보 확인
-      if (name === 'GOOGLE_APPLICATION_CREDENTIALS') {
-        try {
-          // JSON 형식 검증
-          JSON.parse(value);
-          console.log(`✅ 유효한 JSON 형식의 인증 정보가 확인되었습니다.`);
-        } catch (err) {
-          console.error(`❌ 유효한 JSON 형식이 아닙니다: ${err}`);
-          hasError = true;
-        }
+    } else if (name === 'GOOGLE_APPLICATION_CREDENTIALS') {
+      try {
+        // JSON 형식 검증
+        JSON.parse(value);
+      } catch (err) {
+        hasError = true;
       }
     }
   });
   
-  console.log('================================\n');
   return { success: !hasError, error: hasError ? '환경 변수 설정에 문제가 있습니다.' : null };
 }
-
-// 앱 시작 시 환경 변수 진단 실행
-checkEnvironmentVariables();
 
 // 인증 클라이언트 생성
 async function getAuthClient() {
@@ -58,7 +45,7 @@ async function getAuthClient() {
 // Google Drive 이미지 업로드 API
 export async function POST(req: NextRequest) {
   try {
-    // 환경 변수 검증
+    // 환경 변수 간단 검증 (자세한 로그 없이)
     const envCheck = checkEnvironmentVariables();
     if (!envCheck.success) {
       return NextResponse.json({ 

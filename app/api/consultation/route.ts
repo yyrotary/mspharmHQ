@@ -104,84 +104,92 @@ export async function POST(request: Request) {
     console.log(`상담일지 ID 생성: "${realCustomerId}" + "${data.consultDate}" -> "${consultationId}"`);
     
     // 고객 폴더 ID 조회 또는 생성
-    let customerFolderId = null;
-    try {
-      // 먼저 고객 정보에서 폴더 ID 조회
-      if (data.customerId && customerDbId) {
-        try {
-          // 고객 페이지 조회 (이미 위에서 조회한 경우 재사용)
-          const customerPage = await notion.pages.retrieve({
-            page_id: data.customerId
+    let customerFolderId = data.customerFolderId || null;
+    
+    // 클라이언트에서 폴더 ID를 직접 전달받은 경우 그대로 사용
+    if (customerFolderId && typeof customerFolderId === 'string' && customerFolderId.length > 5) {
+      console.log(`클라이언트에서 전달받은 고객 폴더 ID: ${customerFolderId}`);
+    } 
+    // 폴더 ID가 없는 경우에만 조회 또는 생성
+    else {
+      try {
+        // 고객 정보에서 폴더 ID 조회
+        if (data.customerId && customerDbId) {
+          try {
+            // 고객 페이지 조회 (이미 위에서 조회한 경우 재사용)
+            const customerPage = await notion.pages.retrieve({
+              page_id: data.customerId
+            });
+            
+            // customerFolderId 필드 값 추출
+            // @ts-expect-error - 타입 정의 문제 해결
+            const folderIdField = customerPage.properties?.customerFolderId?.rich_text?.[0]?.text?.content;
+            
+            if (folderIdField && folderIdField.length > 5) {
+              customerFolderId = folderIdField;
+              console.log(`고객 정보에서 기존 폴더 ID 조회됨: ${customerFolderId}`);
+            } else {
+              console.log(`고객 정보에 폴더 ID가 없거나 유효하지 않음, 새 폴더 생성 시도`);
+            }
+          } catch (error) {
+            console.error('고객 정보 조회 오류:', error);
+          }
+        }
+        
+        // 폴더 ID가 조회되지 않은 경우에만 새 폴더 생성 시도
+        if (!customerFolderId) {
+          // API 기본 URL을 이용해 폴더 API URL 생성
+          const apiBaseUrl = getApiBaseUrl();
+          console.log(`API 기본 URL: ${apiBaseUrl}`);
+          const folderApiUrl = `${apiBaseUrl}/api/google-drive/folder`;
+          console.log(`폴더 생성 API 호출: ${folderApiUrl}`);
+          
+          // 고객 폴더 이름으로 고객 ID 사용
+          const folderResponse = await fetch(folderApiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              folderName: realCustomerId
+            }),
           });
           
-          // customerFolderId 필드 값 추출
-          // @ts-expect-error - 타입 정의 문제 해결
-          const folderIdField = customerPage.properties?.customerFolderId?.rich_text?.[0]?.text?.content;
-          
-          if (folderIdField && folderIdField.length > 5) {
-            customerFolderId = folderIdField;
-            console.log(`고객 정보에서 기존 폴더 ID 조회됨: ${customerFolderId}`);
-          } else {
-            console.log(`고객 정보에 폴더 ID가 없거나 유효하지 않음, 새 폴더 생성 시도`);
-          }
-        } catch (error) {
-          console.error('고객 정보 조회 오류:', error);
-        }
-      }
-      
-      // 폴더 ID가 조회되지 않은 경우에만 새 폴더 생성 시도
-      if (!customerFolderId) {
-        // API 기본 URL을 이용해 폴더 API URL 생성
-        const apiBaseUrl = getApiBaseUrl();
-        console.log(`API 기본 URL: ${apiBaseUrl}`);
-        const folderApiUrl = `${apiBaseUrl}/api/google-drive/folder`;
-        console.log(`폴더 생성 API 호출: ${folderApiUrl}`);
-        
-        // 고객 폴더 이름으로 고객 ID 사용
-        const folderResponse = await fetch(folderApiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            folderName: realCustomerId
-          }),
-        });
-        
-        if (folderResponse.ok) {
-          const folderData = await folderResponse.json();
-          if (folderData.success) {
-            customerFolderId = folderData.folderId;
-            console.log(`고객 폴더 ID: ${customerFolderId}, 새 폴더 생성: ${folderData.isNew}`);
-            
-            // 새로 생성된 폴더 ID를 고객 정보에 업데이트
-            if (folderData.isNew && data.customerId) {
-              try {
-                console.log(`고객 정보에 폴더 ID 업데이트 시도: ${data.customerId}`);
-                await notion.pages.update({
-                  page_id: data.customerId,
-                  properties: {
-                    'customerFolderId': {
-                      rich_text: [{
-                        text: {
-                          content: customerFolderId
-                        }
-                      }]
+          if (folderResponse.ok) {
+            const folderData = await folderResponse.json();
+            if (folderData.success) {
+              customerFolderId = folderData.folderId;
+              console.log(`고객 폴더 ID: ${customerFolderId}, 새 폴더 생성: ${folderData.isNew}`);
+              
+              // 새로 생성된 폴더 ID를 고객 정보에 업데이트
+              if (folderData.isNew && data.customerId) {
+                try {
+                  console.log(`고객 정보에 폴더 ID 업데이트 시도: ${data.customerId}`);
+                  await notion.pages.update({
+                    page_id: data.customerId,
+                    properties: {
+                      'customerFolderId': {
+                        rich_text: [{
+                          text: {
+                            content: customerFolderId
+                          }
+                        }]
+                      }
                     }
-                  }
-                });
-                console.log(`고객 정보에 폴더 ID 업데이트 완료`);
-              } catch (updateError) {
-                console.error('고객 정보 폴더 ID 업데이트 오류:', updateError);
-                // 업데이트 실패는 무시하고 계속 진행
+                  });
+                  console.log(`고객 정보에 폴더 ID 업데이트 완료`);
+                } catch (updateError) {
+                  console.error('고객 정보 폴더 ID 업데이트 오류:', updateError);
+                  // 업데이트 실패는 무시하고 계속 진행
+                }
               }
             }
           }
         }
+      } catch (error) {
+        console.error('고객 폴더 조회/생성 오류:', error);
+        // 폴더 생성 실패는 무시하고 계속 진행 (기본 폴더에 저장)
       }
-    } catch (error) {
-      console.error('고객 폴더 조회/생성 오류:', error);
-      // 폴더 생성 실패는 무시하고 계속 진행 (기본 폴더에 저장)
     }
     
     // 이미지 데이터가 있는 경우 업로드
