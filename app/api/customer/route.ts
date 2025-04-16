@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import { CUSTOMER_SCHEMA, NOTION_ENV_VARS, NotionCustomer, MASTER_DB_SCHEMA, NotionMasterDB } from '@/app/lib/notion-schema';
-import { generateCustomerId, getApiBaseUrl } from '@/app/lib/utils';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
@@ -15,26 +14,20 @@ const masterDbId = process.env[NOTION_ENV_VARS.MASTER_DB_ID];
 
 // Master DB에서 고객 수 조회
 async function getCustomerCount(): Promise<number> {
-  
-  
+    
   // Master DB 조회
   const response = await notion.databases.query({
     database_id: masterDbId as string,
     page_size: 1, // 첫 번째 레코드만 가져옴
   });
-
-
-
   // 첫 번째 레코드에서 '고객수' 값 추출
   const masterData = response.results[0] as any;
   const customerCount = masterData.properties?.고객수?.rollup?.number || 0;
-  
+ 
   console.log(`Master DB에서 고객 수 조회: ${customerCount}`);
   return customerCount;
-  
+ 
 }
-
-
 
 // 고객 정보 조회
 export async function GET(request: Request) {
@@ -179,44 +172,36 @@ export async function POST(request: Request) {
     
     // 1. 구글 드라이브에 고객 폴더 생성 (비동기로 처리)
     let customerFolderId = '';
-    const folderCreationPromise = (async () => {
-      try {
-        //const apiBaseUrl = getApiBaseUrl();
-        const folderResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/google-drive/folder`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ folderName: customId }),
-        });
-        
-        if (folderResponse.ok) {
-          const folderData = await folderResponse.json();
-          //customerFolderId = folderData.folderId;
-          
-          
-          notion.pages.update({
-            page_id: response.id,
-            properties: {
-              'customerFolderId': {
-                rich_text: [
-                  {
-                    text: {
-                      content: folderData.folderId,
-                    },
-                  },
-                ],
+    //const apiBaseUrl = getApiBaseUrl();
+    const folderResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/google-drive/folder`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ folderName: customId }),
+    });
+    
+    if (folderResponse.ok) {
+      const folderData = await folderResponse.json();
+      //customerFolderId = folderData.folderId;     
+      
+      notion.pages.update({
+        page_id: response.id,
+        properties: {
+          'customerFolderId': {
+            rich_text: [
+              {
+                text: {
+                  content: folderData.folderId,
+                },
               },
-            }
-          }).catch(err => {
-            console.error('폴더 ID 업데이트 오류:', err);
-          });
-          
+            ],
+          },
         }
-      } catch (error) {
-        console.error('고객 폴더 생성 오류:', error);
-      }
-    })();
+      })
+      
+    }
+    
     
     // 즉시 성공 응답 반환
     return NextResponse.json({ 
