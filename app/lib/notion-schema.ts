@@ -305,7 +305,7 @@ export const NOTION_ENV_VARS = {
 export const MASTER_DB_SCHEMA = {
   Name: { type: 'title' },
   고객DB: { type: 'relation' },
-  고객수: { type: 'rollup' }
+  고객수: { type: 'formula' }
 };
 
 // Master DB 인터페이스
@@ -324,11 +324,10 @@ export interface NotionMasterDB {
     };
     고객수: {
       id: string;
-      type: 'rollup';
-      rollup: {
+      type: 'formula';
+      formula: {
         type: 'number';
         number: number;
-        function: 'not_empty'; 
       };
     };
   };

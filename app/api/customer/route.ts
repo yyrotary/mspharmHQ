@@ -78,50 +78,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '이름은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
-    // Master DB 값 읽기 (페이지 ID를 알고 있으면 직접 사용)
-    let customerCount = 0;
-    try {
-      // 마스터DB 조회 (첫 번째/유일한 레코드 가져오기)
-      const responsem = await notion.databases.query({
-        database_id: masterDbId as string,
-        page_size: 1, // 첫 번째 레코드만 가져옴
-      });
-      
-      if (responsem.results.length > 0) {
-        const masterPageId = responsem.results[0].id;
-        
-        // 고객수 롤업 값 가져오기 위해 페이지 상세 조회
-        const pageResponse = await notion.pages.retrieve({
-          page_id: masterPageId
-        });
-        
-        // Notion API 응답 구조에 맞게 롤업 필드 접근
-        const pageData = pageResponse as any;
-        console.log('마스터DB 페이지 구조:', JSON.stringify(pageData.properties?.고객수, null, 2));
-        
-        if (pageData.properties?.고객수?.rollup?.number !== undefined) {
-          customerCount = pageData.properties.고객수.rollup.number;
-          console.log('읽어온 고객수:', customerCount);
-        } else if (pageData.properties?.고객수?.type === 'rollup') {
-          // 롤업 필드 구조 형식이 다를 수 있음
-          const rollupData = pageData.properties.고객수.rollup;
-          if (rollupData && typeof rollupData.number === 'number') {
-            customerCount = rollupData.number;
-            console.log('대체 경로로 읽어온 고객수:', customerCount);
-          }
-        }
-      } else {
-        console.log('마스터DB에 레코드가 없습니다.');
-      }
-    } catch (err) {
-      console.error('마스터DB 조회 오류:', err);
-      // 오류가 발생해도 고객 생성은 계속 진행
-    }
+    // Master DB 조회
+    const responsem = await notion.databases.query({
+      database_id: masterDbId as string,
+      page_size: 1, // 첫 번째 레코드만 가져옴
+    });
+
+    // 첫 번째 레코드에서 '고객수' 값 추출
+    const masterData = responsem.results[0] as any;
+    // 업데이트된 formula 타입의 고객수 필드 처리 (ID: LOs})
+    const customerCount = masterData.properties?.고객수?.formula?.number || 0;
     
     // 현재 고객 수 + 1을 5자리 문자열로 변환 (e.g., "00030")
     const newCustomerNumber = customerCount + 1;
     const customId = String(newCustomerNumber).padStart(5, '0');
-    console.log(`새 고객 ID 생성: ${customId} (현재 고객수: ${customerCount})`);
     
     // Notion 페이지 속성 설정 (임시로 폴더 ID 없이)
     const properties = {
