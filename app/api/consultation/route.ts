@@ -6,6 +6,7 @@ import { generateConsultationId, getApiBaseUrl } from '@/app/lib/utils';
 // 노션 클라이언트 초기화
 const notion = new Client({
   auth: process.env.NOTION_API_KEY
+});
 // 상담일지 데이터베이스 ID
 const consultationDbId = process.env.NOTION_CONSULTATION_DB_ID
 // 고객 데이터베이스 ID
