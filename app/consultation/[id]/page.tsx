@@ -56,6 +56,56 @@ export default function ConsultationDetailPage({ params }: { params: { id: strin
     fetchBands();
   }, []);
 
+  // 진료 정보 추출
+  const extractConsultationData = () => {
+    if (!consultationData || !consultationData.properties) {
+      return null;
+    }
+
+    try {
+      // 표준 속성 추출 함수
+      const getPropertyValue = (propertyName: string, type: string) => {
+        try {
+          const property = consultationData.properties[propertyName];
+          if (!property) return '';
+
+          if (type === 'title' && property.title && property.title.length > 0) {
+            return property.title[0].plain_text || property.title[0].text?.content || '';
+          } else if (type === 'rich_text' && property.rich_text && property.rich_text.length > 0) {
+            return property.rich_text[0].plain_text || property.rich_text[0].text?.content || '';
+          } else if (type === 'date' && property.date) {
+            return property.date.start || '';
+          } else if (type === 'files' && property.files) {
+            return property.files.map((file: any) => 
+              file.type === 'external' ? file.external.url : 
+              file.type === 'file' ? file.file.url : ''
+            ).filter((url: string) => url);
+          }
+          return '';
+        } catch (e) {
+          console.warn(`${propertyName} 추출 실패:`, e);
+          return '';
+        }
+      };
+
+      // 진료 데이터 구성
+      return {
+        id: consultationData.id,
+        consultationDate: getPropertyValue('상담일자', 'date'),
+        consultationContent: getPropertyValue('상담내용', 'rich_text'),
+        prescription: getPropertyValue('처방약', 'rich_text'),
+        stateAnalysis: getPropertyValue('상태분석', 'rich_text'),
+        tongueAnalysis: getPropertyValue('설진분석', 'rich_text'),
+        result: getPropertyValue('결과', 'rich_text'),
+        specialNote: getPropertyValue('특이사항', 'rich_text'),
+        symptomImages: getPropertyValue('증상이미지', 'files'),
+      };
+    } catch (error) {
+      console.error('진료 정보 추출 오류:', error);
+      return null;
+    }
+  };
+
   // 밴드에 포스팅하는 함수
   const handleBandPosting = async () => {
     if (!consultationData || !selectedBandKey) return;
@@ -64,9 +114,20 @@ export default function ConsultationDetailPage({ params }: { params: { id: strin
     setBandPostResult(null);
     
     try {
+      const extractedData = extractConsultationData();
+      if (!extractedData) {
+        throw new Error('진료 정보를 추출할 수 없습니다.');
+      }
+
+      // 고객 이름 추출
+      const customerName = consultationData.properties['고객명']?.title?.[0]?.plain_text || 
+                           consultationData.properties['고객명']?.title?.[0]?.text?.content || 
+                           '고객';
+      
       console.log('포스팅 데이터:', {
         bandKey: selectedBandKey,
-        consultation: consultationData.properties
+        customerName,
+        consultations: [extractedData]
       });
       
       const response = await fetch('/api/bandapi/post', {
@@ -76,7 +137,8 @@ export default function ConsultationDetailPage({ params }: { params: { id: strin
         },
         body: JSON.stringify({
           bandKey: selectedBandKey,
-          consultation: consultationData.properties
+          customerName,
+          consultations: [extractedData]
         }),
       });
       

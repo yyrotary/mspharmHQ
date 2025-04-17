@@ -13,6 +13,7 @@ export async function POST(request: Request) {
 
     // 요청 데이터 파싱
     const data = await request.json();
+    console.log('요청 데이터:', JSON.stringify(data).substring(0, 500) + '...');
     
     // 필수 필드 검증
     if (!data.bandKey) {
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    if (!data.consultation) {
+    if (!data.consultations) {
       return NextResponse.json({
         success: false,
         error: '진료 정보가 필요합니다'
@@ -37,44 +38,71 @@ export async function POST(request: Request) {
       }, { status: 500 });
     }
 
-    const consultation = data.consultation;
+    // 진료 내용 생성
+    let content = '';
     
-    // 진료 정보에서 필요한 데이터 추출
-    const getPropertyValue = (obj: any, key: string) => {
-      try {
-        return obj?.[key] || '';
-      } catch (e) {
-        console.warn(`${key} 값 추출 실패:`, e);
-        return '';
+    // 고객 이름 확인
+    const customerName = data.customerName || '고객';
+    
+    if (Array.isArray(data.consultations) && data.consultations.length > 0) {
+      content = `${customerName} 님 진료기록\n\n`;
+      
+      // 진료 기록 정보 추가
+      data.consultations.forEach((consultation, index) => {
+        // 진료일자 있으면 추가
+        if (consultation.consultationDate) {
+          content += `[${consultation.consultationDate}]\n`;
+        }
+        
+        // 상태분석 정보
+        if (consultation.stateAnalysis) {
+          content += `■ 상태분석\n${consultation.stateAnalysis}\n\n`;
+        }
+        
+        // 처방 정보
+        if (consultation.prescription) {
+          content += `■ 처방\n${consultation.prescription}\n\n`;
+        }
+        
+        // 결과 정보
+        if (consultation.result) {
+          content += `■ 결과\n${consultation.result}\n\n`;
+        }
+        
+        // 설진분석 정보
+        if (consultation.tongueAnalysis) {
+          content += `■ 설진분석\n${consultation.tongueAnalysis}\n\n`;
+        }
+        
+        // 특이사항 정보
+        if (consultation.specialNote) {
+          content += `■ 특이사항\n${consultation.specialNote}\n\n`;
+        }
+        
+        // 진료 기록 사이 구분선 추가 (마지막이 아닌 경우)
+        if (index < data.consultations.length - 1) {
+          content += '------------------------------\n\n';
+        }
+      });
+    } else {
+      return NextResponse.json({
+        success: false,
+        error: '올바른 진료 정보가 없습니다'
+      }, { status: 400 });
+    }
+    
+    // 이미지 URL 추출
+    let imageUrls: string[] = [];
+    
+    data.consultations.forEach(consultation => {
+      if (consultation.symptomImages && Array.isArray(consultation.symptomImages)) {
+        // 이미지 URL을 바로 사용
+        imageUrls = [...imageUrls, ...consultation.symptomImages.filter(url => typeof url === 'string')];
       }
-    };
+    });
     
-    const consultDate = getPropertyValue(consultation, 'consultDate') || '날짜 정보 없음';
-    const customerName = getPropertyValue(consultation, 'customerName') || '고객명 정보 없음';
-    const result = getPropertyValue(consultation, 'result') || '';
-    const stateAnalysis = getPropertyValue(consultation, 'stateAnalysis') || '';
-    const prescription = getPropertyValue(consultation, 'prescription') || '';
-    const specialNote = getPropertyValue(consultation, 'specialNote') || '';
-    const imageUrls = getPropertyValue(consultation, 'imageUrls') || [];
-
-    // 포스트 내용 구성
-    let content = `[${consultDate}] ${customerName} 님 진료기록\n\n`;
-    
-    if (stateAnalysis) {
-      content += `■ 상태분석\n${stateAnalysis}\n\n`;
-    }
-    
-    if (prescription) {
-      content += `■ 처방\n${prescription}\n\n`;
-    }
-    
-    if (result) {
-      content += `■ 결과\n${result}\n\n`;
-    }
-    
-    if (specialNote) {
-      content += `■ 특이사항\n${specialNote}\n\n`;
-    }
+    console.log('포스트 내용:', content.substring(0, 200) + (content.length > 200 ? '...' : ''));
+    console.log(`이미지 ${imageUrls.length}개 추출:`, imageUrls);
     
     // 밴드 API에 포스트 요청
     console.log(`밴드(${data.bandKey})에 포스팅 시도. 내용 길이: ${content.length}`);
@@ -86,8 +114,8 @@ export async function POST(request: Request) {
     urlEncodedData.append('content', content);
     
     // 이미지가 있는 경우 추가
-    if (Array.isArray(imageUrls) && imageUrls.length > 0) {
-      console.log(`이미지 ${imageUrls.length}개 첨부`);
+    if (imageUrls.length > 0) {
+      console.log(`이미지 ${imageUrls.length}개 첨부:`, imageUrls);
       urlEncodedData.append('photo_urls', imageUrls.join(','));
     }
 

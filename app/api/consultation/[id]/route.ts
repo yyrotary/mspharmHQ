@@ -7,6 +7,37 @@ const notion = new Client({
   auth: process.env[NOTION_ENV_VARS.API_KEY],
 });
 
+// 상담일지 조회
+export async function GET(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const id = context.params.id;
+  
+  if (!id) {
+    return NextResponse.json({ success: false, error: '상담일지 ID가 필요합니다.' }, { status: 400 });
+  }
+  
+  try {
+    console.log(`상담일지 조회: ${id}`);
+    
+    // 노션 페이지 조회
+    const response = await notion.pages.retrieve({ page_id: id });
+    console.log('상담일지 조회 결과:', JSON.stringify(response).substring(0, 500) + '...');
+    
+    return NextResponse.json({ 
+      success: true, 
+      consultation: response
+    });
+  } catch (error) {
+    console.error('상담일지 조회 오류:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: '상담일지 조회 중 오류가 발생했습니다.' 
+    }, { status: 500 });
+  }
+}
+
 // 상담일지 수정
 export async function PUT(
   request: NextRequest,
