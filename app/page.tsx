@@ -123,7 +123,7 @@ export default function Home() {
                 </div>
               </Link>
               
-              <Link href="/invoice-scanner" 
+              <Link href="/daily-income/monthly" 
                 style={{ 
                   backgroundColor: 'white', 
                   borderRadius: '0.75rem', 
@@ -137,10 +137,10 @@ export default function Home() {
                   color: 'inherit'
                 }}
               >
-                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>📷</div>
+                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>📊</div>
                 <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#f59e0b' }}>영수증 스캔</h3>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>영수증을 스캔하여 정보를 자동으로 추출합니다.</p>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#f59e0b' }}>월별 통계</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>월간 수입/지출 통계를 확인합니다</p>
                 </div>
               </Link>
             </div>

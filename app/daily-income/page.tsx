@@ -30,15 +30,59 @@ export default function DailyIncomePage() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  
+  // 비밀번호 관련 상태 추가
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [dbPassword, setDbPassword] = useState('');
+  
+  // 마스터DB에서 비밀번호 가져오기
+  useEffect(() => {
+    const fetchPassword = async () => {
+      try {
+        const response = await fetch('/api/master');
+        if (!response.ok) {
+          console.error('마스터DB 조회 실패');
+          return;
+        }
+        
+        const data = await response.json();
+        if (data.success && data.master?.properties?.pass) {
+          const passValue = data.master.properties.pass.rich_text?.[0]?.text?.content || '';
+          setDbPassword(passValue);
+        }
+      } catch (error) {
+        console.error('비밀번호 조회 오류:', error);
+      }
+    };
+    
+    fetchPassword();
+  }, []);
 
   // 컴포넌트 마운트 시와 날짜 변경 시 데이터 조회
   useEffect(() => {
-    fetchData();
-  }, [date]);
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [date, isAuthenticated]);
+  
+  // 비밀번호 확인 함수
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // 마스터DB의 pass 속성과 비교
+    if (password === dbPassword) {
+      setIsAuthenticated(true);
+      setPasswordError('');
+    } else {
+      setPasswordError('비밀번호가 올바르지 않습니다.');
+    }
+  };
 
   // 데이터 조회 함수
   const fetchData = async () => {
-    if (!date) return;
+    if (!date || !isAuthenticated) return;
     
     try {
       setLoading(true);
@@ -89,6 +133,98 @@ export default function DailyIncomePage() {
       setLoading(false);
     }
   };
+
+  // 비밀번호 입력 화면 렌더링
+  if (!isAuthenticated) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        minHeight: '100vh',
+        padding: '1rem',
+        backgroundColor: '#f3f4f6'
+      }}>
+        <div style={{ 
+          backgroundColor: 'white',
+          borderRadius: '0.75rem',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          padding: '2rem',
+          width: '100%',
+          maxWidth: '24rem',
+          textAlign: 'center'
+        }}>
+          <h1 style={{ 
+            fontSize: '1.5rem', 
+            fontWeight: 'bold', 
+            marginBottom: '1.5rem',
+            color: '#1e40af'
+          }}>
+            수입/지출 관리
+          </h1>
+          
+          <p style={{ marginBottom: '1.5rem', color: '#4b5563' }}>
+            이 페이지는 비밀번호로 보호되어 있습니다.
+          </p>
+          
+          <form onSubmit={handlePasswordSubmit}>
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="비밀번호를 입력하세요"
+                style={{ 
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: '0.375rem',
+                  border: '1px solid #d1d5db',
+                  marginBottom: '0.5rem'
+                }}
+                autoFocus
+              />
+              
+              {passwordError && (
+                <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  {passwordError}
+                </p>
+              )}
+            </div>
+            
+            <button
+              type="submit"
+              style={{ 
+                width: '100%',
+                backgroundColor: '#8b5cf6',
+                color: 'white',
+                fontWeight: 'bold',
+                padding: '0.75rem',
+                borderRadius: '0.375rem',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              확인
+            </button>
+          </form>
+          
+          <div style={{ marginTop: '1.5rem' }}>
+            <Link 
+              href="/"
+              style={{ 
+                color: '#6b7280',
+                textDecoration: 'none',
+                fontSize: '0.875rem'
+              }}
+            >
+              홈으로 돌아가기
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // 데이터 저장 함수
   const saveData = async (e: React.FormEvent) => {
@@ -169,6 +305,12 @@ export default function DailyIncomePage() {
     }
   };
 
+  // 로그아웃 함수 추가
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPassword('');
+  };
+
   // 입력 변경 처리
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -207,364 +349,439 @@ export default function DailyIncomePage() {
     setDate(format(newDate, 'yyyy-MM-dd'));
   };
 
-  // 총합 계산 수정
+  // 합계 계산
   const calculateTotal = () => {
-    // CAS5, CAS1, GIF, CAR1, CAR2를 더하고 PERSON을 빼는 방식으로 변경
-    const values = {
-      cas5: removeCommas(formData.cas5 || '0'),
-      cas1: removeCommas(formData.cas1 || '0'),
-      gif: removeCommas(formData.gif || '0'),
-      car1: removeCommas(formData.car1 || '0'),
-      car2: removeCommas(formData.car2 || '0'),
-      person: removeCommas(formData.person || '0'),
-      pos: removeCommas(formData.Pos || '0')
-    };
+    // cas5부터 car2까지 합하고 person을 뺌
+    const values = [
+      formData.cas5,
+      formData.cas1,
+      formData.gif,
+      formData.car1,
+      formData.car2
+    ];
     
-    // 숫자로 변환
-    const numValues = {
-      cas5: parseFloat(values.cas5) || 0,
-      cas1: parseFloat(values.cas1) || 0,
-      gif: parseFloat(values.gif) || 0,
-      car1: parseFloat(values.car1) || 0,
-      car2: parseFloat(values.car2) || 0,
-      person: parseFloat(values.person) || 0,
-      pos: parseFloat(values.pos) || 0
-    };
+    const income = values.reduce((acc, curr) => {
+      const numValue = parseFloat(removeCommas(curr) || '0');
+      return acc + numValue;
+    }, 0);
     
-    // 총액 계산 = (CAS5 + CAS1 + GIF + CAR1 + CAR2) - PERSON
-    const total = 
-      (numValues.cas5 + numValues.cas1 + numValues.gif + numValues.car1 + numValues.car2) - 
-      numValues.person;
+    // person 비용 계산
+    const personCost = parseFloat(removeCommas(formData.person) || '0');
     
-    return {
-      total: formatKRW(total),
-      rawTotal: total,
-      isWarning: total < numValues.pos
-    };
+    // 최종 계산 (수입 - 지출)
+    return income - personCost;
   };
-
-  const totalData = calculateTotal();
+  
+  const total = calculateTotal();
+  
+  // POS와 비교하여 적정성 판단
+  const compareWithPos = () => {
+    const posValue = parseFloat(removeCommas(formData.Pos) || '0');
+    const diff = total - posValue;
+    
+    if (Math.abs(diff) < 0.01) {
+      return { status: '일치', diff: 0 };
+    } else if (diff > 0) {
+      return { status: '적정 (초과)', diff };
+    } else {
+      return { status: '부적정 (부족)', diff };
+    }
+  };
+  
+  const comparison = compareWithPos();
 
   return (
     <div style={{ 
-      maxWidth: '100%', 
+      maxWidth: '800px', 
       margin: '0 auto', 
-      padding: '0', 
-      fontFamily: 'Arial, sans-serif',
-      backgroundColor: '#ffffff', 
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column'
+      padding: '1rem',
+      fontFamily: 'sans-serif'
     }}>
-      {/* 상단 헤더 */}
-      <header style={{ 
-        padding: '15px',
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e1e1e1',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'center'
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: '1rem'
       }}>
-        <Link href="/" style={{ 
-          textDecoration: 'none', 
-          marginRight: '10px',
-          color: '#333'
-        }}>
-          <div style={{ 
-            width: '40px', 
-            height: '40px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center'
-          }}>
-            ←
-          </div>
-        </Link>
-        <h1 style={{ 
-          margin: 0, 
-          fontSize: '18px', 
-          fontWeight: 'bold',
-          color: '#333',
-          flex: 1,
-          textAlign: 'center'
-        }}>
-          일일 수입 관리
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>
+          일일 수입/지출 관리
         </h1>
-        <div style={{ width: '40px' }}></div>
-      </header>
-
-      {/* 로딩 인디케이터 */}
-      {loading && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: '#fff',
-            padding: '20px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-            textAlign: 'center'
-          }}>
-            <p style={{
-              margin: 0,
-              fontWeight: 'bold'
-            }}>데이터를 불러오는 중...</p>
-          </div>
-        </div>
-      )}
-
-      <div style={{ 
-        padding: '20px', 
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-        maxWidth: '500px',
-        margin: '0 auto',
-        width: '100%'
-      }}>
-        {/* 날짜 선택 */}
-        <div style={{ 
-          backgroundColor: '#fff',
-          padding: '15px',
-          borderRadius: '8px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '10px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            color: '#555'
-          }}>
-            날짜 선택
-          </label>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px'
-          }}>
-            <button 
-              type="button" 
-              onClick={goToPreviousDay}
-              style={{ 
-                padding: '8px 15px',
-                backgroundColor: '#0066FF',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                cursor: 'pointer'
-              }}
-            >
-              이전
-            </button>
-            <input
-              type="date"
-              value={date}
-              onChange={handleDateChange}
-              style={{ 
-                flex: 1,
-                padding: '8px 10px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                textAlign: 'center',
-                fontSize: '14px'
-              }}
-            />
-            <button 
-              type="button" 
-              onClick={goToNextDay}
-              style={{ 
-                padding: '8px 15px',
-                backgroundColor: '#0066FF',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                cursor: 'pointer'
-              }}
-            >
-              다음
-            </button>
-          </div>
-        </div>
-
-        {/* 총합 표시 */}
-        <div style={{ 
-          backgroundColor: '#fff',
-          padding: '15px',
-          borderRadius: '8px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '5px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            color: '#555'
-          }}>
-            총액
-          </label>
-          <div style={{ 
-            fontSize: '28px',
-            fontWeight: 'bold',
-            color: totalData.isWarning ? '#d32f2f' : '#0c753a'
-          }}>
-            ₩ {totalData.total}
-          </div>
-          {totalData.isWarning && (
-            <div style={{
-              marginTop: '8px',
-              padding: '8px',
-              backgroundColor: '#fff4f4',
-              color: '#d32f2f',
-              borderRadius: '4px',
-              fontSize: '13px',
-              fontWeight: 'medium',
-              borderLeft: '3px solid #d32f2f'
-            }}>
-              경고: 총액이 POS 금액보다 작습니다
-            </div>
-          )}
-          {!totalData.isWarning && formData.Pos && (
-            <div style={{
-              marginTop: '8px',
-              padding: '8px',
-              backgroundColor: '#f0f9f4',
-              color: '#0c753a',
-              borderRadius: '4px',
-              fontSize: '13px',
-              fontWeight: 'medium',
-              borderLeft: '3px solid #0c753a'
-            }}>
-              적정: 총액이 POS 금액보다 크거나 같습니다
-            </div>
-          )}
-        </div>
-
-        {/* 메인 폼 */}
-        <form onSubmit={saveData} style={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '15px',
-          paddingBottom: '80px'
-        }}>
-          {Object.entries({
-            cas5: 'CAS5',
-            cas1: 'CAS1',
-            gif: 'GIF',
-            car1: 'CAR1',
-            car2: 'CAR2',
-            person: 'PERSON',
-            Pos: 'POS'
-          }).map(([key, label]) => (
-            <div key={key} style={{ 
-              backgroundColor: '#fff',
-              padding: '15px',
-              borderRadius: '8px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}>
-              <label style={{ 
-                display: 'block', 
-                marginBottom: '10px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                color: '#555'
-              }}>
-                {label}
-              </label>
-              <div style={{ position: 'relative' }}>
-                <span style={{ 
-                  position: 'absolute',
-                  left: '10px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#888'
-                }}>₩</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  name={key}
-                  value={(formData as any)[key]}
-                  onChange={handleChange}
-                  style={{ 
-                    width: '100%',
-                    padding: '12px 10px 12px 30px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '16px',
-                    textAlign: 'right'
-                  }}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-          ))}
-          
-          {/* 메시지 표시 */}
-          {message && (
-            <div style={{ 
-              padding: '15px',
-              borderRadius: '8px',
-              textAlign: 'center',
-              backgroundColor: message.includes('성공') ? '#e7f7ed' : '#ffeeee',
-              color: message.includes('성공') ? '#0c753a' : '#d32f2f',
-              border: `1px solid ${message.includes('성공') ? '#a8e0bc' : '#ffd1d1'}`
-            }}>
-              {message}
-            </div>
-          )}
-        </form>
-      </div>
-
-      {/* 저장 버튼 */}
-      <div style={{ 
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#fff',
-        borderTop: '1px solid #e1e1e1',
-        padding: '15px'
-      }}>
-        <div style={{ 
-          maxWidth: '500px',
-          margin: '0 auto'
-        }}>
+        
+        <div>
           <button
-            type="button"
-            onClick={saveData}
-            disabled={loading}
-            style={{ 
-              width: '100%',
-              padding: '14px',
-              backgroundColor: loading ? '#cccccc' : '#0066FF',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: loading ? 'not-allowed' : 'pointer'
+            onClick={handleLogout}
+            style={{
+              backgroundColor: '#f3f4f6',
+              color: '#4b5563',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.375rem',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.875rem',
+              cursor: 'pointer'
             }}
           >
-            {loading ? '처리 중...' : '저장하기'}
+            로그아웃
           </button>
+          
+          <Link 
+            href="/"
+            style={{
+              backgroundColor: '#e0e7ff',
+              color: '#3730a3',
+              border: 'none',
+              borderRadius: '0.375rem',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+              marginLeft: '0.5rem',
+              display: 'inline-block'
+            }}
+          >
+            홈으로
+          </Link>
         </div>
       </div>
+      
+      <div style={{ 
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.5rem',
+        marginBottom: '1.5rem'
+      }}>
+        <button 
+          onClick={goToPreviousDay}
+          style={{ 
+            backgroundColor: '#e0e7ff',
+            border: 'none',
+            borderRadius: '0.375rem',
+            padding: '0.5rem',
+            cursor: 'pointer'
+          }}
+        >
+          ◀
+        </button>
+        
+        <input
+          type="date"
+          value={date}
+          onChange={handleDateChange}
+          style={{ 
+            padding: '0.5rem',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.375rem'
+          }}
+        />
+        
+        <button 
+          onClick={goToNextDay}
+          style={{ 
+            backgroundColor: '#e0e7ff',
+            border: 'none',
+            borderRadius: '0.375rem',
+            padding: '0.5rem',
+            cursor: 'pointer'
+          }}
+        >
+          ▶
+        </button>
+      </div>
+      
+      {message && (
+        <div style={{ 
+          backgroundColor: message.includes('오류') ? '#fee2e2' : '#dcfce7',
+          color: message.includes('오류') ? '#b91c1c' : '#166534',
+          padding: '0.75rem',
+          borderRadius: '0.375rem',
+          marginBottom: '1rem',
+          textAlign: 'center'
+        }}>
+          {message}
+        </div>
+      )}
+      
+      <form onSubmit={saveData}>
+        <div style={{ 
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '1rem',
+          marginBottom: '1.5rem'
+        }}>
+          {/* 현금5% */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              color: '#4b5563'
+            }}>
+              현금5%
+            </label>
+            <input
+              type="text"
+              name="cas5"
+              value={formData.cas5}
+              onChange={handleChange}
+              placeholder="0"
+              style={{ 
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                textAlign: 'right'
+              }}
+            />
+          </div>
+          
+          {/* 현금1% */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              color: '#4b5563'
+            }}>
+              현금1%
+            </label>
+            <input
+              type="text"
+              name="cas1"
+              value={formData.cas1}
+              onChange={handleChange}
+              placeholder="0"
+              style={{ 
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                textAlign: 'right'
+              }}
+            />
+          </div>
+          
+          {/* 상품권 */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              color: '#4b5563'
+            }}>
+              상품권
+            </label>
+            <input
+              type="text"
+              name="gif"
+              value={formData.gif}
+              onChange={handleChange}
+              placeholder="0"
+              style={{ 
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                textAlign: 'right'
+              }}
+            />
+          </div>
+          
+          {/* 카드1 */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              color: '#4b5563'
+            }}>
+              카드1
+            </label>
+            <input
+              type="text"
+              name="car1"
+              value={formData.car1}
+              onChange={handleChange}
+              placeholder="0"
+              style={{ 
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                textAlign: 'right'
+              }}
+            />
+          </div>
+          
+          {/* 카드2 */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              color: '#4b5563'
+            }}>
+              카드2
+            </label>
+            <input
+              type="text"
+              name="car2"
+              value={formData.car2}
+              onChange={handleChange}
+              placeholder="0"
+              style={{ 
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                textAlign: 'right'
+              }}
+            />
+          </div>
+          
+          {/* 개인입금 */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              color: '#4b5563'
+            }}>
+              개인입금
+            </label>
+            <input
+              type="text"
+              name="person"
+              value={formData.person}
+              onChange={handleChange}
+              placeholder="0"
+              style={{ 
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                textAlign: 'right'
+              }}
+            />
+          </div>
+          
+          {/* 포스 */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              color: '#4b5563'
+            }}>
+              포스
+            </label>
+            <input
+              type="text"
+              name="Pos"
+              value={formData.Pos}
+              onChange={handleChange}
+              placeholder="0"
+              style={{ 
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                textAlign: 'right'
+              }}
+            />
+          </div>
+          
+          {/* 합계 */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              color: '#1e40af'
+            }}>
+              합계
+            </label>
+            <div style={{ 
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: '#e0e7ff',
+              borderRadius: '0.375rem',
+              textAlign: 'right',
+              fontWeight: 'bold',
+              color: '#1e40af'
+            }}>
+              {formatKRW(total)}
+            </div>
+          </div>
+        </div>
+        
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: 'white',
+          borderRadius: '0.5rem',
+          border: '1px solid #d1d5db',
+          padding: '1rem',
+          marginBottom: '1.5rem'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '0.5rem'
+          }}>
+            <span style={{ fontWeight: 'bold' }}>계산된 합계 (수입-지출):</span>
+            <span style={{ fontWeight: 'bold' }}>{formatKRW(total)}</span>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '0.5rem'
+          }}>
+            <span>POS 합계:</span>
+            <span>{formData.Pos}</span>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '0.5rem',
+            backgroundColor: comparison.status.includes('부적정') ? '#fee2e2' : 
+                             comparison.status.includes('적정') ? '#dcfce7' : '#f3f4f6',
+            borderRadius: '0.25rem',
+            color: comparison.status.includes('부적정') ? '#b91c1c' : 
+                   comparison.status.includes('적정') ? '#166534' : '#4b5563'
+          }}>
+            <span>상태:</span>
+            <span>{comparison.status} {Math.abs(comparison.diff) > 0 ? `(${formatKRW(Math.abs(comparison.diff))})` : ''}</span>
+          </div>
+        </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ 
+              backgroundColor: '#8b5cf6',
+              color: 'white',
+              fontWeight: 'bold',
+              padding: '0.75rem 2rem',
+              borderRadius: '0.375rem',
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1
+            }}
+          >
+            {loading ? '저장 중...' : '데이터 저장'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 } 

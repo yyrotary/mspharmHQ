@@ -330,5 +330,10 @@ export interface NotionMasterDB {
         number: number;
       };
     };
+    pass: {
+      id: string;
+      type: 'rich_text';
+      rich_text: Array<NotionText> | [];
+    };
   };
 } 
