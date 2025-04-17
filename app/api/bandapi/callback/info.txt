@@ -1,0 +1,12 @@
+MSLINK for band
+서비스 정보
+Client ID	454885040
+Client Secret	F8F_G4S_kRt7kaN0K2dTZbLjz-VJol4X
+Access Token	
+ZQAAAT7WlOkoqewRLPgV_MlKH-CqkBCKCv967OViQqaRrNjvzwIvyTNVx9EDh2ITyPrzdBTMFX1tdGWmJoZ8TwW_oXLPvDexkrZcF_Ofed2-y9Un
+
+재발급
+Redirect URI	https://port-0-mspharmhq-m9fqpsan0598a74a.sel4.cloudtype.app/api/bandapi/callback
+
+
+REST API

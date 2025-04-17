@@ -1839,6 +1839,92 @@ export default function ConsultationPage() {
     }
   };
 
+  // 밴드 관련 상태 추가
+  const [showBandModal, setShowBandModal] = useState(false);
+  const [bands, setBands] = useState<any[]>([]);
+  const [selectedBandKey, setSelectedBandKey] = useState('');
+  const [bandLoading, setBandLoading] = useState(false);
+  const [bandMessage, setBandMessage] = useState('');
+
+  // 밴드 목록 조회 함수
+  const fetchBandList = async () => {
+    try {
+      setBandLoading(true);
+      setBandMessage('');
+      
+      const response = await fetch('/api/bandapi/bands');
+      const result = await response.json();
+      
+      if (result.success && result.bands) {
+        setBands(result.bands);
+      } else {
+        setBandMessage(result.error || '밴드 목록을 불러오는데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('밴드 목록 조회 오류:', error);
+      setBandMessage('밴드 목록을 불러오는데 실패했습니다.');
+    } finally {
+      setBandLoading(false);
+    }
+  };
+
+  // 밴드에 올리기 버튼 클릭 핸들러
+  const handlePostToBand = async () => {
+    if (consultations.length === 0) {
+      setMessage('포스팅할 상담 내역이 없습니다.');
+      return;
+    }
+    
+    await fetchBandList();
+    setShowBandModal(true);
+  };
+
+  // 선택한 밴드에 포스팅
+  const postToBand = async () => {
+    if (!selectedBandKey) {
+      setBandMessage('밴드를 선택해주세요.');
+      return;
+    }
+    
+    try {
+      setBandLoading(true);
+      setBandMessage('');
+      
+      // 고객 이름 확인
+      const customerName = getNotionPropertyValue(customer?.properties?.고객명, CUSTOMER_SCHEMA.고객명.type) || '고객';
+      
+      // 밴드 포스팅 API 호출
+      const response = await fetch('/api/bandapi/post', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bandKey: selectedBandKey,
+          customerName: customerName,
+          consultations: consultations
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setBandMessage('밴드에 상담 내역이 성공적으로 포스팅되었습니다.');
+        setTimeout(() => {
+          setShowBandModal(false);
+          setMessage('밴드에 상담 내역이 성공적으로 포스팅되었습니다.');
+        }, 1500);
+      } else {
+        setBandMessage(result.error || '포스팅 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('밴드 포스팅 오류:', error);
+      setBandMessage('포스팅 중 오류가 발생했습니다.');
+    } finally {
+      setBandLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* 헤더 */}
@@ -3748,6 +3834,230 @@ export default function ConsultationPage() {
         </div>
       )}
       
+      {/* 고객 정보 아래에 밴드에 올리기 버튼 추가 */}
+      {customer && consultations.length > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'flex-end', 
+          marginBottom: '1rem' 
+        }}>
+          <button
+            onClick={handlePostToBand}
+            style={{ 
+              backgroundColor: '#5f3dc4', 
+              color: 'white', 
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem', 
+              borderRadius: '0.375rem', 
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <span style={{ marginRight: '0.25rem' }}>📱</span>
+            밴드에 올리기
+          </button>
+        </div>
+      )}
+
+      {/* 밴드 선택 모달 */}
+      {showBandModal && (
+        <div style={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem'
+        }}>
+          <div style={{ 
+            width: '100%',
+            maxWidth: '480px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            backgroundColor: 'white',
+            borderRadius: '0.75rem',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2)',
+            padding: '1.5rem'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#5f3dc4' }}>
+                밴드에 올리기
+              </h2>
+              <button
+                onClick={() => setShowBandModal(false)}
+                style={{ 
+                  backgroundColor: 'transparent', 
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '2.5rem',
+                  height: '2.5rem',
+                  borderRadius: '50%',
+                  color: '#6b7280'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            
+            {bandMessage && (
+              <div style={{ 
+                padding: '0.75rem', 
+                marginBottom: '1rem', 
+                borderRadius: '0.375rem',
+                backgroundColor: bandMessage.includes('성공') ? '#d1fae5' : '#fee2e2',
+                color: bandMessage.includes('성공') ? '#047857' : '#b91c1c'
+              }}>
+                {bandMessage}
+              </div>
+            )}
+            
+            <p style={{ marginBottom: '1rem', color: '#4b5563' }}>
+              상담 내역을 공유할 밴드를 선택하세요.
+            </p>
+            
+            {bandLoading ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '2rem', 
+                color: '#6b7280' 
+              }}>
+                로딩 중...
+              </div>
+            ) : bands.length > 0 ? (
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '0.75rem', 
+                marginBottom: '1.5rem',
+                maxHeight: '300px',
+                overflowY: 'auto',
+                padding: '0.5rem'
+              }}>
+                {bands.map((band) => (
+                  <div
+                    key={band.band_key}
+                    onClick={() => setSelectedBandKey(band.band_key)}
+                    style={{
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      border: `1px solid ${selectedBandKey === band.band_key ? '#5f3dc4' : '#e5e7eb'}`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      backgroundColor: selectedBandKey === band.band_key ? '#f3f0ff' : '#f9fafb',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem'
+                    }}
+                  >
+                    {band.cover && (
+                      <img 
+                        src={band.cover} 
+                        alt={band.name}
+                        style={{ 
+                          width: '40px', 
+                          height: '40px', 
+                          borderRadius: '50%', 
+                          objectFit: 'cover' 
+                        }}
+                      />
+                    )}
+                    <div>
+                      <h3 style={{ 
+                        fontSize: '1rem', 
+                        fontWeight: 'bold', 
+                        color: '#1f2937', 
+                        marginBottom: '0.25rem' 
+                      }}>
+                        {band.name}
+                      </h3>
+                      <p style={{ 
+                        fontSize: '0.875rem', 
+                        color: '#6b7280' 
+                      }}>
+                        멤버 {band.member_count}명
+                      </p>
+                    </div>
+                    {selectedBandKey === band.band_key && (
+                      <div style={{ 
+                        marginLeft: 'auto', 
+                        color: '#5f3dc4', 
+                        fontWeight: 'bold' 
+                      }}>
+                        ✓
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '2rem', 
+                backgroundColor: '#f3f4f6', 
+                borderRadius: '0.5rem', 
+                color: '#6b7280' 
+              }}>
+                밴드 목록이 없습니다.
+              </div>
+            )}
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                onClick={postToBand}
+                disabled={bandLoading || !selectedBandKey}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: !selectedBandKey ? '#e5e7eb' : '#5f3dc4', 
+                  color: !selectedBandKey ? '#9ca3af' : 'white', 
+                  padding: '1rem',
+                  fontSize: '1.125rem', 
+                  borderRadius: '0.5rem', 
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: 'none',
+                  cursor: !selectedBandKey ? 'default' : 'pointer'
+                }}
+              >
+                {bandLoading ? '처리 중...' : '선택한 밴드에 포스팅하기'}
+              </button>
+              
+              <button
+                onClick={() => setShowBandModal(false)}
+                disabled={bandLoading}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: '#e5e7eb', 
+                  color: '#1f2937', 
+                  padding: '1rem',
+                  fontSize: '1.125rem', 
+                  borderRadius: '0.5rem', 
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
