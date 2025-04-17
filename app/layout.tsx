@@ -7,6 +7,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "명성약국 MSLINK 시스템",
   description: "명성약국 MSLINK 시스템",
+  icons: {
+    icon: "/icon.ico"
+  }
 };
 
 export const viewport: Viewport = {
@@ -30,6 +33,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="format-detection" content="telephone=no" />
         <link rel="apple-touch-icon" href="/icon.png" />
+        <link rel="icon" href="/icon.ico" />
       </head>
       <body className={inter.className}>{children}</body>
     </html>
