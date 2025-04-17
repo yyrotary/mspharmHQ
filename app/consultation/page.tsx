@@ -141,13 +141,18 @@ export default function ConsultationPage() {
             }
             
             // 고객 정보 가져오기
-            const customerName = getNotionPropertyValue(foundCustomer.properties.고객명, CUSTOMER_SCHEMA.고객명.type);
-            const phoneNumber = getNotionPropertyValue(foundCustomer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type);
+            const customerName = foundCustomer.properties.고객명.rich_text[0].text.content;
+            //console.log('고객명:', customerName);
+            const phoneNumber = foundCustomer.properties.전화번호.phone_number;
+            //console.log('전화번호:', phoneNumber);
+            const consultationCount = foundCustomer.properties.상담수.formula.number;
+            //console.log('상담수:', consultationCount);
             
             // 상담 내용 가져오기
-            const consultationDate = getNotionPropertyValue(consultation.properties.상담일자, CONSULTATION_SCHEMA.상담일자.type);
-            const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
-            
+            const consultationDate = consultation.properties.상담일자.date.start;
+            //console.log('상담일자:', consultationDate);
+            const consultationContent = consultation.properties.상담내용.rich_text[0].text.content;
+            //console.log('상담내용:', consultationContent);
             // 처방약 및 결과 가져오기
             let prescription = '';
             try {
@@ -709,18 +714,10 @@ export default function ConsultationPage() {
       setMessage('상담일지 저장 중...');
       
       // 고객 폴더 ID 가져오기
-      let customerFolderId = null;
-      try {
-        // @ts-expect-error - 타입 정의 문제 해결
-        customerFolderId = customer.properties?.customerFolderId?.rich_text?.[0]?.text?.content || null;
-        if (customerFolderId) {
-          console.log(`고객 폴더 ID: ${customerFolderId}`);
-        } else {
-          console.log('고객 폴더 ID가 없습니다. 상담일지 저장 API에서 생성합니다.');
-        }
-      } catch (e) {
-        console.warn('고객 폴더 ID 추출 실패:', e);
-      }
+      const customerFolderId = customer.properties.customerFolderId.rich_text[0].text.content || null;
+      
+      // 고객 상담수 가져오기
+      const consultationCount = customer.properties.상담수.formula.number || 0;
       
       // 상담일지 API 호출 데이터 준비
       const apiData = {
@@ -732,7 +729,8 @@ export default function ConsultationPage() {
         stateAnalysis: newConsultation.stateAnalysis,
         tongueAnalysis: newConsultation.tongueAnalysis,
         specialNote: newConsultation.specialNote,
-        customerFolderId: customerFolderId // 고객 폴더 ID 직접 전달
+        customerFolderId: customerFolderId, // 고객 폴더 ID 직접 전달
+        consultationCount: consultationCount // 고객 상담수 전달
       };
       
       // 이미지 업로드 여부 확인

@@ -108,7 +108,8 @@ export const CUSTOMER_SCHEMA = {
   사진: { type: 'relation' },
   얼굴_임베딩: { type: 'rich_text' },
   상담일지DB: { type: 'relation' },
-  customerFolderId: { type: 'rich_text' }
+  customerFolderId: { type: 'rich_text' },
+  상담수: { type: 'formula' }
 };
 
 // 상담일지 데이터베이스 스키마
@@ -145,6 +146,8 @@ export const getNotionPropertyValue = (property: any, type: string) => {
       return property.files?.[0]?.file?.url || property.files?.[0]?.external?.url || '';
     case 'relation':
       return property.relation?.[0]?.id || '';
+    case 'formula':
+      return property.formula?.number || '';
     case 'created_time':
       return property.created_time || '';
     default:
@@ -218,6 +221,14 @@ export interface NotionCustomer {
       id: string;
       type: 'rich_text';
       rich_text: Array<NotionText> | [];
+    };
+    상담수: {
+      id: string;
+      type: 'formula';
+      formula: {
+        type: 'number';
+        number: number;
+      };
     };
   };
 }

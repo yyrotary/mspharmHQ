@@ -121,13 +121,7 @@ export function formatDateToShort(date: string | Date): string {
   return `${year}${month}${day}`;
 }
 
-/**
- * 고객 ID와 날짜를 조합하여 상담 ID를 생성합니다.
- * 예: "honggd", "2025-04-15" -> "honggd_250415"
- * @param customerId 고객 ID
- * @param consultDate 상담 날짜
- * @returns 생성된 상담 ID
- */
+
 export function generateConsultationId(customerId: string, consultDate: string): string {
   
   const dateShort = formatDateToShort(consultDate);

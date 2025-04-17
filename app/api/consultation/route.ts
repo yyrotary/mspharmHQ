@@ -82,65 +82,16 @@ export async function POST(request: Request) {
     }
     
     // 상담일지 ID 생성 (실제 고객 ID 사용)
-    const consultationId = generateConsultationId(realCustomerId, data.consultDate);
-    //console.log(`상담일지 ID 생성: "${realCustomerId}" + "${data.consultDate}" -> "${consultationId}"`);
+    // 현재 상담수 + 1을 3자리 문자열로 변환 (e.g., "030")
+    let consultationCount = data.consultationCount || 0;
+    console.log('상담수:', consultationCount);
+    const newconsultation = consultationCount + 1;
+    const consultationId = `${realCustomerId}_${String(newconsultation).padStart(3, '0')}`;
     
     // 고객 폴더 ID 조회 또는 생성
     let customerFolderId = data.customerFolderId || null;
     
-    // 클라이언트에서 폴더 ID를 직접 전달받은 경우 그대로 사용
-    if (customerFolderId) {
-      console.log(`클라이언트에서 전달받은 고객 폴더 ID: ${customerFolderId}`);
-    } 
-    // 폴더 ID가 없는 경우 
-    else {
-       
-          // API 기본 URL을 이용해 폴더 API URL 생성
-          //const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
-          //console.log(`API 기본 URL: ${apiBaseUrl}`);
-      const folderApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/google-drive/folder`;
-      console.log(`폴더 생성 API 호출: ${folderApiUrl}`);
-          
-          // 고객 폴더 이름으로 고객 ID 사용
-      const folderResponse = await fetch(folderApiUrl, {
-        method: 'POST',
-        headers: {
-              'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          folderName: realCustomerId
-        }),
-      });
-          
-      if (folderResponse.ok) {
-        const folderData = await folderResponse.json();
-        if (folderData.success) {
-          customerFolderId = folderData.folderId;
-          console.log(`고객 폴더 ID: ${customerFolderId}, 새 폴더 생성: ${folderData.isNew}`);
-              
-          // 새로 생성된 폴더 ID를 고객 정보에 업데이트
-          if (folderData.isNew && data.customerId) {
-              
-            console.log(`고객 정보에 폴더 ID 업데이트 : ${data.customerId}`);
-            await notion.pages.update({
-              page_id: data.customerId,
-              properties: {
-                'customerFolderId': {
-                  rich_text: [{
-                    text: {
-                      content: customerFolderId
-                    }
-                  }]
-                }
-              }
-            });
-            console.log(`고객 정보에 폴더 ID 업데이트 완료`);
-              
-          }
-        }
-      }
-    }
-      
+    
     
     
     // 이미지 데이터가 있는 경우 업로드
