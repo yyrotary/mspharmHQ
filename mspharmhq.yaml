@@ -1,0 +1,50 @@
+name: mspharmhq
+app: dockerfile
+options:
+  ports: 3000
+  dockerfile: Dockerfile
+  env:
+    - name: HTTPS
+      value: "true"
+    - name: NEXT_PUBLIC_API_URL
+      value: https://port-0-mspharmhq-m9fqpsan0598a74a.sel4.cloudtype.app
+    - name: BAND_ACCESS_TOKEN
+      value: ZQAAAT7WlOkoqewRLPgV_MlKH-CqkBCKCv967OViQqaRrNjvzwIvyTNVx9EDh2ITyPrzdBTMFX1tdGWmJoZ8TwW_oXLPvDexkrZcF_Ofed2-y9Un
+    - name: NODE_TLS_REJECT_UNAUTHORIZED
+      value: "0"
+    - name: NOTION_API_KEY
+      value: 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
+    - name: NOTION_MASTER_DB_ID
+      value: 1d68065e4391800f8d9ce3498c7893b8
+    - name: NOTION_DATABASE_ID
+      value: 714b76dc6cde47f696309c5f70d189e9
+    - name: NOTION_CUSTOMER_DB_ID
+      value: 1cc8065e4391807e88c5f84ce469aba2
+    - name: NOTION_CONSULTATION_DB_ID
+      value: 1cd8065e439180e49ad2fe6e8a0a727d
+    - name: GOOGLE_API_KEY
+      value: AIzaSyCNyZ7ZuQR0RNjXhky9GKD1FApRDEOeV14
+    - name: GOOGLE_GEMINI_API_KEY
+      value: AIzaSyCNyZ7ZuQR0RNjXhky9GKD1FApRDEOeV14
+    - name: GOOGLE_DRIVE_FOLDER_ID
+      value: 1VtLqvTCd1_yRYANhX4yZ9C66Zmra_3hw
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: '{   "type": "service_account",   "project_id":
+        "gdirve-456016",   "private_key_id":
+        "03436b7a4ca4c93d1a93ad491ef49cca35c223f2",   "private_key": "-----BEGIN
+        PRIVATE
+        KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC17iw7IlOzxIvf\n85+cV63KDwBimyWfievEmDrAZx551LHZVbbXmvAsG5wpHCABr7IYKE/1ry3Pdk/V\n/SX4JGCasuktP4JasTQxlqywZYo02fY1sF+nXU8XnVglFFh119+j/CEvsjg2wAet\nwjeqXFQnhV+itygZxKHhdsgwFelKLRrCbCDWdO1eELaV3DSb2Dp55Ggx7O4fwwmN\nxyF+kabDQt4zkhhns5hnQzzc2ROLD26YdFmjyMInN0rwSbzzI6ZO7AQTTdAbD4aG\n5h/tf966fK1h4XgLjfUVhm4utYpi6Wsiz4dJY9GN/w8mxHVWsPcy/Cbv48xmKJ8i\nJLbK1DsNAgMBAAECggEADS0fSfcd/c6V3NXtsOqOvSwh+IJJEslv6HCoDKhLRkKX\n0OhK0km37FHhmP6e+NBLQ0GkLOSPmk90z8hCWDr2Pi4IAk1vuPbNk2vYvPvVqydA\nFDpeayYwZMLyD9lt4LcOTPelRamQNbLpu3VuB6ohNC2ONCA0yMz7dnNeY1Eq8MK8\n2GqPvrfVq9M4uTM5FKfjslweDlqYSXZYlsA9pNBXIbkJa1I05drx/euNsU0WGTdq\nh6hSJ6GN6sHvXlTsMB8YUzBsxbDhnwjkCHiV+cbrXh23Sln3343fbStAIz8y+fBS\nl80cNSd2uNiXiGKJ77Ikk6r1tXz7X6c5RuPelYW7QQKBgQD+EPK9JJN/lGrdTQ/I\nDTJWAAlkd7DK/s22kXvmxaLekbfgME/T9nxK2wsE4KpLh3oYW4IKjzIvLhto7EGT\nWk+C3t/OwLVaONnyyTFcZB+3yqPw+jPGdLXqBVe/tNM4Yve5oFMtu3ecgyOzMSE6\nBnhZLRKTsA43wp3eL7mrvg+lLQKBgQC3UKq0LU4qr0CxKU2+aMmhzK6Tu+z7FE2x\na2h3sT94jk0YQm+yAb3uftdmdR2is7Sh7l89XZPEVVFhC0U3Gu4qKgb6jgXnVt5x\nOv1O/dpOTqHIIdHDhW/Q3Zv2li52uMLuNM8jhlXs6lFEOscbllTrDT7aLQ4HzwII\nl78TEKJZYQKBgQCHU8e376+RGSEC13U8far+G+7k0MwelDJGuJ9igIsMOlnS1Gjw\n4i26QYpRAsoyiOsD5loR/cwhTVHURWN4dXY8ozJbElKGyBlvNLNSHxK19v3z8ZF6\nd9gd2tKujkajljOVcExd46kGeOOfIuAr5B5egZ+PgwtPsB4epxUi4Y270QKBgA8S\n3gaU1yGhaZNnzxHCMhpQ52YUhOccg0r8hwmYlJyILwS4qdCcXg7XdUTiin5PgqHy\nJPi50iXJ0jhFofpnB4CGFi7SMOAV/5KWBDBTpXjc9GatiT8noMsu/d0n+kge50CJ\nLSNBr50co3QV1TuKgA8X9rwgClBQEF2+hKK/smnhAoGBAN0ceH8AZnrhPx8uqa3k\nNZrUfn0NAcxlHr4n13NVjoK0E9r5Oj39UGpGcpnIPimDtZGgjPnKjYWXkG0mY07K\n1WzJuSq0a/kaxCsy9TbVO0gCqfuj2yJk49ylGXGv1QVRqmI1ACr73xvc/GOEv2gv\nTSDz5DH5/f9eH+6IqbDNBk+i\n-----END
+        PRIVATE KEY-----\n",   "client_email":
+        "google-drive-api@gdirve-456016.iam.gserviceaccount.com",   "client_id":
+        "102328716998921310771",   "auth_uri":
+        "https://accounts.google.com/o/oauth2/auth",   "token_uri":
+        "https://oauth2.googleapis.com/token",   "auth_provider_x509_cert_url":
+        "https://www.googleapis.com/oauth2/v1/certs",   "client_x509_cert_url":
+        "https://www.googleapis.com/robot/v1/metadata/x509/google-drive-api%40gdirve-456016.iam.gserviceaccount.com",   "universe_domain":
+        "googleapis.com" }'
+  args: []
+context:
+  git:
+    url: git@github.com:yyrotary/mspharmHQ.git
+    ref: refs/heads/main
+  preset: dockerfile

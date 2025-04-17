@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     const customerName = data.customerName || '고객';
     
     if (Array.isArray(data.consultations) && data.consultations.length > 0) {
-      content = `${customerName} 님 진료기록\n\n`;
+      content = `#명성약국_상담 ${customerName} 님 진료기록\n\n`;
       
       // 진료 기록 정보 추가
       data.consultations.forEach((consultation, index) => {
@@ -54,10 +54,17 @@ export async function POST(request: Request) {
           content += `[${consultation.consultationDate}]\n`;
         }
         
-        // 상태분석 정보
-        if (consultation.stateAnalysis) {
-          content += `■ 상태분석\n${consultation.stateAnalysis}\n\n`;
+        // 상담내용, 증상상 정보
+        if (consultation.consultationContent) {
+          content += `■ 상담내용\n${consultation.consultationContent}\n\n`;
         }
+        
+        // 증상 이미지 정보
+        if (consultation.symptomImages && Array.isArray(consultation.symptomImages)) {
+          content += `■ 증상 이미지\n${consultation.symptomImages.join(', ')}\n\n`;
+        }
+
+        
         
         // 처방 정보
         if (consultation.prescription) {
@@ -69,6 +76,11 @@ export async function POST(request: Request) {
           content += `■ 결과\n${consultation.result}\n\n`;
         }
         
+        // 상태분석 정보
+        if (consultation.stateAnalysis) {
+          content += `■ 상태분석\n${consultation.stateAnalysis}\n\n`;
+        }
+
         // 설진분석 정보
         if (consultation.tongueAnalysis) {
           content += `■ 설진분석\n${consultation.tongueAnalysis}\n\n`;
