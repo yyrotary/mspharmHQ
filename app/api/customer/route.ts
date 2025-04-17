@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
-import { CUSTOMER_SCHEMA, NotionMasterDB } from '@/app/lib/notion-schema';
+import { CUSTOMER_SCHEMA } from '@/app/lib/notion-schema';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
