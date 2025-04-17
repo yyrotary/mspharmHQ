@@ -516,7 +516,7 @@ export default function DailyIncomePage() {
               fontWeight: 'bold',
               color: '#4b5563'
             }}>
-              현금5%
+              CAS5
             </label>
             <input
               type="text"
@@ -543,7 +543,7 @@ export default function DailyIncomePage() {
               fontWeight: 'bold',
               color: '#4b5563'
             }}>
-              현금1%
+              CAS1
             </label>
             <input
               type="text"
@@ -570,7 +570,7 @@ export default function DailyIncomePage() {
               fontWeight: 'bold',
               color: '#4b5563'
             }}>
-              상품권
+              gift
             </label>
             <input
               type="text"
@@ -597,7 +597,7 @@ export default function DailyIncomePage() {
               fontWeight: 'bold',
               color: '#4b5563'
             }}>
-              카드1
+              CAR1
             </label>
             <input
               type="text"
@@ -624,7 +624,7 @@ export default function DailyIncomePage() {
               fontWeight: 'bold',
               color: '#4b5563'
             }}>
-              카드2
+              CAR2
             </label>
             <input
               type="text"
@@ -651,7 +651,7 @@ export default function DailyIncomePage() {
               fontWeight: 'bold',
               color: '#4b5563'
             }}>
-              개인입금
+              본부
             </label>
             <input
               type="text"
@@ -678,7 +678,7 @@ export default function DailyIncomePage() {
               fontWeight: 'bold',
               color: '#4b5563'
             }}>
-              포스
+              POS
             </label>
             <input
               type="text"
