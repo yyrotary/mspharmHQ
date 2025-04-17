@@ -19,7 +19,7 @@ export async function PUT(
     
     // 필수 필드 검증
     if (!data.name) {
-      return NextResponse.json({ error: '이름은 필수 입력 항목입니다.' }, { status: 400 });
+      return NextResponse.json({ success: false, message: '이름은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
     // 고객 ID가 없는 경우의 예외 처리
@@ -86,29 +86,26 @@ export async function PUT(
     
     
     // 고객 정보 업데이트
-    console.log(`고객 ID ${id} 정보 업데이트 중...`, properties);
+    console.log(`고객 ID ${id} 정보 업데이트 중...`);
     
-    const response = await notion.pages.update({
+    await notion.pages.update({
       page_id: id,
       properties: properties
     });
     
-    console.log(`고객 정보 업데이트 성공:`, response.id);
+    console.log(`고객 정보 업데이트 성공`);
     
+    // 간소화된 응답 반환 (성공 여부만)
     return NextResponse.json({ 
       success: true, 
-      message: '고객 정보가 업데이트되었습니다.',
-      customer: {
-        id: response.id,
-        name: data.name,
-        customerId: customerId
-      }
+      message: '고객 정보가 업데이트되었습니다.'
     });
   } catch (error: any) {
     console.error('고객 정보 업데이트 오류:', error);
     return NextResponse.json({ 
       success: false,
-      error: `고객 정보 업데이트 중 오류가 발생했습니다: ${error.message}`
+      message: '고객 정보 업데이트 중 오류가 발생했습니다.',
+      error: error.message
     }, { status: 500 });
   }
 }
@@ -121,12 +118,12 @@ export async function DELETE(
   const id = context.params.id;
   
   if (!id) {
-    return NextResponse.json({ error: '고객 ID가 필요합니다.' }, { status: 400 });
+    return NextResponse.json({ success: false, message: '고객 ID가 필요합니다.' }, { status: 400 });
   }
   
   try {
     // 노션에서는 완전 삭제 대신 아카이브 처리
-    const response = await notion.pages.update({
+    await notion.pages.update({
       page_id: id,
       archived: true
     });
@@ -139,7 +136,8 @@ export async function DELETE(
     console.error('고객 정보 삭제 오류:', error);
     return NextResponse.json({ 
       success: false,
-      error: `고객 정보 삭제 중 오류가 발생했습니다: ${error.message}`
+      message: '고객 정보 삭제 중 오류가 발생했습니다.',
+      error: error.message
     }, { status: 500 });
   }
 } 

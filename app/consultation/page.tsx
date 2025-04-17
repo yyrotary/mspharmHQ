@@ -1283,7 +1283,11 @@ export default function ConsultationPage() {
         console.log(`사용할 고객 ID: ${customerId}`);
       }
       
-      const response = await fetch(`/api/customer/${customer.id}`, {
+      // 고객 페이지 ID 저장 (업데이트 성공 후 다시 조회하기 위함)
+      const customerPageId = customer.id;
+      
+      // 업데이트 요청
+      const response = await fetch(`/api/customer/${customerPageId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1303,11 +1307,34 @@ export default function ConsultationPage() {
       const result = await response.json();
       
       if (response.ok && result.success) {
-        setMessage('고객 정보가 업데이트되었습니다.');
+        setMessage(result.message || '고객 정보가 업데이트되었습니다.');
+        
+        // 수정 폼 닫기
         setShowEditCustomerForm(false);
-        setCustomer(result.customer);
+        
+        // 고객 정보 다시 조회
+        if (customerPageId) {
+          try {
+            const customerResponse = await fetch(`/api/customer?id=${customerPageId}`);
+            if (customerResponse.ok) {
+              const customerData = await customerResponse.json();
+              if (customerData.success && customerData.customers && customerData.customers.length > 0) {
+                setCustomer(customerData.customers[0]);
+                console.log('고객 정보 새로고침 완료');
+                
+                // 고객 검색 필드 업데이트
+                if (customerData.customers[0].properties.고객명) {
+                  const name = getNotionPropertyValue(customerData.customers[0].properties.고객명, CUSTOMER_SCHEMA.고객명.type);
+                  setCustomerName(name);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('고객 정보 조회 오류:', error);
+          }
+        }
       } else {
-        throw new Error(result.error || '고객 정보 업데이트 중 오류가 발생했습니다.');
+        throw new Error(result.message || result.error || '고객 정보 업데이트 중 오류가 발생했습니다.');
       }
     } catch (error) {
       console.error('고객 정보 업데이트 오류:', error);

@@ -18,6 +18,7 @@ export async function GET(request: Request) {
   const name = searchParams.get('name');
   const phone = searchParams.get('phone');
   const gender = searchParams.get('gender');
+  const id = searchParams.get('id'); // 고객 ID로 조회 추가
   
   if (!customerDbId) {
     return NextResponse.json({ error: '노션 고객 DB ID가 설정되지 않았습니다.' }, { status: 500 });
@@ -26,7 +27,25 @@ export async function GET(request: Request) {
   try {
     let filter = {};
     
-    if (name) {
+    if (id) {
+      // 고객 ID로 직접 조회
+      try {
+        const response = await notion.pages.retrieve({
+          page_id: id
+        });
+        
+        return NextResponse.json({ 
+          success: true, 
+          customers: [response]
+        });
+      } catch (error) {
+        console.error('고객 ID로 조회 오류:', error);
+        return NextResponse.json({ 
+          success: false, 
+          error: '고객 조회 중 오류가 발생했습니다.' 
+        }, { status: 500 });
+      }
+    } else if (name) {
       filter = {
         property: '고객명',
         [CUSTOMER_SCHEMA.고객명.type]: {
