@@ -108,7 +108,15 @@ export default function ConsultationPage() {
       const customerData = await customerResponse.json();
       
       if (customerData.success && customerData.customers.length > 0) {
-        // 고객 정보 설정
+        // 여러 명의 고객이 검색된 경우
+        if (customerData.customers.length > 1) {
+          setMultipleCustomers(customerData.customers);
+          setShowCustomerSelectModal(true);
+          setLoading(false);
+          return;
+        }
+        
+        // 한 명의 고객만 검색된 경우
         const foundCustomer = customerData.customers[0];
         setCustomer(foundCustomer);
         
@@ -1711,6 +1719,123 @@ export default function ConsultationPage() {
   const openEditCamera = () => {
     if (editCameraInputRef.current) {
       editCameraInputRef.current.click();
+    }
+  };
+
+  // 상태 추가
+  const [multipleCustomers, setMultipleCustomers] = useState<any[]>([]);
+  const [showCustomerSelectModal, setShowCustomerSelectModal] = useState(false);
+
+  // 고객 선택 함수 추가
+  const selectCustomer = async (selectedCustomer: any) => {
+    try {
+      setLoading(true);
+      setCustomer(selectedCustomer);
+      setShowCustomerSelectModal(false);
+      
+      // 상담일지 목록 조회
+      const consultationsResponse = await fetch(`/api/consultation?customerId=${selectedCustomer.id}`);
+      const consultationsData = await consultationsResponse.json();
+      
+      if (consultationsData.success) {
+        // 상담일지 데이터 구조 변환 (기존 코드 재사용)
+        const formattedConsultations = consultationsData.consultations.map((consultation: NotionConsultation) => {
+          // ID 추출
+          const id = consultation.id;
+          
+          // 상담일자 추출
+          let consultationDate = '';
+          try {
+            // @ts-expect-error - 타입 정의 문제 해결
+            consultationDate = consultation.properties['상담일자']?.date?.start || '';
+          } catch (e) {
+            console.warn('상담일자 추출 실패:', e);
+          }
+          
+          // 상담내용 추출
+          let consultationContent = '';
+          try {
+            // @ts-expect-error - 타입 정의 문제 해결
+            consultationContent = consultation.properties['상담내용']?.rich_text?.[0]?.text?.content || '';
+          } catch (e) {
+            console.warn('상담내용 추출 실패:', e);
+          }
+          
+          // 처방약 추출
+          let prescription = '';
+          try {
+            // @ts-expect-error - 타입 정의 문제 해결
+            prescription = consultation.properties['처방약']?.rich_text?.[0]?.text?.content || '';
+          } catch (e) {
+            console.warn('처방약 추출 실패:', e);
+          }
+          
+          // 상태분석 추출
+          let stateAnalysis = '';
+          try {
+            // @ts-expect-error - 타입 정의 문제 해결
+            stateAnalysis = consultation.properties['상태분석']?.rich_text?.[0]?.text?.content || '';
+          } catch (e) {
+            console.warn('상태분석 추출 실패:', e);
+          }
+          
+          // 설진분석 추출
+          let tongueAnalysis = '';
+          try {
+            // @ts-expect-error - 타입 정의 문제 해결
+            tongueAnalysis = consultation.properties['설진분석']?.rich_text?.[0]?.text?.content || '';
+          } catch (e) {
+            console.warn('설진분석 추출 실패:', e);
+          }
+          
+          // 결과 추출
+          let result = '';
+          try {
+            // @ts-expect-error - 타입 정의 문제 해결
+            result = consultation.properties['결과']?.rich_text?.[0]?.text?.content || '';
+          } catch (e) {
+            console.warn('결과 추출 실패:', e);
+          }
+          
+          // 특이사항 추출
+          let specialNote = '';
+          try {
+            // @ts-expect-error - 타입 정의 문제 해결
+            specialNote = consultation.properties['특이사항']?.rich_text?.[0]?.text?.content || '';
+          } catch (e) {
+            console.warn('특이사항 추출 실패:', e);
+          }
+          
+          // 이미지 URL 추출
+          let symptomImages: string[] = [];
+          try {
+            // @ts-expect-error - 타입 정의 문제 해결
+            const files = consultation.properties['증상이미지']?.files || [];
+            symptomImages = files.map((file: any) => file.type === 'external' ? file.external.url : '');
+          } catch (e) {
+            console.warn('이미지 URL 추출 실패:', e);
+          }
+          
+          return {
+            id,
+            consultationDate,
+            consultationContent,
+            prescription,
+            stateAnalysis,
+            tongueAnalysis,
+            result,
+            specialNote,
+            symptomImages
+          };
+        });
+        
+        setConsultations(formattedConsultations);
+      }
+    } catch (error) {
+      console.error('고객 선택 오류:', error);
+      setMessage('고객 정보 조회 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -3481,6 +3606,148 @@ export default function ConsultationPage() {
           )}
         </div>
       </main>
+      
+      {/* 고객 선택 모달 */}
+      {showCustomerSelectModal && (
+        <div style={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem'
+        }}>
+          <div style={{ 
+            width: '100%',
+            maxWidth: '640px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            backgroundColor: 'white',
+            borderRadius: '0.75rem',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2)',
+            padding: '1.5rem'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>
+                고객 선택
+              </h2>
+              <button
+                onClick={() => setShowCustomerSelectModal(false)}
+                style={{ 
+                  backgroundColor: 'transparent', 
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '2.5rem',
+                  height: '2.5rem',
+                  borderRadius: '50%',
+                  color: '#6b7280'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <p style={{ marginBottom: '1rem', color: '#4b5563' }}>
+              동일한 이름의 고객이 여러 명 있습니다. 선택해주세요.
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              {multipleCustomers.map((customer) => (
+                <div
+                  key={customer.id}
+                  onClick={() => selectCustomer(customer)}
+                  style={{
+                    padding: '1rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #e5e7eb',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    backgroundColor: '#f9fafb',
+                    hover: {
+                      backgroundColor: '#e5e7eb'
+                    }
+                  }}
+                >
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1e40af', marginBottom: '0.5rem' }}>
+                    {getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type)}
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
+                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                      <span style={{ fontWeight: '600' }}>전화번호:</span> {getNotionPropertyValue(customer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type) || '없음'}
+                    </p>
+                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                      <span style={{ fontWeight: '600' }}>성별:</span> {getNotionPropertyValue(customer.properties.성별, CUSTOMER_SCHEMA.성별.type) || '없음'}
+                    </p>
+                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                      <span style={{ fontWeight: '600' }}>생년월일:</span> {getNotionPropertyValue(customer.properties.생년월일, CUSTOMER_SCHEMA.생년월일.type) || '없음'}
+                    </p>
+                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                      <span style={{ fontWeight: '600' }}>특이사항:</span> {getNotionPropertyValue(customer.properties.특이사항, CUSTOMER_SCHEMA.특이사항.type) || '없음'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                onClick={() => {
+                  setShowCustomerSelectModal(false);
+                  setShowCustomerForm(true);
+                  setNewCustomer({
+                    ...newCustomer,
+                    name: customerName
+                  });
+                }}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: '#10b981', 
+                  color: 'white', 
+                  padding: '1rem',
+                  fontSize: '1.125rem', 
+                  borderRadius: '0.5rem', 
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                신규 고객 등록하기
+              </button>
+              
+              <button
+                onClick={() => setShowCustomerSelectModal(false)}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: '#e5e7eb', 
+                  color: '#1f2937', 
+                  padding: '1rem',
+                  fontSize: '1.125rem', 
+                  borderRadius: '0.5rem', 
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 } 
