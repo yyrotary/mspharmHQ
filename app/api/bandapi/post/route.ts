@@ -61,7 +61,7 @@ export async function POST(request: Request) {
         
         // 증상 이미지 정보
         if (consultation.symptomImages && Array.isArray(consultation.symptomImages)) {
-          content += `■ 증상 이미지\n${consultation.symptomImages.join(', ')}\n\n`;
+          content += `■ 증상 이미지\n${consultation.symptomImages.join(' , ')}\n\n`;
         }
 
         
