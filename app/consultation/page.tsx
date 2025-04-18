@@ -2467,6 +2467,287 @@ export default function ConsultationPage() {
             </div>
           )}
 
+          {/* 고객 정보 수정 폼 */}
+          {showEditCustomerForm && (
+            <div style={{ 
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem'
+            }}>
+              <div style={{ 
+                width: '100%',
+                maxWidth: '640px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                backgroundColor: 'white',
+                borderRadius: '0.75rem',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2)',
+                padding: '1.5rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>
+                    고객 정보 수정
+                  </h2>
+                  <button
+                    onClick={() => setShowEditCustomerForm(false)}
+                    style={{ 
+                      backgroundColor: 'transparent', 
+                      border: 'none',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      borderRadius: '50%',
+                      color: '#6b7280'
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <form onSubmit={updateCustomer} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      이름 *
+                    </label>
+                    <input
+                      ref={editNameInputRef}
+                      type="text"
+                      value={editCustomer.name}
+                      onChange={(e) => setEditCustomer({...editCustomer, name: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      전화번호
+                    </label>
+                    <input
+                      type="tel"
+                      value={editCustomer.phone}
+                      onChange={(e) => setEditCustomer({...editCustomer, phone: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      성별
+                    </label>
+                    <select
+                      value={editCustomer.gender}
+                      onChange={(e) => setEditCustomer({...editCustomer, gender: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <option value="">선택하세요</option>
+                      <option value="남성">남성</option>
+                      <option value="여성">여성</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      생년월일
+                    </label>
+                    <input
+                      type="date"
+                      value={editCustomer.birth}
+                      onChange={(e) => setEditCustomer({...editCustomer, birth: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      추정나이
+                      <span style={{ 
+                        fontSize: '0.75rem', 
+                        marginLeft: '0.5rem', 
+                        color: '#6b7280',
+                        fontWeight: 'normal'
+                      }}>
+                        (생년월일을 모를 경우)
+                      </span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="150"
+                      value={editCustomer.estimatedAge}
+                      onChange={(e) => setEditCustomer({...editCustomer, estimatedAge: e.target.value})}
+                      placeholder="대략적인 나이"
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      주소
+                    </label>
+                    <input
+                      type="text"
+                      value={editCustomer.address}
+                      onChange={(e) => setEditCustomer({...editCustomer, address: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      특이사항
+                    </label>
+                    <textarea
+                      value={editCustomer.specialNote}
+                      onChange={(e) => setEditCustomer({...editCustomer, specialNote: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s',
+                        minHeight: '5rem'
+                      }}
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowEditCustomerForm(false)}
+                      style={{ 
+                        width: '100%', 
+                        backgroundColor: '#e5e7eb', 
+                        color: '#1f2937', 
+                        padding: '1rem',
+                        fontSize: '1.125rem', 
+                        borderRadius: '0.5rem', 
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      style={{ 
+                        width: '100%', 
+                        backgroundColor: '#3b82f6', 
+                        color: 'white', 
+                        padding: '1rem',
+                        fontSize: '1.125rem', 
+                        borderRadius: '0.5rem', 
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {loading ? '저장 중...' : '저장'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
           {/* 새 상담일지 폼 */}
           {showNewForm && (
             <div style={{ 

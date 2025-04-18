@@ -12,7 +12,7 @@ export async function PUT(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  const id = context.params.id;
+  const { id } = await context.params;
   
   try {
     const data = await request.json();
@@ -118,7 +118,7 @@ export async function DELETE(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  const id = context.params.id;
+  const { id } = await context.params;
   
   if (!id) {
     return NextResponse.json({ success: false, message: '고객 ID가 필요합니다.' }, { status: 400 });
