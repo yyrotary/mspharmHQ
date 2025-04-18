@@ -51,9 +51,9 @@ export async function POST(request: Request) {
           content += `[${consultation.consultationDate}]\n`;
         }
         
-        // 상담내용, 증상상 정보
+        // 호소증상, 증상상 정보
         if (consultation.consultationContent) {
-          content += `■ 상담내용\n${consultation.consultationContent}\n\n`;
+          content += `■ 호소증상\n${consultation.consultationContent}\n\n`;
         }
         
         // 증상 이미지 정보 - it's working, don't touch - band api 에서 이미지 첨부 불가
@@ -71,9 +71,9 @@ export async function POST(request: Request) {
           content += `■ 결과\n${consultation.result}\n\n`;
         }
         
-        // 상태분석 정보
+        // 환자상태 정보
         if (consultation.stateAnalysis) {
-          content += `■ 상태분석\n${consultation.stateAnalysis}\n\n`;
+          content += `■ 환자상태\n${consultation.stateAnalysis}\n\n`;
         }
 
         // 설진분석 정보

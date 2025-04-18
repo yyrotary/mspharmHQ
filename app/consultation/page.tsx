@@ -15,7 +15,7 @@ interface FormattedConsultation {
   symptomImages: string[];
   prescription: string;
   result: string;
-  stateAnalysis?: string;  // 상태분석 필드 추가
+  stateAnalysis?: string;  // 환자상태 필드 추가
   tongueAnalysis?: string; // 설진분석 필드 추가
   specialNote?: string;    // 특이사항 필드 추가
 }
@@ -26,7 +26,7 @@ interface NewConsultation {
   content: string;
   medicine: string;
   result: string;
-  stateAnalysis: string;  // 상태분석 필드 추가
+  stateAnalysis: string;  // 환자상태 필드 추가
   tongueAnalysis: string; // 설진분석 필드 추가
   specialNote: string;    // 특이사항 필드 추가
   images: Array<{
@@ -62,7 +62,7 @@ export default function ConsultationPage() {
     content: '',
     medicine: '',
     result: '',
-    stateAnalysis: '',  // 상태분석 필드 추가
+    stateAnalysis: '',  // 환자상태 필드 추가
     tongueAnalysis: '', // 설진분석 필드 추가
     specialNote: '',    // 특이사항 필드 추가
     images: [] as {data: string, fileName: string}[]
@@ -189,11 +189,11 @@ export default function ConsultationPage() {
             const consultationCount = foundCustomer.properties.상담수.formula.number;
             //console.log('상담수:', consultationCount);
             
-            // 상담 내용 가져오기
+            // 호소증상 가져오기
             const consultationDate = consultation.properties.상담일자.date.start;
             //console.log('상담일자:', consultationDate);
-            const consultationContent = consultation.properties.상담내용.rich_text[0].text.content;
-            //console.log('상담내용:', consultationContent);
+            const consultationContent = consultation.properties.호소증상.rich_text[0].text.content;
+            //console.log('호소증상:', consultationContent);
             // 처방약 및 결과 가져오기
             let prescription = '';
             try {
@@ -209,12 +209,12 @@ export default function ConsultationPage() {
               console.warn('결과 추출 중 오류 발생');
             }
             
-            // 상태분석, 설진분석, 특이사항 가져오기
+            // 환자상태, 설진분석, 특이사항 가져오기
             let stateAnalysis = '';
             try {
-              stateAnalysis = getNotionPropertyValue(consultation.properties.상태분석, CONSULTATION_SCHEMA.상태분석.type) || '';
+              stateAnalysis = getNotionPropertyValue(consultation.properties.환자상태, CONSULTATION_SCHEMA.환자상태.type) || '';
             } catch (error) {
-              console.warn('상태분석 추출 중 오류 발생');
+              console.warn('환자상태 추출 중 오류 발생');
             }
             
             let tongueAnalysis = '';
@@ -737,7 +737,7 @@ export default function ConsultationPage() {
     }
   };
   
-  // 2. 상담 내용 저장 부분 수정
+  // 2. 호소증상상 저장 부분 수정
   const saveConsultation = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -747,7 +747,7 @@ export default function ConsultationPage() {
     }
     
     if (!newConsultation.content) {
-      setMessage('상담 내용은 필수 입력 항목입니다.');
+      setMessage('호소증상은 필수 입력 항목입니다.');
       return;
     }
     
@@ -866,12 +866,12 @@ export default function ConsultationPage() {
             const customerName = getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type);
             const phoneNumber = getNotionPropertyValue(customer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type);
             
-            // 상담 내용 가져오기
+            // 호소증상 가져오기
             const consultationDate = getNotionPropertyValue(consultation.properties.상담일자, CONSULTATION_SCHEMA.상담일자.type);
-            const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
+            const consultationContent = getNotionPropertyValue(consultation.properties.호소증상, CONSULTATION_SCHEMA.호소증상.type);
             const medicine = getNotionPropertyValue(consultation.properties.처방약, CONSULTATION_SCHEMA.처방약.type);
             const result = getNotionPropertyValue(consultation.properties.결과, CONSULTATION_SCHEMA.결과.type);
-            const stateAnalysis = getNotionPropertyValue(consultation.properties.상태분석, CONSULTATION_SCHEMA.상태분석.type);
+            const stateAnalysis = getNotionPropertyValue(consultation.properties.환자상태, CONSULTATION_SCHEMA.환자상태.type);
             const tongueAnalysis = getNotionPropertyValue(consultation.properties.설진분석, CONSULTATION_SCHEMA.설진분석.type);
             const specialNote = getNotionPropertyValue(consultation.properties.특이사항, CONSULTATION_SCHEMA.특이사항.type);
             
@@ -929,6 +929,7 @@ export default function ConsultationPage() {
             // 항상 lh3.googleusercontent.com 형식으로 변환
             return `https://lh3.googleusercontent.com/d/${fileId}`;
           } catch (error) {
+            console.log('Google Drive URL 변환 실패:', url);
             return url;
           }
         }
@@ -963,6 +964,7 @@ export default function ConsultationPage() {
             // 항상 lh3.googleusercontent.com 형식으로 변환
             return `https://lh3.googleusercontent.com/d/${fileId}`;
           } catch (error) {
+            console.log('Google Drive URL 변환 실패:', url);
             return url;
           }
         }
@@ -979,6 +981,7 @@ export default function ConsultationPage() {
             // 항상 lh3.googleusercontent.com 형식으로 변환
             return `https://lh3.googleusercontent.com/d/${fileId}`;
           } catch (error) {
+            console.log('Google Drive URL 변환 실패:', url);
             return url;
           }
         }
@@ -1010,6 +1013,7 @@ export default function ConsultationPage() {
               // 항상 lh3.googleusercontent.com 형식으로 변환
               return `https://lh3.googleusercontent.com/d/${fileId}`;
             } catch (error) {
+              console.log('Google Drive URL 변환 실패:', url);
               return url;
             }
           }
@@ -1020,7 +1024,7 @@ export default function ConsultationPage() {
 
       return null;
     } catch (error) {
-      console.warn('이미지 URL 처리 중 오류 발생');
+      console.warn('이미지 URL 처리 중 오류 발생:', error);
       return null;
     }
   };
@@ -1030,7 +1034,26 @@ export default function ConsultationPage() {
     const [isLoaded, setIsLoaded] = useState(false);
     const [error, setError] = useState(false);
     const [processedUrl, setProcessedUrl] = useState('');
+    const [fallbackTriggered, setFallbackTriggered] = useState(false);
 
+    // 구글 드라이브 fileId 추출 함수
+    const extractFileId = (url: string) => {
+      try {
+        if (url.includes('drive.google.com/file/d/')) {
+          return url.split('/file/d/')[1].split('/')[0];
+        } else if (url.includes('drive.google.com/uc?export=view&id=')) {
+          return url.split('id=')[1].split('&')[0];
+        } else if (url.includes('lh3.googleusercontent.com/d/')) {
+          return url.split('/d/')[1].split('?')[0];
+        }
+        return null;
+      } catch (e) {
+        console.warn('File ID 추출 실패:', url);
+        return null;
+      }
+    };
+
+    // URL 변환 및 설정
     useEffect(() => {
       // null, undefined, 빈 문자열 체크
       if (!imageUrl || imageUrl === "" || imageUrl === "undefined" || imageUrl === "null") {
@@ -1040,36 +1063,55 @@ export default function ConsultationPage() {
       
       // 바로 대체 URL 형식으로 설정
       try {
-        // 구글 드라이브 URL인 경우
-        if (imageUrl.includes('drive.google.com/file/d/')) {
-          const fileId = imageUrl.split('/file/d/')[1].split('/')[0];
-          // 구글 드라이브 뷰 URL을 직접 사용하지 않고, 항상 lh3.googleusercontent.com 형식 사용
+        const fileId = extractFileId(imageUrl);
+        
+        if (fileId) {
+          // 구글 드라이브 API를 직접 사용하는 방식으로 변경
+          // 이미지 직접 엑세스 URL 방식 (구글 API를 통한 인증 필요 없음)
           const alternativeUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
           setProcessedUrl(alternativeUrl);
-        } 
-        // 이미 uc 형식인 경우 lh3로 변환
-        else if (imageUrl.includes('drive.google.com/uc?export=view&id=')) {
-          const fileId = imageUrl.split('id=')[1];
-          const alternativeUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
-          setProcessedUrl(alternativeUrl);
-        }
-        // 이미 대체 URL 형식인 경우 그대로 사용
-        else if (imageUrl.includes('lh3.googleusercontent.com/d/')) {
-          setProcessedUrl(imageUrl);
-        }
-        // 그 외의 경우 원본 URL 사용
-        else {
+        } else {
+          // 그 외의 경우 원본 URL 사용
           setProcessedUrl(imageUrl);
         }
       } catch (error) {
         // URL 변환 실패 시 원본 URL 사용
+        console.warn('URL 변환 실패:', error);
         setProcessedUrl(imageUrl);
       }
     }, [imageUrl, index]);
 
+    // 첫 번째 방식 실패 시 대체 URL로 재시도
+    const tryFallbackUrl = () => {
+      if (fallbackTriggered) return; // 이미 시도했으면 다시 시도하지 않음
+      
+      try {
+        const fileId = extractFileId(imageUrl);
+        if (!fileId) {
+          setError(true);
+          return;
+        }
+        
+        // 첫 번째 대체 URL 시도: uc?export=view&id 형식
+        const fallbackUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+        setProcessedUrl(fallbackUrl);
+        setFallbackTriggered(true);
+        setIsLoaded(false); // 로딩 상태 재설정
+      } catch (error) {
+        console.warn('대체 URL 변환 실패:', error);
+        setError(true);
+      }
+    };
+
     // 이미지 로드 실패 시 처리 로직
     const handleImageError = () => {
-      setError(true);
+      if (!fallbackTriggered) {
+        // 첫 번째 URL이 실패하면 대체 URL로 시도
+        tryFallbackUrl();
+      } else {
+        // 대체 URL도 실패하면 에러 표시
+        setError(true);
+      }
     };
 
     if (error) {
@@ -1155,25 +1197,37 @@ export default function ConsultationPage() {
       return;
     }
     
-    try {
-      // 바로 대체 URL 형식으로 설정
-      if (imageUrl.includes('drive.google.com/file/d/')) {
-        const fileId = imageUrl.split('/file/d/')[1].split('/')[0];
-        const alternativeUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
-        setSelectedImage(alternativeUrl);
-      } 
-      // 이미 uc 형식인 경우 lh3로 변환
-      else if (imageUrl.includes('drive.google.com/uc?export=view&id=')) {
-        const fileId = imageUrl.split('id=')[1];
-        const alternativeUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
-        setSelectedImage(alternativeUrl);
+    // 구글 드라이브 fileId 추출 함수 - ConsultationImage 컴포넌트와 동일한 로직
+    const extractFileId = (url: string) => {
+      try {
+        if (url.includes('drive.google.com/file/d/')) {
+          return url.split('/file/d/')[1].split('/')[0];
+        } else if (url.includes('drive.google.com/uc?export=view&id=')) {
+          return url.split('id=')[1].split('&')[0];
+        } else if (url.includes('lh3.googleusercontent.com/d/')) {
+          return url.split('/d/')[1].split('?')[0];
+        }
+        return null;
+      } catch (e) {
+        console.warn('File ID 추출 실패:', url);
+        return null;
       }
-      // 이미 대체 URL 형식인 경우 그대로 사용
-      else {
+    };
+    
+    try {
+      const fileId = extractFileId(imageUrl);
+      
+      if (fileId) {
+        // 구글 드라이브 API를 직접 사용하는 방식으로 변경
+        const alternativeUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+        setSelectedImage(alternativeUrl);
+      } else {
+        // 그 외의 경우 원본 URL 사용
         setSelectedImage(imageUrl);
       }
     } catch (error) {
       // URL 변환 실패 시 원본 URL 사용
+      console.warn('URL 변환 실패:', error);
       setSelectedImage(imageUrl);
     }
 
@@ -1404,7 +1458,7 @@ export default function ConsultationPage() {
     content: '',
     medicine: '',
     result: '',
-    stateAnalysis: '',  // 상태분석 필드 추가
+    stateAnalysis: '',  // 환자상태 필드 추가
     tongueAnalysis: '', // 설진분석 필드 추가
     specialNote: '',    // 특이사항 필드 추가
     images: [] as {data: string, fileName: string}[]
@@ -1455,7 +1509,7 @@ export default function ConsultationPage() {
       content: consultation.consultationContent || '',
       medicine: consultation.prescription || '',
       result: consultation.result || '',
-      stateAnalysis: consultation.stateAnalysis || '',  // 상태분석 추가
+      stateAnalysis: consultation.stateAnalysis || '',  // 환자상태 추가
       tongueAnalysis: consultation.tongueAnalysis || '', // 설진분석 추가
       specialNote: consultation.specialNote || '',       // 특이사항 추가
       images: [] // 새 이미지만 추가, 기존 이미지는 symptomImages에서 참조
@@ -1474,7 +1528,7 @@ export default function ConsultationPage() {
     }
     
     if (!editFormData.content) {
-      setMessage('상담 내용은 필수 입력 항목입니다.');
+      setMessage('호소증상은 필수 입력 항목입니다.');
       return;
     }
     
@@ -1563,9 +1617,9 @@ export default function ConsultationPage() {
             const customerName = getNotionPropertyValue(customer!.properties.고객명, CUSTOMER_SCHEMA.고객명.type);
             const phoneNumber = getNotionPropertyValue(customer!.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type);
             
-            // 상담 내용 가져오기
+            // 호소증상 가져오기
             const consultationDate = getNotionPropertyValue(consultation.properties.상담일자, CONSULTATION_SCHEMA.상담일자.type);
-            const consultationContent = getNotionPropertyValue(consultation.properties.상담내용, CONSULTATION_SCHEMA.상담내용.type);
+            const consultationContent = getNotionPropertyValue(consultation.properties.호소증상, CONSULTATION_SCHEMA.호소증상.type);
             
             // 처방약 및 결과 가져오기
             let prescription = '';
@@ -1582,12 +1636,12 @@ export default function ConsultationPage() {
               console.warn('결과 추출 중 오류 발생');
             }
             
-            // 상태분석, 설진분석, 특이사항 가져오기
+            // 환자상태, 설진분석, 특이사항 가져오기
             let stateAnalysis = '';
             try {
-              stateAnalysis = getNotionPropertyValue(consultation.properties.상태분석, CONSULTATION_SCHEMA.상태분석.type) || '';
+              stateAnalysis = getNotionPropertyValue(consultation.properties.환자상태, CONSULTATION_SCHEMA.환자상태.type) || '';
             } catch (error) {
-              console.warn('상태분석 추출 중 오류 발생');
+              console.warn('환자상태 추출 중 오류 발생');
             }
             
             let tongueAnalysis = '';
@@ -1630,7 +1684,7 @@ export default function ConsultationPage() {
           content: '',
           medicine: '',
           result: '',
-          stateAnalysis: '',  // 상태분석 초기화
+          stateAnalysis: '',  // 환자상태 초기화
           tongueAnalysis: '', // 설진분석 초기화
           specialNote: '',    // 특이사항 초기화
           images: []
@@ -1789,13 +1843,13 @@ export default function ConsultationPage() {
             console.warn('상담일자 추출 실패:', e);
           }
           
-          // 상담내용 추출
+          // 호소증상 추출
           let consultationContent = '';
           try {
             // @ts-expect-error - 타입 정의 문제 해결
-            consultationContent = consultation.properties['상담내용']?.rich_text?.[0]?.text?.content || '';
+            consultationContent = consultation.properties['호소증상']?.rich_text?.[0]?.text?.content || '';
           } catch (e) {
-            console.warn('상담내용 추출 실패:', e);
+            console.warn('호소증상 추출 실패:', e);
           }
           
           // 처방약 추출
@@ -1807,13 +1861,13 @@ export default function ConsultationPage() {
             console.warn('처방약 추출 실패:', e);
           }
           
-          // 상태분석 추출
+          // 환자상태 추출
           let stateAnalysis = '';
           try {
             // @ts-expect-error - 타입 정의 문제 해결
-            stateAnalysis = consultation.properties['상태분석']?.rich_text?.[0]?.text?.content || '';
+            stateAnalysis = consultation.properties['환자상태']?.rich_text?.[0]?.text?.content || '';
           } catch (e) {
-            console.warn('상태분석 추출 실패:', e);
+            console.warn('환자상태 추출 실패:', e);
           }
           
           // 설진분석 추출
@@ -2830,7 +2884,7 @@ export default function ConsultationPage() {
                       fontWeight: '600',
                       color: '#1e40af' 
                     }}>
-                      상담내용 *
+                      호소증상 *
                     </label>
                     <textarea
                       value={newConsultation.content}
@@ -2847,132 +2901,6 @@ export default function ConsultationPage() {
                       required
                     />
                   </div>
-                  
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      상태분석
-                    </label>
-                    <textarea
-                      value={newConsultation.stateAnalysis}
-                      onChange={(e) => setNewConsultation({...newConsultation, stateAnalysis: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                      rows={3}
-                      placeholder="상태분석 내용을 입력하세요"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      설진분석
-                    </label>
-                    <textarea
-                      value={newConsultation.tongueAnalysis}
-                      onChange={(e) => setNewConsultation({...newConsultation, tongueAnalysis: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                      rows={3}
-                      placeholder="설진분석 내용을 입력하세요"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      처방약
-                    </label>
-                    <textarea
-                      value={newConsultation.medicine}
-                      onChange={(e) => setNewConsultation({...newConsultation, medicine: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                      rows={3}
-                      placeholder="처방약 정보를 입력하세요"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      결과
-                    </label>
-                    <textarea
-                      value={newConsultation.result}
-                      onChange={(e) => setNewConsultation({...newConsultation, result: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                      rows={3}
-                      placeholder="상담 결과를 입력하세요"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      특이사항
-                    </label>
-                    <textarea
-                      value={newConsultation.specialNote}
-                      onChange={(e) => setNewConsultation({...newConsultation, specialNote: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                      rows={3}
-                      placeholder="특이사항이 있으면 입력하세요"
-                    />
-                  </div>
-                  
                   <div>
                     <label style={{ 
                       display: 'block', 
@@ -3100,6 +3028,136 @@ export default function ConsultationPage() {
                       </div>
                     )}
                   </div>
+
+
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      환자상태
+                    </label>
+                    <textarea
+                      value={newConsultation.stateAnalysis}
+                      onChange={(e) => setNewConsultation({...newConsultation, stateAnalysis: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={4}
+                      placeholder="환자상태 내용을 입력하세요"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      설진분석
+                    </label>
+                    <textarea
+                      value={newConsultation.tongueAnalysis}
+                      onChange={(e) => setNewConsultation({...newConsultation, tongueAnalysis: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={3}
+                      placeholder="설진분석 내용을 입력하세요"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      처방약
+                    </label>
+                    <textarea
+                      value={newConsultation.medicine}
+                      onChange={(e) => setNewConsultation({...newConsultation, medicine: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={3}
+                      placeholder="처방약 정보를 입력하세요"
+                    />
+                  </div>
+                  
+                  
+                  
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      특이사항
+                    </label>
+                    <textarea
+                      value={newConsultation.specialNote}
+                      onChange={(e) => setNewConsultation({...newConsultation, specialNote: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={3}
+                      placeholder="특이사항이 있으면 입력하세요"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
+                      결과
+                    </label>
+                    <textarea
+                      value={newConsultation.result}
+                      onChange={(e) => setNewConsultation({...newConsultation, result: e.target.value})}
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                      rows={3}
+                      placeholder="상담 결과를 입력하세요"
+                    />
+                  </div>
+
+
+                  
                   
                   <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                     <button
@@ -3228,7 +3286,41 @@ export default function ConsultationPage() {
                   onLoad={handleImageLoaded}
                   onError={() => {
                     setModalLoading(false);
-                    alert('이미지를 불러올 수 없습니다. URL: ' + selectedImage);
+                    
+                    // 이미지 로드 실패 시 대체 URL 시도
+                    try {
+                      // 구글 드라이브 fileId 추출
+                      const extractFileId = (url: string) => {
+                        try {
+                          if (url.includes('drive.google.com/file/d/')) {
+                            return url.split('/file/d/')[1].split('/')[0];
+                          } else if (url.includes('drive.google.com/uc?export=view&id=')) {
+                            return url.split('id=')[1].split('&')[0];
+                          } else if (url.includes('lh3.googleusercontent.com/d/')) {
+                            return url.split('/d/')[1].split('?')[0];
+                          }
+                          return null;
+                        } catch (e) {
+                          return null;
+                        }
+                      };
+                      
+                      const fileId = extractFileId(selectedImage);
+                      if (fileId) {
+                        // lh3 URL이 실패했으면 uc 형식으로 시도
+                        if (selectedImage.includes('lh3.googleusercontent.com')) {
+                          const fallbackUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+                          setSelectedImage(fallbackUrl);
+                          setModalLoading(true);
+                          return;
+                        }
+                      }
+                      
+                      // 모든 시도 실패 시
+                      alert('이미지를 불러올 수 없습니다. URL: ' + selectedImage);
+                    } catch (error) {
+                      alert('이미지를 불러올 수 없습니다. URL: ' + selectedImage);
+                    }
                   }}
                 />
               </div>
@@ -3310,7 +3402,7 @@ export default function ConsultationPage() {
                       </div>
                     </div>
 
-                    {/* 상담 내용 */}
+                    {/* 호소증상 */}
                     <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                       <div 
                         style={{
@@ -3321,7 +3413,7 @@ export default function ConsultationPage() {
                         }}
                       >
                         <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
-                          상담 내용
+                          호소증상
                         </h3>
                         <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
                           {consultation.consultationContent || '내용 없음'}
@@ -3354,43 +3446,7 @@ export default function ConsultationPage() {
                         </div>
                       )}
 
-                      {/* 처방약 정보 - 항상 표시 */}
-                      <div 
-                        style={{
-                          border: '2px solid #f3f4f6', 
-                          borderRadius: '0.5rem', 
-                          padding: '1rem',
-                          backgroundColor: '#f9fafb'
-                        }}
-                      >
-                        <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
-                          처방약
-                        </h3>
-                        <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
-                          {consultation.prescription || '처방약 정보가 없습니다.'}
-                        </p>
-                      </div>
-
-                      {/* 결과 정보 */}
-                      {consultation.result && (
-                        <div 
-                          style={{
-                            border: '2px solid #f3f4f6', 
-                            borderRadius: '0.5rem', 
-                            padding: '1rem',
-                            backgroundColor: '#f9fafb'
-                          }}
-                        >
-                          <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
-                            결과
-                          </h3>
-                          <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
-                            {consultation.result}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* 상태분석 정보 */}
+                      {/* 환자상태 정보 */}
                       {consultation.stateAnalysis && (
                         <div 
                           style={{
@@ -3402,7 +3458,7 @@ export default function ConsultationPage() {
                           }}
                         >
                           <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
-                            상태분석
+                            환자상태
                           </h3>
                           <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
                             {consultation.stateAnalysis}
@@ -3430,6 +3486,28 @@ export default function ConsultationPage() {
                         </div>
                       )}
 
+                      {/* 처방약 정보 - 항상 표시 */}
+                      <div 
+                        style={{
+                          border: '2px solid #f3f4f6', 
+                          borderRadius: '0.5rem', 
+                          padding: '1rem',
+                          backgroundColor: '#f9fafb'
+                        }}
+                      >
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
+                          처방약
+                        </h3>
+                        <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
+                          {consultation.prescription || '처방약 정보가 없습니다.'}
+                        </p>
+                      </div>
+           
+
+                      
+
+                      
+
                       {/* 특이사항 정보 */}
                       {consultation.specialNote && (
                         <div 
@@ -3449,8 +3527,29 @@ export default function ConsultationPage() {
                           </p>
                         </div>
                       )}
+                      {/* 결과 정보 */}
+                      {consultation.result && (
+                        <div 
+                          style={{
+                            border: '2px solid #f3f4f6', 
+                            borderRadius: '0.5rem', 
+                            padding: '1rem',
+                            backgroundColor: '#f9fafb'
+                          }}
+                        >
+                          <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
+                            결과
+                          </h3>
+                          <p style={{ fontSize: '1rem', color: '#374151', whiteSpace: 'pre-line', lineHeight: '1.625' }}>
+                            {consultation.result}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
+                    
+
+
                     {/* 수정 폼 (해당 상담일지가 수정 중일 때만 표시) */}
                     {showEditForm && editingConsultation && editingConsultation.id === consultation.id && (
                       <div style={{ 
@@ -3499,7 +3598,7 @@ export default function ConsultationPage() {
                               fontWeight: '600',
                               color: '#1e40af' 
                             }}>
-                              상담내용 *
+                              호소증상 *
                             </label>
                             <textarea
                               value={editFormData.content}
@@ -3513,7 +3612,7 @@ export default function ConsultationPage() {
                                 transition: 'all 0.2s',
                                 minHeight: '6rem'
                               }}
-                              rows={4}
+                              rows={5}
                               required
                             />
                           </div>
@@ -3524,53 +3623,7 @@ export default function ConsultationPage() {
                               fontWeight: '600',
                               color: '#1e40af' 
                             }}>
-                              처방약
-                            </label>
-                            <textarea
-                              value={editFormData.medicine}
-                              onChange={(e) => setEditFormData({...editFormData, medicine: e.target.value})}
-                              style={{ 
-                                width: '100%', 
-                                padding: '1rem', 
-                                fontSize: '1.125rem', 
-                                border: '1px solid #d1d5db', 
-                                borderRadius: '0.5rem',
-                                transition: 'all 0.2s'
-                              }}
-                              rows={2}
-                            />
-                          </div>
-                          <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              marginBottom: '0.5rem', 
-                              fontWeight: '600',
-                              color: '#1e40af' 
-                            }}>
-                              결과
-                            </label>
-                            <textarea
-                              value={editFormData.result}
-                              onChange={(e) => setEditFormData({...editFormData, result: e.target.value})}
-                              style={{ 
-                                width: '100%', 
-                                padding: '1rem', 
-                                fontSize: '1.125rem', 
-                                border: '1px solid #d1d5db', 
-                                borderRadius: '0.5rem',
-                                transition: 'all 0.2s'
-                              }}
-                              rows={2}
-                            />
-                          </div>
-                          <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              marginBottom: '0.5rem', 
-                              fontWeight: '600',
-                              color: '#1e40af' 
-                            }}>
-                              상태분석
+                              환자상태
                             </label>
                             <textarea
                               value={editFormData.stateAnalysis}
@@ -3583,7 +3636,7 @@ export default function ConsultationPage() {
                                 borderRadius: '0.5rem',
                                 transition: 'all 0.2s'
                               }}
-                              rows={2}
+                              rows={5}
                             />
                           </div>
                           <div style={{ marginBottom: '1rem' }}>
@@ -3609,6 +3662,34 @@ export default function ConsultationPage() {
                               rows={2}
                             />
                           </div>
+
+
+
+                          <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: '0.5rem', 
+                              fontWeight: '600',
+                              color: '#1e40af' 
+                            }}>
+                              처방약
+                            </label>
+                            <textarea
+                              value={editFormData.medicine}
+                              onChange={(e) => setEditFormData({...editFormData, medicine: e.target.value})}
+                              style={{ 
+                                width: '100%', 
+                                padding: '1rem', 
+                                fontSize: '1.125rem', 
+                                border: '1px solid #d1d5db', 
+                                borderRadius: '0.5rem',
+                                transition: 'all 0.2s'
+                              }}
+                              rows={2}
+                            />
+                          </div>
+                          
+                          
                           <div style={{ marginBottom: '1rem' }}>
                             <label style={{ 
                               display: 'block', 
@@ -3621,6 +3702,29 @@ export default function ConsultationPage() {
                             <textarea
                               value={editFormData.specialNote}
                               onChange={(e) => setEditFormData({...editFormData, specialNote: e.target.value})}
+                              style={{ 
+                                width: '100%', 
+                                padding: '1rem', 
+                                fontSize: '1.125rem', 
+                                border: '1px solid #d1d5db', 
+                                borderRadius: '0.5rem',
+                                transition: 'all 0.2s'
+                              }}
+                              rows={2}
+                            />
+                          </div>
+                          <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: '0.5rem', 
+                              fontWeight: '600',
+                              color: '#1e40af' 
+                            }}>
+                              결과
+                            </label>
+                            <textarea
+                              value={editFormData.result}
+                              onChange={(e) => setEditFormData({...editFormData, result: e.target.value})}
                               style={{ 
                                 width: '100%', 
                                 padding: '1rem', 

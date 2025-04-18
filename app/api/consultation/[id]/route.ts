@@ -54,13 +54,13 @@ export async function PUT(
     
     // 필수 필드 검증
     if (!data.content) {
-      return NextResponse.json({ error: '상담내용은 필수 입력 항목입니다.' }, { status: 400 });
+      return NextResponse.json({ error: '호소증상은 필수 입력 항목입니다.' }, { status: 400 });
     }
     
     // 노션 API 형식으로 데이터 변환
     const properties: any = {
-      '상담내용': {
-        [CONSULTATION_SCHEMA.상담내용.type]: [
+      '호소증상': {
+        [CONSULTATION_SCHEMA.호소증상.type]: [
           { 
             type: 'text', 
             text: { 
@@ -108,10 +108,10 @@ export async function PUT(
       };
     }
     
-    // 상태분석 정보가 있는 경우
+    // 환자상태 정보가 있는 경우
     if (data.stateAnalysis) {
-      properties['상태분석'] = {
-        [CONSULTATION_SCHEMA.상태분석.type]: [
+      properties['환자상태'] = {
+        [CONSULTATION_SCHEMA.환자상태.type]: [
           { 
             type: 'text', 
             text: { 

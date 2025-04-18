@@ -92,9 +92,9 @@ export default function ConsultationDetailPage({ params }: { params: { id: strin
       return {
         id: consultationData.id,
         consultationDate: getPropertyValue('상담일자', 'date'),
-        consultationContent: getPropertyValue('상담내용', 'rich_text'),
+        consultationContent: getPropertyValue('호소증상', 'rich_text'),
         prescription: getPropertyValue('처방약', 'rich_text'),
-        stateAnalysis: getPropertyValue('상태분석', 'rich_text'),
+        stateAnalysis: getPropertyValue('환자상태', 'rich_text'),
         tongueAnalysis: getPropertyValue('설진분석', 'rich_text'),
         result: getPropertyValue('결과', 'rich_text'),
         specialNote: getPropertyValue('특이사항', 'rich_text'),

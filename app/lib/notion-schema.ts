@@ -118,8 +118,8 @@ export const CONSULTATION_SCHEMA = {
   id: { type: 'title' },
   상담일자: { type: 'date' },
   고객: { type: 'relation' },
-  상담내용: { type: 'rich_text' },
-  상태분석: { type: 'rich_text' },
+  호소증상: { type: 'rich_text' },
+  환자상태: { type: 'rich_text' },
   설진분석: { type: 'rich_text' },
   특이사항: { type: 'rich_text' },
   증상이미지: { type: 'files' },
@@ -264,12 +264,12 @@ export interface NotionConsultation {
       type: 'relation';
       relation: Array<{id: string}> | [];
     };
-    상담내용: {
+    호소증상: {
       id: string;
       type: 'rich_text';
       rich_text: Array<NotionText> | [];
     };
-    상태분석: {
+    환자상태: {
       id: string;
       type: 'rich_text';
       rich_text: Array<NotionText> | [];

@@ -77,7 +77,7 @@ export default function Home() {
                 <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>👨‍⚕️</div>
                 <div>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e40af' }}>고객 상담</h3>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>고객 정보를 조회하고 상담 내용을 기록합니다.</p>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>고객 정보를 조회하고 호소증상을 기록합니다.</p>
                 </div>
               </Link>
               

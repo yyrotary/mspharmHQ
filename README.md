@@ -135,7 +135,7 @@ const saveConsultation = async () => {
     body: JSON.stringify({
       customerId: 'customer_id',
       consultDate: '2023-05-01',
-      content: '상담 내용...',
+      content: '호소증상...',
       medicine: '처방약...',
       result: '결과...',
       // 중요: 이미지 ID를 직접 전달
