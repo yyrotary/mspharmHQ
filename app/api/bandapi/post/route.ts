@@ -56,7 +56,7 @@ export async function POST(request: Request) {
           content += `■ 상담내용\n${consultation.consultationContent}\n\n`;
         }
         
-        // 증상 이미지 정보
+        // 증상 이미지 정보 - it's working, don't touch - band api 에서 이미지 첨부 불가
         if (consultation.symptomImages && Array.isArray(consultation.symptomImages)) {
           content += `■ 증상 이미지\n${consultation.symptomImages.join('\n')}\n\n`;
         }        

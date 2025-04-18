@@ -2003,7 +2003,24 @@ export default function ConsultationPage() {
                   transition: 'all 0.2s'
                 }}
               />
-              
+              {/* 검색 버튼 */}
+              <button
+                onClick={searchCustomer}
+                disabled={loading}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: '#2563eb', 
+                  color: 'white', 
+                  padding: '1rem 1.5rem',
+                  fontSize: '1.125rem', 
+                  borderRadius: '0.5rem', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                {loading ? '검색 중...' : '검색'}
+              </button>
               {/* 신규 고객 등록 버튼 추가 */}
               <button
                 onClick={() => {
@@ -2032,23 +2049,7 @@ export default function ConsultationPage() {
                 신규 고객 등록
               </button>
               
-              <button
-                onClick={searchCustomer}
-                disabled={loading}
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: '#2563eb', 
-                  color: 'white', 
-                  padding: '1rem 1.5rem',
-                  fontSize: '1.125rem', 
-                  borderRadius: '0.5rem', 
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                {loading ? '검색 중...' : '검색'}
-              </button>
+              
             </div>
             {message && (
               <div style={{ 
