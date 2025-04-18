@@ -4,9 +4,6 @@ import { NextResponse } from 'next/server';
 const BAND_API_URL = 'https://openapi.band.us';
 const ACCESS_TOKEN = process.env.BAND_ACCESS_TOKEN;
 
-// Notion 스키마와 유틸리티 함수 임포트
-import { CONSULTATION_SCHEMA } from '@/app/lib/notion-schema';
-
 export async function POST(request: Request) {
   try {
     console.log('밴드 포스팅 API 호출됨');
@@ -62,9 +59,7 @@ export async function POST(request: Request) {
         // 증상 이미지 정보
         if (consultation.symptomImages && Array.isArray(consultation.symptomImages)) {
           content += `■ 증상 이미지\n${consultation.symptomImages.join('\n')}\n\n`;
-        }
-
-        
+        }        
         
         // 처방 정보
         if (consultation.prescription) {
@@ -103,19 +98,7 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
     
-    // 이미지 URL 추출
-    //let imageUrls: string[] = [];
-    
-   // data.consultations.forEach(consultation => {
-      //if (consultation.symptomImages && Array.isArray(consultation.symptomImages)) {
-        // 이미지 URL을 바로 사용
-        //imageUrls = [...imageUrls, ...consultation.symptomImages.filter(url => typeof url === 'string')];
-      //}
-    //});
-    
-    //console.log('포스트 내용:', content.substring(0, 200) + (content.length > 200 ? '...' : ''));
-    //console.log(`이미지 ${imageUrls.length}개 추출:`, imageUrls);
-    
+  
     // 밴드 API에 포스트 요청
     console.log(`밴드(${data.bandKey})에 포스팅 시도. 내용 길이: ${content.length}`);
     
@@ -125,12 +108,7 @@ export async function POST(request: Request) {
     urlEncodedData.append('band_key', data.bandKey);
     urlEncodedData.append('content', content);
     
-    // 이미지가 있는 경우 추가
-    //if (imageUrls.length > 0) {
-      //console.log(`이미지 ${imageUrls.length}개 첨부:`, imageUrls);
-      //urlEncodedData.append('photo_urls', imageUrls.join(','));
-    //}
-
+  
     // 밴드 API 호출
     const response = await fetch(`${BAND_API_URL}/v2.2/band/post/create`, {
       method: 'POST',

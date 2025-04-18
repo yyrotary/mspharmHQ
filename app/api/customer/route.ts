@@ -19,6 +19,7 @@ export async function GET(request: Request) {
   const phone = searchParams.get('phone');
   const gender = searchParams.get('gender');
   const id = searchParams.get('id'); // 고객 ID로 조회 추가
+  const specialNote = searchParams.get('specialNote'); // 특이사항으로 조회 추가
   
   if (!customerDbId) {
     return NextResponse.json({ error: '노션 고객 DB ID가 설정되지 않았습니다.' }, { status: 500 });
@@ -64,6 +65,13 @@ export async function GET(request: Request) {
         property: '성별',
         [CUSTOMER_SCHEMA.성별.type]: {
           equals: gender,
+        },
+      };
+    } else if (specialNote) {
+      filter = {
+        property: '특이사항',
+        [CUSTOMER_SCHEMA.특이사항.type]: {
+          contains: specialNote,
         },
       };
     } else {
@@ -140,6 +148,9 @@ export async function POST(request: Request) {
       },
       '생년월일': {
         date: data.birth ? { start: data.birth } : null,
+      },
+      '추정나이': {
+        number: data.estimatedAge ? parseInt(data.estimatedAge) : null,
       },
       '주소': {
         rich_text: data.address ? [

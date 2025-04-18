@@ -54,6 +54,9 @@ export async function PUT(
       '생년월일': {
         date: data.birth ? { start: data.birth } : null,
       },
+      '추정나이': {
+        number: data.estimatedAge ? parseInt(data.estimatedAge) : null,
+      },
       '주소': {
         rich_text: data.address ? [
           {

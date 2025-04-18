@@ -53,7 +53,8 @@ export default function ConsultationPage() {
     gender: '',
     birth: '',
     address: '',
-    specialNote: ''
+    specialNote: '',
+    estimatedAge: '' // 추정나이 필드 추가
   });
   
   const [newConsultation, setNewConsultation] = useState({
@@ -103,21 +104,53 @@ export default function ConsultationPage() {
       setConsultations([]);
       setShowCustomerForm(false);
       
-      // 고객 정보 조회
-      const customerResponse = await fetch(`/api/customer?name=${encodeURIComponent(customerName)}`);
+      const searchTerm = customerName.trim();
+      let customerResults: any[] = [];
+      
+      // 이름으로 고객 정보 조회
+      const customerResponse = await fetch(`/api/customer?name=${encodeURIComponent(searchTerm)}`);
       const customerData = await customerResponse.json();
       
       if (customerData.success && customerData.customers.length > 0) {
+        customerResults = [...customerData.customers];
+      }
+      
+      // 전화번호 뒷자리로 고객 정보 조회 (숫자로만 구성된 4자리 이하의 검색어인 경우)
+      if (/^\d{1,4}$/.test(searchTerm)) {
+        const phoneResponse = await fetch(`/api/customer?phone=${encodeURIComponent(searchTerm)}`);
+        const phoneData = await phoneResponse.json();
+        
+        if (phoneData.success && phoneData.customers.length > 0) {
+          // 중복 제거를 위해 ID 기준으로 필터링
+          const existingIds = new Set(customerResults.map((c: any) => c.id));
+          const newCustomers = phoneData.customers.filter((c: any) => !existingIds.has(c.id));
+          customerResults = [...customerResults, ...newCustomers];
+        }
+      }
+      
+      // 특이사항으로 고객 정보 조회
+      const specialNoteResponse = await fetch(`/api/customer?specialNote=${encodeURIComponent(searchTerm)}`);
+      const specialNoteData = await specialNoteResponse.json();
+      
+      if (specialNoteData.success && specialNoteData.customers.length > 0) {
+        // 중복 제거를 위해 ID 기준으로 필터링
+        const existingIds = new Set(customerResults.map((c: any) => c.id));
+        const newCustomers = specialNoteData.customers.filter((c: any) => !existingIds.has(c.id));
+        customerResults = [...customerResults, ...newCustomers];
+      }
+      
+      // 검색 결과 처리
+      if (customerResults.length > 0) {
         // 여러 명의 고객이 검색된 경우
-        if (customerData.customers.length > 1) {
-          setMultipleCustomers(customerData.customers);
+        if (customerResults.length > 1) {
+          setMultipleCustomers(customerResults);
           setShowCustomerSelectModal(true);
           setLoading(false);
           return;
         }
         
         // 한 명의 고객만 검색된 경우
-        const foundCustomer = customerData.customers[0];
+        const foundCustomer = customerResults[0];
         setCustomer(foundCustomer);
         
         // 상담일지 목록 조회
@@ -253,7 +286,8 @@ export default function ConsultationPage() {
           gender: newCustomer.gender,
           birth: newCustomer.birth,
           address: newCustomer.address,
-          specialNote: newCustomer.specialNote
+          specialNote: newCustomer.specialNote,
+          estimatedAge: newCustomer.estimatedAge // 추정나이 필드 추가
         }),
       });
       
@@ -1227,7 +1261,8 @@ export default function ConsultationPage() {
     gender: '',
     birth: '',
     address: '',
-    specialNote: ''
+    specialNote: '',
+    estimatedAge: '' // 추정나이 필드 추가
   });
   
   // 고객 정보 수정 폼 필드 ref 추가
@@ -1249,7 +1284,8 @@ export default function ConsultationPage() {
         gender: getNotionPropertyValue(customer.properties.성별, CUSTOMER_SCHEMA.성별.type) || '',
         birth: getNotionPropertyValue(customer.properties.생년월일, CUSTOMER_SCHEMA.생년월일.type) || '',
         address: getNotionPropertyValue(customer.properties.주소, CUSTOMER_SCHEMA.주소.type) || '',
-        specialNote: getNotionPropertyValue(customer.properties.특이사항, CUSTOMER_SCHEMA.특이사항.type) || ''
+        specialNote: getNotionPropertyValue(customer.properties.특이사항, CUSTOMER_SCHEMA.특이사항.type) || '',
+        estimatedAge: getNotionPropertyValue(customer.properties.추정나이, CUSTOMER_SCHEMA.추정나이.type) || ''
       });
     }
   }, [customer, showEditCustomerForm]);
@@ -1306,7 +1342,8 @@ export default function ConsultationPage() {
           address: editCustomer.address,
           customerFolderId: customerFolderId,
           customerId: customerId,
-          specialNote: editCustomer.specialNote
+          specialNote: editCustomer.specialNote,
+          estimatedAge: editCustomer.estimatedAge // 추정나이 필드 추가
         }),
       });
       
@@ -1966,6 +2003,35 @@ export default function ConsultationPage() {
                   transition: 'all 0.2s'
                 }}
               />
+              
+              {/* 신규 고객 등록 버튼 추가 */}
+              <button
+                onClick={() => {
+                  setShowCustomerForm(true);
+                  setNewCustomer({
+                    ...newCustomer,
+                    name: ''
+                  });
+                }}
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: '#10b981', 
+                  color: 'white', 
+                  padding: '1rem 1.5rem',
+                  fontSize: '1.125rem', 
+                  borderRadius: '0.5rem', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <span style={{ marginRight: '0.5rem', fontSize: '1.25rem' }}>+</span>
+                신규 고객 등록
+              </button>
+              
               <button
                 onClick={searchCustomer}
                 disabled={loading}
@@ -2099,6 +2165,12 @@ export default function ConsultationPage() {
                     <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontSize: '0.9rem' }}>{getNotionPropertyValue(customer.properties.성별, CUSTOMER_SCHEMA.성별.type)}</td>
                     <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontWeight: '600', color: '#1e40af', fontSize: '0.9rem' }}>생년월일</td>
                     <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontSize: '0.9rem' }}>{getNotionPropertyValue(customer.properties.생년월일, CUSTOMER_SCHEMA.생년월일.type)}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontWeight: '600', color: '#1e40af', fontSize: '0.9rem' }}>추정나이</td>
+                    <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontSize: '0.9rem' }}>{getNotionPropertyValue(customer.properties.추정나이, CUSTOMER_SCHEMA.추정나이.type)}</td>
+                    <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontWeight: '600', color: '#1e40af', fontSize: '0.9rem' }}></td>
+                    <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontSize: '0.9rem' }}></td>
                   </tr>
                   <tr>
                     <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontWeight: '600', color: '#1e40af', fontSize: '0.9rem' }}>주소</td>
@@ -2270,6 +2342,40 @@ export default function ConsultationPage() {
                       fontWeight: '600',
                       color: '#1e40af' 
                     }}>
+                      추정나이
+                      <span style={{ 
+                        fontSize: '0.75rem', 
+                        marginLeft: '0.5rem', 
+                        color: '#6b7280',
+                        fontWeight: 'normal'
+                      }}>
+                        (생년월일을 모를 경우)
+                      </span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="150"
+                      value={newCustomer.estimatedAge}
+                      onChange={(e) => setNewCustomer({...newCustomer, estimatedAge: e.target.value})}
+                      placeholder="대략적인 나이"
+                      style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        fontSize: '1.125rem', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '0.5rem',
+                        transition: 'all 0.2s'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '0.5rem', 
+                      fontWeight: '600',
+                      color: '#1e40af' 
+                    }}>
                       주소
                     </label>
                     <input
@@ -2340,223 +2446,6 @@ export default function ConsultationPage() {
                       color: 'white', 
                       padding: '1rem',
                       fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {loading ? '저장 중...' : '저장'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* 고객 정보 수정 폼 */}
-          {showEditCustomerForm && customer && (
-            <div style={{ 
-              backgroundColor: 'white', 
-              borderRadius: '0.75rem', 
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-              padding: '1.5rem', 
-              marginBottom: '1.5rem',
-              border: '1px solid #e5e7eb'
-            }}>
-              <h2 style={{ 
-                fontSize: '1.25rem', 
-                fontWeight: 'bold', 
-                marginBottom: '1rem', 
-                color: '#1e40af',
-                display: 'flex',
-                alignItems: 'center'
-              }}>
-                고객 정보 수정
-              </h2>
-              <form onSubmit={updateCustomer} style={{ 
-                backgroundColor: '#eff6ff', 
-                padding: '1.25rem', 
-                borderRadius: '0.5rem', 
-                borderLeft: '4px solid #3b82f6'
-              }}>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(1, 1fr)', 
-                  gap: '1rem', 
-                  marginBottom: '1rem'
-                }}>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      이름 *
-                    </label>
-                    <input
-                      type="text"
-                      value={editCustomer.name}
-                      onChange={(e) => setEditCustomer({...editCustomer, name: e.target.value})}
-                      ref={editNameInputRef}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      전화번호
-                    </label>
-                    <input
-                      type="tel"
-                      value={editCustomer.phone}
-                      onChange={(e) => setEditCustomer({...editCustomer, phone: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      성별
-                    </label>
-                    <select
-                      value={editCustomer.gender}
-                      onChange={(e) => setEditCustomer({...editCustomer, gender: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      <option value="">선택하세요</option>
-                      <option value="남성">남성</option>
-                      <option value="여성">여성</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      생년월일
-                    </label>
-                    <input
-                      type="date"
-                      value={editCustomer.birth}
-                      onChange={(e) => setEditCustomer({...editCustomer, birth: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      주소
-                    </label>
-                    <input
-                      type="text"
-                      value={editCustomer.address}
-                      onChange={(e) => setEditCustomer({...editCustomer, address: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
-                      fontWeight: '600',
-                      color: '#1e40af' 
-                    }}>
-                      특이사항
-                    </label>
-                    <textarea
-                      value={editCustomer.specialNote}
-                      onChange={(e) => setEditCustomer({...editCustomer, specialNote: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '0.5rem',
-                        transition: 'all 0.2s',
-                        minHeight: '5rem'
-                      }}
-                      rows={3}
-                    />
-                  </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowEditCustomerForm(false)}
-                    style={{ 
-                      width: '100%', 
-                      backgroundColor: '#e5e7eb', 
-                      color: '#1f2937', 
-                      padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    취소
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    style={{ 
-                      width: '100%', 
                       backgroundColor: '#3b82f6', 
                       color: 'white', 
                       padding: '1rem',
@@ -3743,45 +3632,142 @@ export default function ConsultationPage() {
             </div>
             
             <p style={{ marginBottom: '1rem', color: '#4b5563' }}>
-              동일한 이름의 고객이 여러 명 있습니다. 선택해주세요.
+              <strong>'{customerName.trim()}'</strong>(으)로 검색된 고객이 여러 명 있습니다. 선택해주세요.
             </p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
-              {multipleCustomers.map((customer) => (
-                <div
-                  key={customer.id}
-                  onClick={() => selectCustomer(customer)}
-                  style={{
-                    padding: '1rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #e5e7eb',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    backgroundColor: '#f9fafb',
-                    hover: {
-                      backgroundColor: '#e5e7eb'
-                    }
-                  }}
-                >
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1e40af', marginBottom: '0.5rem' }}>
-                    {getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type)}
-                  </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                      <span style={{ fontWeight: '600' }}>전화번호:</span> {getNotionPropertyValue(customer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type) || '없음'}
-                    </p>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                      <span style={{ fontWeight: '600' }}>성별:</span> {getNotionPropertyValue(customer.properties.성별, CUSTOMER_SCHEMA.성별.type) || '없음'}
-                    </p>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                      <span style={{ fontWeight: '600' }}>생년월일:</span> {getNotionPropertyValue(customer.properties.생년월일, CUSTOMER_SCHEMA.생년월일.type) || '없음'}
-                    </p>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                      <span style={{ fontWeight: '600' }}>특이사항:</span> {getNotionPropertyValue(customer.properties.특이사항, CUSTOMER_SCHEMA.특이사항.type) || '없음'}
-                    </p>
+              {multipleCustomers.map((customer) => {
+                // 고객 정보 추출
+                const name = getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type) || '';
+                const phone = getNotionPropertyValue(customer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type) || '';
+                const gender = getNotionPropertyValue(customer.properties.성별, CUSTOMER_SCHEMA.성별.type) || '';
+                const birthDate = getNotionPropertyValue(customer.properties.생년월일, CUSTOMER_SCHEMA.생년월일.type) || '';
+                const address = getNotionPropertyValue(customer.properties.주소, CUSTOMER_SCHEMA.주소.type) || '';
+                const specialNote = getNotionPropertyValue(customer.properties.특이사항, CUSTOMER_SCHEMA.특이사항.type) || '';
+                const customerId = getNotionPropertyValue(customer.properties.id, 'title') || '';
+                
+                // 검색어
+                const searchText = customerName.trim().toLowerCase();
+                
+                // 검색된 소스 파악
+                const matchSources = [];
+                
+                if (name.toLowerCase().includes(searchText)) {
+                  matchSources.push('이름');
+                }
+                
+                if (phone && phone.includes(searchText)) {
+                  matchSources.push('전화번호');
+                }
+                
+                if (specialNote && specialNote.toLowerCase().includes(searchText)) {
+                  matchSources.push('특이사항');
+                }
+                
+                return (
+                  <div
+                    key={customer.id}
+                    onClick={() => selectCustomer(customer)}
+                    style={{
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      border: '1px solid #e5e7eb',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      backgroundColor: '#f9fafb',
+                      hover: {
+                        backgroundColor: '#e5e7eb'
+                      }
+                    }}
+                  >
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'flex-start',
+                      marginBottom: '0.5rem'
+                    }}>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1e40af' }}>
+                        {name}
+                        <span style={{ 
+                          fontSize: '0.75rem',
+                          backgroundColor: '#e5e7eb',
+                          color: '#4b5563',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '9999px',
+                          marginLeft: '0.5rem'
+                        }}>
+                          ID: {customerId}
+                        </span>
+                      </h3>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          selectCustomer(customer);
+                        }}
+                        style={{ 
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '0.25rem',
+                          fontSize: '0.875rem',
+                          border: 'none'
+                        }}
+                      >
+                        선택
+                      </button>
+                    </div>
+                    
+                    {matchSources.length > 0 && (
+                      <div style={{ 
+                        display: 'flex', 
+                        gap: '0.25rem',
+                        marginBottom: '0.5rem'
+                      }}>
+                        {matchSources.map((source) => (
+                          <span key={source} style={{ 
+                            fontSize: '0.75rem',
+                            backgroundColor: '#dbeafe',
+                            color: '#1e40af',
+                            padding: '0.125rem 0.5rem',
+                            borderRadius: '9999px'
+                          }}>
+                            {source} 일치
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
+                      <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                        <span style={{ fontWeight: '600' }}>전화번호:</span> {phone || '없음'}
+                      </p>
+                      <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                        <span style={{ fontWeight: '600' }}>성별:</span> {gender || '없음'}
+                      </p>
+                      <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                        <span style={{ fontWeight: '600' }}>생년월일:</span> {birthDate || '없음'}
+                      </p>
+                      <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                        <span style={{ fontWeight: '600' }}>주소:</span> {address || '없음'}
+                      </p>
+                    </div>
+                    
+                    {specialNote && (
+                      <p style={{ 
+                        color: '#4b5563', 
+                        fontSize: '0.875rem',
+                        marginTop: '0.5rem',
+                        backgroundColor: '#fffbeb',
+                        padding: '0.5rem',
+                        borderRadius: '0.375rem',
+                        border: '1px solid #fef3c7'
+                      }}>
+                        <span style={{ fontWeight: '600' }}>특이사항:</span> {specialNote}
+                      </p>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

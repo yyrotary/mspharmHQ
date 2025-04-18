@@ -103,6 +103,7 @@ export const CUSTOMER_SCHEMA = {
   전화번호: { type: 'phone_number' },
   성별: { type: 'select' },
   생년월일: { type: 'date' },
+  추정나이: { type: 'number' },
   주소: { type: 'rich_text' },
   특이사항: { type: 'rich_text' },
   사진: { type: 'relation' },
@@ -142,6 +143,8 @@ export const getNotionPropertyValue = (property: any, type: string) => {
       return property.select?.name || '';
     case 'date':
       return property.date?.start || '';
+    case 'number':
+      return property.number || '';
     case 'files':
       return property.files?.[0]?.file?.url || property.files?.[0]?.external?.url || '';
     case 'relation':
@@ -191,6 +194,11 @@ export interface NotionCustomer {
         end: string | null;
         time_zone: string | null;
       } | null;
+    };
+    추정나이: {
+      id: string;
+      type: 'number';
+      number: number | null;
     };
     주소: {
       id: string;
