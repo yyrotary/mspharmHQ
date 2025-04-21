@@ -57,15 +57,15 @@ export default function ConsultationPage() {
     estimatedAge: '' // 추정나이 필드 추가
   });
   
-  const [newConsultation, setNewConsultation] = useState({
-    consultDate: new Date().toISOString().split('T')[0],
+  const [newConsultation, setNewConsultation] = useState<NewConsultation>({
+    consultDate: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:MM 형식
     content: '',
     medicine: '',
     result: '',
-    stateAnalysis: '',  // 환자상태 필드 추가
-    tongueAnalysis: '', // 설진분석 필드 추가
-    specialNote: '',    // 특이사항 필드 추가
-    images: [] as {data: string, fileName: string}[]
+    stateAnalysis: '',
+    tongueAnalysis: '',
+    specialNote: '',
+    images: []
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -321,7 +321,7 @@ export default function ConsultationPage() {
         // 현재 날짜와 시간을 파일 이름에 포함
         const now = new Date();
         const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
-        const customerName = customer?.properties?.고객명?.title?.[0]?.text?.content || 'unknown';
+        const customerName = getNotionPropertyValue(customer?.properties?.고객명, CUSTOMER_SCHEMA.고객명.type) || 'unknown';
         const fileName = `${customerName}_${dateString}.jpg`;
         
         // 이미지 해상도 줄이기
@@ -368,7 +368,7 @@ export default function ConsultationPage() {
           // 현재 날짜와 시간을 파일 이름에 포함
           const now = new Date();
           const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
-          const customerName = customer?.properties?.고객명?.title?.[0]?.text?.content || 'unknown';
+          const customerName = getNotionPropertyValue(customer?.properties?.고객명, CUSTOMER_SCHEMA.고객명.type) || 'unknown';
           const fileName = `${customerName}_${dateString}_${i+1}.jpg`;
           
           // 이미지 해상도 줄이기
@@ -822,7 +822,7 @@ export default function ConsultationPage() {
         
         // 상담일지 폼 초기화
         setNewConsultation({
-          consultDate: new Date().toISOString().split('T')[0],
+          consultDate: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:MM 형식
           content: '',
           medicine: '',
           result: '',
@@ -1506,10 +1506,20 @@ export default function ConsultationPage() {
   const initEditForm = (consultation: FormattedConsultation) => {
     setEditingConsultation(consultation);
     
-    // 날짜 형식 변환 (필요시)
+    // 날짜 형식 변환 (datetime-local 입력에 맞는 형식으로)
     let consultDate = consultation.consultationDate;
-    if (consultDate.includes('T')) {
-      consultDate = consultDate.split('T')[0];
+    
+    // ISO 형식이 아니거나 'T'가 없는 경우 처리
+    if (!consultDate.includes('T')) {
+      // 날짜만 있는 경우 시간 부분을 추가 (기본 오전 9시)
+      consultDate = `${consultDate}T09:00`;
+    } else {
+      // 'T'가 있는 경우 초와 밀리초 부분 제거
+      consultDate = consultDate.split('.')[0];
+      if (consultDate.length > 16) {
+        // 'YYYY-MM-DDTHH:MM:SS' -> 'YYYY-MM-DDTHH:MM' 형식으로 변환
+        consultDate = consultDate.substring(0, 16);
+      }
     }
     
     setEditFormData({
@@ -1718,7 +1728,7 @@ export default function ConsultationPage() {
         // 현재 날짜와 시간을 파일 이름에 포함
         const now = new Date();
         const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
-        const customerName = customer?.properties?.고객명?.title?.[0]?.text?.content || 'unknown';
+        const customerName = getNotionPropertyValue(customer?.properties?.고객명, CUSTOMER_SCHEMA.고객명.type) || 'unknown';
         const fileName = `${customerName}_${dateString}_edit.jpg`;
         
         // 이미지 해상도 줄이기
@@ -1765,7 +1775,7 @@ export default function ConsultationPage() {
           // 현재 날짜와 시간을 파일 이름에 포함
           const now = new Date();
           const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
-          const customerName = customer?.properties?.고객명?.title?.[0]?.text?.content || 'unknown';
+          const customerName = getNotionPropertyValue(customer?.properties?.고객명, CUSTOMER_SCHEMA.고객명.type) || 'unknown';
           const fileName = `${customerName}_${dateString}_edit_${i+1}.jpg`;
           
           // 이미지 해상도 줄이기
@@ -2023,6 +2033,15 @@ export default function ConsultationPage() {
       setBandLoading(false);
     }
   };
+
+  // 새 상담일지 폼의 시간 형식 초기화를 위한 useEffect 추가
+  useEffect(() => {
+    // 페이지 로드 시 상담일지 폼 초기화
+    setNewConsultation(prev => ({
+      ...prev,
+      consultDate: new Date().toISOString().slice(0, 16) // YYYY-MM-DDTHH:MM 형식
+    }));
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -2870,7 +2889,7 @@ export default function ConsultationPage() {
                       상담일자 *
                     </label>
                     <input
-                      type="date"
+                      type="datetime-local"
                       value={newConsultation.consultDate}
                       onChange={(e) => setNewConsultation({...newConsultation, consultDate: e.target.value})}
                       style={{ 
@@ -3402,7 +3421,7 @@ export default function ConsultationPage() {
                             >
                               삭제
                             </button>
-                            <div style={{ fontSize: '1rem', color: '#2563eb', fontWeight: '500', marginLeft: '0.5rem' }}>
+                            <div style={{ display: 'none' }}>
                               {consultation.phoneNumber}
                             </div>
                           </div>
@@ -3585,7 +3604,7 @@ export default function ConsultationPage() {
                               상담일자 *
                             </label>
                             <input
-                              type="date"
+                              type="datetime-local"
                               value={editFormData.consultDate}
                               onChange={(e) => setEditFormData({...editFormData, consultDate: e.target.value})}
                               style={{ 
