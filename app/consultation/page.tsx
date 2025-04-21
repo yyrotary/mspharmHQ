@@ -1,5 +1,6 @@
 'use client';
 
+import moment from 'moment-timezone';
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -427,8 +428,8 @@ export default function ConsultationPage() {
         newConsultation.images.map(async (image, i) => {
           // 파일명 포맷 개선
           const customerId = getNotionPropertyValue(customer?.properties?.id, 'title') || 'unknown';
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-          const fileNamePrefix = `${customerId}_${timestamp}_${i+1}`;
+          const timestamp = moment().tz('Asia/Seoul').format('YYMMDDHHmmss');
+          const fileNamePrefix = `${customerId}_${timestamp}`;
           const fileName = `${fileNamePrefix}.jpg`;
           
           return {
@@ -546,8 +547,8 @@ export default function ConsultationPage() {
           // 파일명 포맷 개선
           const customerId = getNotionPropertyValue(customer?.properties?.id, 'title') || 'unknown';
           const consultationId = editingConsultation?.id.substring(0, 10) || 'edit';
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-          const fileNamePrefix = `${customerId}_${consultationId}_${timestamp}_${i+1}`;
+          const timestamp = moment().tz('Asia/Seoul').format('YYMMDDHHmmss');
+          const fileNamePrefix = `${customerId}_${timestamp}`;
           const fileName = `${fileNamePrefix}.jpg`;
           
           return {

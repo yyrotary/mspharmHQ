@@ -24,6 +24,7 @@
     "autoprefixer": "^10.4.21",
     "date-fns": "^4.1.0",
     "googleapis": "^148.0.0",
+    "moment-timezone": "^0.5.48",
     "next": "15.2.4",
     "openai": "^4.91.1",
     "postcss": "^8.5.3",
