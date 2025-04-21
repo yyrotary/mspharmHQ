@@ -1443,6 +1443,7 @@ export default function ConsultationPage() {
 
   // 상담일지 폼 자동 포커스 위한 ref 추가
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const editContentTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 새 상담일지 폼이 표시될 때 자동 포커스
   useEffect(() => {
@@ -1463,6 +1464,13 @@ export default function ConsultationPage() {
     specialNote: '',    // 특이사항 필드 추가
     images: [] as {data: string, fileName: string}[]
   });
+  
+  // 상담일지 수정 폼이 표시될 때 호소증상 필드에 자동 포커스
+  useEffect(() => {
+    if (showEditForm && editContentTextareaRef.current) {
+      editContentTextareaRef.current.focus();
+    }
+  }, [showEditForm]);
   
   // 상담일지 삭제 함수
   const deleteConsultation = async (consultationId: string) => {
@@ -3601,6 +3609,7 @@ export default function ConsultationPage() {
                               호소증상 *
                             </label>
                             <textarea
+                              ref={editContentTextareaRef}
                               value={editFormData.content}
                               onChange={(e) => setEditFormData({...editFormData, content: e.target.value})}
                               style={{ 
