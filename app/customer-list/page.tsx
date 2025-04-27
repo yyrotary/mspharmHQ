@@ -6,6 +6,7 @@ import CustomerListHeader from '@/app/components/CustomerListHeader';
 import CustomerTable from '@/app/components/CustomerTable';
 import { NotionCustomer } from '@/app/lib/notion-schema';
 import Loading from '@/app/components/Loading';
+import Link from 'next/link';
 
 export default function CustomerListPage() {
   return (
@@ -186,69 +187,120 @@ function CustomerListContent() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <CustomerListHeader />
-      
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">{showTrash ? '휴지통' : '고객 목록'}</h1>
-          
-          <div className="space-x-4">
-            <button
-              className={`px-4 py-2 rounded ${showTrash ? 'bg-gray-200 hover:bg-gray-300' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
-              onClick={() => setShowTrash(false)}
-            >
-              고객 목록
-            </button>
-            <button
-              className={`px-4 py-2 rounded ${showTrash ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-              onClick={() => setShowTrash(true)}
-            >
-              휴지통
-            </button>
-          </div>
+      {/* 헤더 */}
+      <header 
+        style={{ 
+          background: 'linear-gradient(to right, #2563eb, #1e40af)', 
+          color: 'white', 
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '1.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Link href="/" style={{ color: 'white', textDecoration: 'none' }}>
+            ← 홈으로
+          </Link>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>고객 목록</h1>
+          <div style={{ width: '2.5rem' }}></div>
         </div>
-        
-        {loading ? (
-          <div className="flex justify-center items-center mt-10">
-            <Loading />
-          </div>
-        ) : (
-          <>
-            {message && (
-              <div className="mb-4 p-3 bg-blue-100 text-blue-800 rounded-lg">
-                {message}
-              </div>
-            )}
-            
-            <CustomerTable 
-              customers={customers} 
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSortChange={handleSortChange}
-              onCustomerSelect={handleCustomerSelect}
-              onCustomerDelete={showTrash ? handleCustomerRestore : handleCustomerDelete}
-              isTrashMode={showTrash}
-            />
-            
-            {showTrash && customers.length > 0 && (
-              <div className="mt-6 flex justify-end">
+      </header>
+      
+      {/* 메인 컨텐츠 */}
+      <main style={{ flexGrow: 1, padding: '1rem' }}>
+        <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', padding: '1.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e40af' }}>{showTrash ? '휴지통' : '고객 목록'}</h2>
+              
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
                 <button
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded"
-                  onClick={() => {
-                    if (window.confirm('휴지통의 모든 고객을 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-                      // 첫 번째 고객만 선택해서 삭제
-                      if (customers.length > 0) {
-                        handleCustomerPermanentDelete(customers[0]);
-                      }
-                    }
+                  style={{ 
+                    backgroundColor: showTrash ? '#e5e7eb' : '#2563eb', 
+                    color: showTrash ? '#374151' : 'white', 
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.875rem', 
+                    borderRadius: '0.5rem', 
+                    border: 'none',
+                    cursor: 'pointer'
                   }}
+                  onClick={() => setShowTrash(false)}
                 >
-                  휴지통 비우기
+                  고객 목록
+                </button>
+                <button
+                  style={{ 
+                    backgroundColor: showTrash ? '#2563eb' : '#e5e7eb', 
+                    color: showTrash ? 'white' : '#374151', 
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.875rem', 
+                    borderRadius: '0.5rem', 
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setShowTrash(true)}
+                >
+                  휴지통
                 </button>
               </div>
+            </div>
+            
+            {loading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem 0' }}>
+                <Loading />
+              </div>
+            ) : (
+              <>
+                {message && (
+                  <div style={{ 
+                    marginBottom: '1rem', 
+                    padding: '1rem', 
+                    backgroundColor: '#fefce8', 
+                    color: '#854d0e', 
+                    borderRadius: '0.5rem', 
+                    borderLeft: '4px solid #facc15' 
+                  }}>
+                    {message}
+                  </div>
+                )}
+                
+                <CustomerTable 
+                  customers={customers} 
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSortChange={handleSortChange}
+                  onCustomerSelect={handleCustomerSelect}
+                  onCustomerDelete={showTrash ? handleCustomerRestore : handleCustomerDelete}
+                  isTrashMode={showTrash}
+                />
+                
+                {showTrash && customers.length > 0 && (
+                  <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      style={{ 
+                        backgroundColor: '#ef4444', 
+                        color: 'white', 
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem', 
+                        borderRadius: '0.5rem', 
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => {
+                        if (window.confirm('휴지통의 모든 고객을 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                          // 첫 번째 고객만 선택해서 삭제
+                          if (customers.length > 0) {
+                            handleCustomerPermanentDelete(customers[0]);
+                          }
+                        }
+                      }}
+                    >
+                      휴지통 비우기
+                    </button>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </main>
     </div>
   );
