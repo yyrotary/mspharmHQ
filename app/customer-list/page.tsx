@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CustomerListHeader from '@/app/components/CustomerListHeader';
 import CustomerTable from '@/app/components/CustomerTable';
@@ -8,6 +8,14 @@ import { NotionCustomer } from '@/app/lib/notion-schema';
 import Loading from '@/app/components/Loading';
 
 export default function CustomerListPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-100 flex justify-center items-center"><Loading /></div>}>
+      <CustomerListContent />
+    </Suspense>
+  );
+}
+
+function CustomerListContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [customers, setCustomers] = useState<NotionCustomer[]>([]);

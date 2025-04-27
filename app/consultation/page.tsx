@@ -1,10 +1,11 @@
 'use client';
 
 import moment from 'moment-timezone';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CUSTOMER_SCHEMA, CONSULTATION_SCHEMA, getNotionPropertyValue, NotionCustomer, NotionConsultation } from '@/app/lib/notion-schema';
+import Loading from '@/app/components/Loading';
 
 // 확장된 타입 정의
 interface FormattedConsultation {
@@ -37,6 +38,14 @@ interface NewConsultation {
 }
 
 export default function ConsultationPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><Loading /></div>}>
+      <ConsultationContent />
+    </Suspense>
+  );
+}
+
+function ConsultationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [customerName, setCustomerName] = useState('');
@@ -1370,8 +1379,6 @@ export default function ConsultationPage() {
       customerFolderId = customer?.properties?.customerFolderId?.rich_text?.[0]?.text?.content || null;
       if (customerFolderId) {
         console.log(`사용할 고객 폴더 ID: ${customerFolderId}`);
-      } else {
-        console.log('고객 폴더 ID가 없습니다');
       }
       
       // 고객 ID 추출
