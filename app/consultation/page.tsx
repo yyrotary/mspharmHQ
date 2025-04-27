@@ -3,7 +3,7 @@
 import moment from 'moment-timezone';
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CUSTOMER_SCHEMA, CONSULTATION_SCHEMA, getNotionPropertyValue, NotionCustomer, NotionConsultation } from '@/app/lib/notion-schema';
 
 // 확장된 타입 정의
@@ -38,6 +38,7 @@ interface NewConsultation {
 
 export default function ConsultationPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [customerName, setCustomerName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -2044,6 +2045,154 @@ export default function ConsultationPage() {
     }));
   }, []);
 
+  // URL 파라미터에서 고객 ID를 가져와서 바로 조회하기
+  useEffect(() => {
+    const customerId = searchParams.get('customerId');
+    const directView = searchParams.get('directView');
+    
+    if (customerId && directView === 'true') {
+      // 고객 ID로 직접 고객 정보 조회
+      const fetchCustomerById = async () => {
+        try {
+          setLoading(true);
+          setMessage('고객 정보를 불러오는 중입니다...');
+          
+          // 고객 페이지 ID로 직접 조회
+          const customerResponse = await fetch(`/api/customer?id=${customerId}`);
+          const customerData = await customerResponse.json();
+          
+          if (customerData.success && customerData.customers && customerData.customers.length > 0) {
+            const foundCustomer = customerData.customers[0];
+            
+            // 고객 정보 설정
+            setCustomer(foundCustomer);
+            
+            // 상담일지 목록 조회
+            const consultationsResponse = await fetch(`/api/consultation?customerId=${foundCustomer.id}`);
+            const consultationsData = await consultationsResponse.json();
+            
+            if (consultationsData.success) {
+              // 상담일지 데이터 구조 변환 (기존 코드 재사용)
+              const formattedConsultations = consultationsData.consultations.map((consultation: NotionConsultation) => {
+                // 상담일지 데이터 변환 (selectCustomer 함수와 동일한 로직)
+                // ID 추출
+                const id = consultation.id;
+                
+                // 상담일자 추출
+                let consultationDate = '';
+                try {
+                  // @ts-expect-error - 타입 정의 문제 해결
+                  consultationDate = consultation.properties['상담일자']?.date?.start || '';
+                } catch (e) {
+                  console.warn('상담일자 추출 실패:', e);
+                }
+                
+                // 호소증상 추출
+                let consultationContent = '';
+                try {
+                  // @ts-expect-error - 타입 정의 문제 해결
+                  consultationContent = consultation.properties['호소증상']?.rich_text?.[0]?.text?.content || '';
+                } catch (e) {
+                  console.warn('호소증상 추출 실패:', e);
+                }
+                
+                // 처방약 추출
+                let prescription = '';
+                try {
+                  // @ts-expect-error - 타입 정의 문제 해결
+                  prescription = consultation.properties['처방약']?.rich_text?.[0]?.text?.content || '';
+                } catch (e) {
+                  console.warn('처방약 추출 실패:', e);
+                }
+                
+                // 환자상태 추출
+                let stateAnalysis = '';
+                try {
+                  // @ts-expect-error - 타입 정의 문제 해결
+                  stateAnalysis = consultation.properties['환자상태']?.rich_text?.[0]?.text?.content || '';
+                } catch (e) {
+                  console.warn('환자상태 추출 실패:', e);
+                }
+                
+                // 설진분석 추출
+                let tongueAnalysis = '';
+                try {
+                  // @ts-expect-error - 타입 정의 문제 해결
+                  tongueAnalysis = consultation.properties['설진분석']?.rich_text?.[0]?.text?.content || '';
+                } catch (e) {
+                  console.warn('설진분석 추출 실패:', e);
+                }
+                
+                // 결과 추출
+                let result = '';
+                try {
+                  // @ts-expect-error - 타입 정의 문제 해결
+                  result = consultation.properties['결과']?.rich_text?.[0]?.text?.content || '';
+                } catch (e) {
+                  console.warn('결과 추출 실패:', e);
+                }
+                
+                // 특이사항 추출
+                let specialNote = '';
+                try {
+                  // @ts-expect-error - 타입 정의 문제 해결
+                  specialNote = consultation.properties['특이사항']?.rich_text?.[0]?.text?.content || '';
+                } catch (e) {
+                  console.warn('특이사항 추출 실패:', e);
+                }
+                
+                // 고객 정보 가져오기
+                const customerName = getNotionPropertyValue(foundCustomer.properties.고객명, CUSTOMER_SCHEMA.고객명.type) || '';
+                const phoneNumber = getNotionPropertyValue(foundCustomer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type) || '';
+                
+                // 이미지 URL 추출
+                let symptomImages: string[] = [];
+                try {
+                  // @ts-expect-error - 타입 정의 문제 해결
+                  const files = consultation.properties['증상이미지']?.files || [];
+                  symptomImages = files.map((file: any) => {
+                    const imageUrl = processImageUrl(file);
+                    return imageUrl || '';
+                  }).filter((url: string) => url !== '');
+                } catch (e) {
+                  console.warn('이미지 URL 추출 실패:', e);
+                }
+                
+                return {
+                  id,
+                  customerName,
+                  phoneNumber,
+                  consultationDate,
+                  consultationContent,
+                  prescription,
+                  stateAnalysis,
+                  tongueAnalysis,
+                  result,
+                  specialNote,
+                  symptomImages
+                };
+              });
+              
+              setConsultations(formattedConsultations);
+              setMessage('');
+            } else {
+              setMessage('상담일지 조회 중 오류가 발생했습니다.');
+            }
+          } else {
+            setMessage('고객 정보를 찾을 수 없습니다.');
+          }
+        } catch (error) {
+          console.error('고객 정보 조회 오류:', error);
+          setMessage('고객 정보 조회 중 오류가 발생했습니다.');
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchCustomerById();
+    }
+  }, [searchParams]);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* 헤더 */}
@@ -2055,9 +2204,14 @@ export default function ConsultationPage() {
         }}
       >
         <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '1.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/" style={{ color: 'white', textDecoration: 'none' }}>
-            ← 홈으로
-          </Link>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <Link href="/" style={{ color: 'white', textDecoration: 'none' }}>
+              ← 홈으로
+            </Link>
+            <Link href="/customer-list" style={{ color: 'white', textDecoration: 'none' }}>
+              고객 목록
+            </Link>
+          </div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>고객 상담</h1>
           <div style={{ width: '2.5rem' }}></div>
         </div>

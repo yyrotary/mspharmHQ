@@ -129,6 +129,56 @@ export function generateConsultationId(customerId: string, consultDate: string):
 }
 
 /**
+ * Notion API 속성값을 추출하는 함수
+ * @param property Notion API 속성 객체
+ * @param type 속성 타입 ('title', 'rich_text', 'select', 'date', 'number', 'phone_number' 등)
+ * @returns 추출된 속성값
+ */
+export function getNotionPropertyValue(property: any, type: string): string | number | null {
+  try {
+    if (!property) return null;
+
+    switch (type) {
+      case 'title':
+        return property.title?.[0]?.text?.content || null;
+      
+      case 'rich_text':
+        return property.rich_text?.[0]?.text?.content || null;
+      
+      case 'select':
+        return property.select?.name || null;
+      
+      case 'multi_select':
+        return property.multi_select?.map((item: any) => item.name).join(', ') || null;
+      
+      case 'date':
+        return property.date?.start || null;
+      
+      case 'number':
+        return property.number || null;
+      
+      case 'phone_number':
+        return property.phone_number || null;
+        
+      case 'formula':
+        if (property.formula.type === 'number') {
+          return property.formula.number || 0;
+        }
+        return property.formula.string || null;
+      
+      case 'created_time':
+        return property.created_time || null;
+        
+      default:
+        return null;
+    }
+  } catch (error) {
+    console.error('속성값 추출 오류:', error);
+    return null;
+  }
+}
+
+/**
  * API 호출을 위한 기본 URL을 반환하는 함수
  * 개발 환경에서는 localhost, 프로덕션 환경에서는 실제 도메인을 사용
  */

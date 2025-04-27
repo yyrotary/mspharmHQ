@@ -110,7 +110,8 @@ export const CUSTOMER_SCHEMA = {
   얼굴_임베딩: { type: 'rich_text' },
   상담일지DB: { type: 'relation' },
   customerFolderId: { type: 'rich_text' },
-  상담수: { type: 'formula' }
+  상담수: { type: 'formula' },
+  삭제됨: { type: 'checkbox' }
 };
 
 // 상담일지 데이터베이스 스키마
@@ -237,6 +238,11 @@ export interface NotionCustomer {
         type: 'number';
         number: number;
       };
+    };
+    삭제됨?: {
+      id: string;
+      type: 'checkbox';
+      checkbox: boolean;
     };
   };
 }

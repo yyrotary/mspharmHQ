@@ -81,6 +81,27 @@ export default function Home() {
                 </div>
               </Link>
               
+              <Link href="/customer-list" 
+                style={{ 
+                  backgroundColor: 'white', 
+                  borderRadius: '0.75rem', 
+                  padding: '1.5rem', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                  border: '1px solid #e5e7eb',
+                  borderLeft: '4px solid #ec4899',
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'inherit'
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>📋</div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#ec4899' }}>고객 목록</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>전체 고객 목록을 조회하고 관리합니다.</p>
+                </div>
+              </Link>
+              
               <Link href="/customer-recognition" 
                 style={{ 
                   backgroundColor: 'white', 
