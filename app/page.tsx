@@ -74,10 +74,31 @@ export default function Home() {
                   color: 'inherit'
                 }}
               >
-                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>👨‍⚕️</div>
+                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>👥</div>
                 <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e40af' }}>고객 상담</h3>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2563eb' }}>고객 상담</h3>
                   <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>고객 정보를 조회하고 호소증상을 기록합니다.</p>
+                </div>
+              </Link>
+              
+              <Link href="/consultation-history" 
+                style={{ 
+                  backgroundColor: 'white', 
+                  borderRadius: '0.75rem', 
+                  padding: '1.5rem', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                  border: '1px solid #e5e7eb',
+                  borderLeft: '4px solid #0891b2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'inherit'
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>📋</div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#0891b2' }}>상담 내역</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>기간별 상담 내역을 조회합니다.</p>
                 </div>
               </Link>
               
@@ -95,7 +116,7 @@ export default function Home() {
                   color: 'inherit'
                 }}
               >
-                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>📋</div>
+                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>📚</div>
                 <div>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#ec4899' }}>고객 목록</h3>
                   <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>전체 고객 목록을 조회하고 관리합니다.</p>
