@@ -15,6 +15,7 @@ interface ConsultationHistoryItem {
   consultationContent: string;
   prescription: string;
   result: string;
+  symptomImages: string[];
 }
 
 export default function ConsultationHistoryPage() {
@@ -34,6 +35,10 @@ function ConsultationHistoryContent() {
   // 기간 설정을 위한 상태
   const [startDate, setStartDate] = useState(moment().subtract(7, 'days').format('YYYY-MM-DD'));
   const [endDate, setEndDate] = useState(moment().format('YYYY-MM-DD'));
+
+  // 확대 이미지 모달 상태
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   // 상담 내역 조회
   const fetchConsultations = async () => {
@@ -61,7 +66,8 @@ function ConsultationHistoryContent() {
                 consultationDate: consultation.properties.상담일자?.date?.start || '',
                 consultationContent: consultation.properties.호소증상?.rich_text?.[0]?.text?.content || '',
                 prescription: consultation.properties.처방약?.rich_text?.[0]?.text?.content || '',
-                result: consultation.properties.결과?.rich_text?.[0]?.text?.content || ''
+                result: consultation.properties.결과?.rich_text?.[0]?.text?.content || '',
+                symptomImages: consultation.properties.symptomImages || []
               };
             } catch (error) {
               console.error('상담 내역 데이터 변환 오류:', error);
@@ -101,6 +107,75 @@ function ConsultationHistoryContent() {
   const handleConsultationClick = (customerId: string) => {
     router.push(`/consultation?customerId=${customerId}&directView=true`);
   };
+
+  // 이미지 URL 처리 함수 (consultation/page.tsx에서 복사)
+  function processImageUrl(imageObj: any) {
+    try {
+      if (!imageObj) return null;
+      if (imageObj.type === 'external' && imageObj.external && imageObj.external.url) {
+        const url = imageObj.external.url.trim();
+        if (!url) return null;
+        if (url.includes('drive.google.com/file/d/')) {
+          try {
+            const fileId = url.split('/file/d/')[1].split('/')[0];
+            return `https://lh3.googleusercontent.com/d/${fileId}`;
+          } catch {
+            return url;
+          }
+        }
+        return url;
+      }
+      if (imageObj.type === 'file' && imageObj.file && imageObj.file.url) {
+        const url = imageObj.file.url.trim();
+        if (!url) return null;
+        return url;
+      }
+      if (typeof imageObj === 'string') {
+        const url = imageObj.trim();
+        if (!url) return null;
+        if (url.includes('drive.google.com/file/d/')) {
+          try {
+            const fileId = url.split('/file/d/')[1].split('/')[0];
+            return `https://lh3.googleusercontent.com/d/${fileId}`;
+          } catch {
+            return url;
+          }
+        }
+        return url;
+      }
+      if (imageObj.name && typeof imageObj.name === 'string') {
+        const url = imageObj.name.trim();
+        if (url.includes('drive.google.com/file/d/')) {
+          try {
+            const fileId = url.split('/file/d/')[1].split('/')[0];
+            return `https://lh3.googleusercontent.com/d/${fileId}`;
+          } catch {
+            return url;
+          }
+        }
+        if (url && !url.startsWith('http')) return null;
+        return url;
+      }
+      const possibleUrlFields = [imageObj.url, imageObj.external?.url, imageObj.file?.url, imageObj.source, imageObj.src];
+      for (const field of possibleUrlFields) {
+        if (field && typeof field === 'string' && field.trim()) {
+          const url = field.trim();
+          if (url.includes('drive.google.com/file/d/')) {
+            try {
+              const fileId = url.split('/file/d/')[1].split('/')[0];
+              return `https://lh3.googleusercontent.com/d/${fileId}`;
+            } catch {
+              return url;
+            }
+          }
+          return url;
+        }
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -245,11 +320,30 @@ function ConsultationHistoryContent() {
                           target.style.borderColor = '#e5e7eb';
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <span style={{ fontWeight: 'bold', color: '#1e40af' }}>{consultation.customerName}</span>
-                          <span style={{ color: '#6b7280' }}>
-                            {moment(consultation.consultationDate).format('YYYY-MM-DD HH:mm')}
-                          </span>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                          {/* 썸네일 이미지 */}
+                          {consultation.symptomImages && consultation.symptomImages.length > 0 ? (
+                            <img
+                              src={processImageUrl(consultation.symptomImages[0])}
+                              alt="증상 이미지"
+                              style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 8, marginRight: 12, border: '1px solid #e5e7eb', background: '#f3f4f6', cursor: 'pointer' }}
+                              onClick={e => {
+                                e.stopPropagation();
+                                setSelectedImage(processImageUrl(consultation.symptomImages[0]));
+                                setShowImageModal(true);
+                              }}
+                            />
+                          ) : (
+                            <div style={{ width: 56, height: 56, borderRadius: 8, marginRight: 12, background: '#f3f4f6', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 24 }}>
+                              📷
+                            </div>
+                          )}
+                          <div style={{ flex: 1 }}>
+                            <span style={{ fontWeight: 'bold', color: '#1e40af' }}>{consultation.customerName}</span>
+                            <span style={{ color: '#6b7280', marginLeft: 8 }}>
+                              {moment(consultation.consultationDate).format('YYYY-MM-DD HH:mm')}
+                            </span>
+                          </div>
                         </div>
                         <div style={{ marginBottom: '0.5rem', color: '#374151' }}>
                           {consultation.consultationContent}
@@ -283,6 +377,31 @@ function ConsultationHistoryContent() {
           </div>
         </div>
       </main>
+
+      {/* 이미지 확대 모달 */}
+      {showImageModal && selectedImage && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+          }}
+          onClick={() => setShowImageModal(false)}
+        >
+          <img
+            src={selectedImage}
+            alt="확대 이미지"
+            style={{ maxWidth: '90vw', maxHeight: '80vh', borderRadius: 12, boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }}
+            onClick={e => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setShowImageModal(false)}
+            style={{
+              position: 'absolute', top: 32, right: 32, background: '#fff', border: 'none', borderRadius: '50%',
+              width: 40, height: 40, fontSize: 24, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }}
+          >×</button>
+        </div>
+      )}
     </div>
   );
 } 

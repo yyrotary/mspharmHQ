@@ -59,29 +59,51 @@ export async function GET(request: Request) {
     const consultationsWithCustomerInfo = await Promise.all(
       response.results.map(async (consultation: any) => {
         try {
+          // 증상이미지 추출
+          let symptomImages: string[] = [];
+          try {
+            const files = consultation.properties.증상이미지?.files || [];
+            symptomImages = files.map((file: any) => {
+              if (file.type === 'external' && file.external?.url) {
+                const url = file.external.url.trim();
+                if (!url) return null;
+                if (url.includes('drive.google.com/file/d/')) {
+                  try {
+                    const fileId = url.split('/file/d/')[1].split('/')[0];
+                    return `https://lh3.googleusercontent.com/d/${fileId}`;
+                  } catch {
+                    return url;
+                  }
+                }
+                return url;
+              } else if (file.type === 'file' && file.file?.url) {
+                const url = file.file.url.trim();
+                if (!url) return null;
+                return url;
+              }
+              return null;
+            }).filter(Boolean);
+          } catch {}
+
           // 고객 relation ID 가져오기
           const customerId = consultation.properties.고객?.relation?.[0]?.id;
-          
+          let customerName = '이름 없음';
           if (customerId) {
             // 고객 정보 조회
             const customerPage = await notion.pages.retrieve({ page_id: customerId }) as any;
-            
-            // 고객 이름 추출
-            const customerName = customerPage.properties.고객명?.rich_text?.[0]?.text?.content || '이름 없음';
-            
-            // 상담 내역에 고객 정보 추가
-            return {
-              ...consultation,
-              properties: {
-                ...consultation.properties,
-                고객명: {
-                  rich_text: [{ text: { content: customerName } }]
-                }
-              }
-            };
+            customerName = customerPage.properties.고객명?.rich_text?.[0]?.text?.content || '이름 없음';
           }
-          
-          return consultation;
+          // 상담 내역에 고객 정보 및 증상이미지 추가
+          return {
+            ...consultation,
+            properties: {
+              ...consultation.properties,
+              고객명: {
+                rich_text: [{ text: { content: customerName } }]
+              },
+              symptomImages
+            }
+          };
         } catch (error) {
           console.error('고객 정보 조회 오류:', error);
           return consultation;
