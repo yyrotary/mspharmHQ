@@ -1,0 +1,29 @@
+#SQL DB
+##URL:
+https://qpuagbmgtebcetzvbrfq.supabase.co
+
+##ANON API:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwdWFnYm1ndGViY2V0enZicmZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzNDYxMjMsImV4cCI6MjA2MzkyMjEyM30.f9DSJaU4MNuf1xjbXimxu2_tW-A6XNNT2PdmMBn0SEg
+
+##Service_role API:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwdWFnYm1ndGViY2V0enZicmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODM0NjEyMywiZXhwIjoyMDYzOTIyMTIzfQ.GpaHfKZrT2K3lseQuFlDovgSL6As-W43Wp2eVTvkVNo
+
+##JWT Secret
+geCwFZCj4S4IqxqYLpOCii8Pj8uPGlfgrvUCWuXiAZXFFbfSV5zPzkOCkGqmy31uLvfbzvPbWjLUJ+t74ZHY8g==
+
+##DB password
+tlsclgns356#
+
+#S3 File storage
+
+##S3 Connection Endpoint
+https://qpuagbmgtebcetzvbrfq.supabase.co/storage/v1/s3
+
+##Region
+ap-northeast-2
+
+##Access key ID
+bc7704333c8c9119e6b7b27cb3962545
+
+##Secret access key
+676cbc93720d3fe28d4b4e8a1681ee7f3a6a3c6fee9e66e5ff5e72d2e97348cb

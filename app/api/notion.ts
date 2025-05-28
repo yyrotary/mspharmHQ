@@ -1,7 +1,26 @@
+/**
+ * @fileoverview 노션 API 통합 모듈
+ * @description 명성약국의 일일 수입/지출 데이터를 노션 데이터베이스와 연동하는 API 모듈입니다.
+ * 노션을 백엔드 데이터베이스로 활용하여 약국의 재무 데이터를 관리합니다.
+ * 
+ * @module api/notion
+ * @requires @notionhq/client
+ */
+
 import { Client } from '@notionhq/client';
 
-// 임시 값 (개발/테스트용) - 실제 배포 시에는 반드시 환경 변수 사용
+/**
+ * 기본 API 키 (개발/테스트용)
+ * @constant {string} DEFAULT_API_KEY - 노션 API 인증 키
+ * @warning 실제 배포 시에는 반드시 환경 변수를 사용해야 합니다
+ */
 const DEFAULT_API_KEY = 'ntn_R79244355263GBYcvHFosCBgZPea5o6efgEgnAthWXb8UB';
+
+/**
+ * 기본 데이터베이스 ID
+ * @constant {string} DEFAULT_DATABASE_ID - 노션 데이터베이스 ID
+ * @warning 실제 배포 시에는 반드시 환경 변수를 사용해야 합니다
+ */
 const DEFAULT_DATABASE_ID = '714b76dc6cde47f696309c5f70d189e9';
 
 // 환경 변수 체크 (없으면 콘솔에 경고)
@@ -21,11 +40,29 @@ const notion = new Client({
 // 데이터베이스 ID (환경 변수 없으면 기본값 사용)
 const databaseId = process.env.NOTION_DATABASE_ID || DEFAULT_DATABASE_ID;
 
-// app/api/notion.ts에 캐싱 기능 추가
+/**
+ * 메모리 캐시 저장소
+ * @type {Map<string, {data: any, timestamp: number}>}
+ * @description API 호출 결과를 일시적으로 저장하여 불필요한 중복 호출을 방지합니다
+ */
 const cache = new Map();
-const CACHE_DURATION = 60 * 1000; // 1분 캐시
 
-// 특정 날짜의 데이터 조회
+/**
+ * 캐시 유효 시간 (밀리초)
+ * @constant {number} CACHE_DURATION - 1분(60,000ms) 동안 캐시 유지
+ */
+const CACHE_DURATION = 60 * 1000;
+
+/**
+ * 특정 날짜의 일일 수입/지출 데이터를 조회합니다
+ * @async
+ * @function getDailyIncome
+ * @param {string} date - 조회할 날짜 (YYYY-MM-DD 형식)
+ * @returns {Promise<Object|null>} 해당 날짜의 데이터 또는 null
+ * @throws {Error} 노션 API 호출 실패 시
+ * @example
+ * const data = await getDailyIncome('2025-05-27');
+ */
 export async function getDailyIncome(date: string) {
   const cacheKey = `daily-income-${date}`;
   const cachedData = cache.get(cacheKey);
@@ -54,7 +91,22 @@ export async function getDailyIncome(date: string) {
   }
 }
 
-// 데이터 생성 또는 업데이트
+/**
+ * 일일 수입/지출 데이터를 저장하거나 업데이트합니다
+ * @async
+ * @function saveDailyIncome
+ * @param {string} date - 저장할 날짜 (YYYY-MM-DD 형식)
+ * @param {Object} data - 저장할 데이터 (노션 properties 형식)
+ * @param {number} [data.cas5] - 현금 5만원권 수입
+ * @param {number} [data.cas1] - 현금 1만원권 수입
+ * @param {number} [data.gif] - 상품권 수입
+ * @param {number} [data.car1] - 카드1 수입
+ * @param {number} [data.car2] - 카드2 수입
+ * @param {number} [data.person] - 인건비 지출
+ * @param {number} [data.Pos] - POS 시스템 매출
+ * @returns {Promise<Object>} 생성 또는 업데이트된 페이지 객체
+ * @throws {Error} 노션 API 호출 실패 시
+ */
 export async function saveDailyIncome(date: string, data: any) {
   try {
     // 해당 날짜의 데이터가 있는지 확인
@@ -86,7 +138,16 @@ export async function saveDailyIncome(date: string, data: any) {
   }
 }
 
-// 특정 월의 모든 데이터 조회
+/**
+ * 특정 월의 모든 일일 데이터를 조회합니다
+ * @async
+ * @function getMonthlyIncome
+ * @param {string} yearMonth - 조회할 년월 (YYYY-MM 형식)
+ * @returns {Promise<Array>} 해당 월의 모든 일일 데이터 배열
+ * @throws {Error} 노션 API 호출 실패 시
+ * @example
+ * const monthData = await getMonthlyIncome('2025-05');
+ */
 export async function getMonthlyIncome(yearMonth: string) {
   const cacheKey = `monthly-income-${yearMonth}`;
   const cachedData = cache.get(cacheKey);
@@ -238,7 +299,23 @@ export async function getAllIncome() {
   }
 }
 
-// 데이터 집계 및 통계 계산 - 범용 함수
+/**
+ * 주어진 데이터 배열에 대한 통계를 계산합니다
+ * @async
+ * @function calculateStats
+ * @param {Array<Object>} data - 노션에서 조회한 데이터 배열
+ * @returns {Promise<Object>} 계산된 통계 정보
+ * @returns {number} returns.totalDays - 총 일수
+ * @returns {number} returns.totalIncome - 총 수입
+ * @returns {number} returns.totalExpense - 총 지출
+ * @returns {number} returns.totalNet - 총 순이익
+ * @returns {number} returns.avgIncome - 평균 일일 수입
+ * @returns {number} returns.avgExpense - 평균 일일 지출
+ * @returns {number} returns.avgNet - 평균 일일 순이익
+ * @returns {Object} returns.maxIncome - 최대 수입 정보 {date, amount}
+ * @returns {Object} returns.minIncome - 최소 수입 정보 {date, amount}
+ * @returns {Array} returns.dailyData - 일별 상세 데이터
+ */
 export async function calculateStats(data: any[]) {
   // 초기 통계 객체
   const stats = {
@@ -356,7 +433,18 @@ export async function calculateAllTimeStats() {
   }
 }
 
-// API 호출 재시도 함수
+/**
+ * API 호출을 재시도하는 헬퍼 함수
+ * @async
+ * @function fetchWithRetry
+ * @template T
+ * @param {Function} fetchFn - 실행할 비동기 함수
+ * @param {number} [maxRetries=3] - 최대 재시도 횟수
+ * @returns {Promise<T>} 함수 실행 결과
+ * @throws {Error} 최대 재시도 횟수 초과 시
+ * @description 네트워크 오류나 일시적인 API 오류 시 자동으로 재시도합니다.
+ * 재시도 간격은 실패 횟수에 비례하여 증가합니다 (1초, 2초, 3초...).
+ */
 async function fetchWithRetry<T>(fetchFn: () => Promise<T>, maxRetries = 3): Promise<T> {
   let retries = 0;
   while (retries < maxRetries) {

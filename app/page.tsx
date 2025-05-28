@@ -185,6 +185,27 @@ export default function Home() {
                   <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>월간 수입/지출 통계를 확인합니다</p>
                 </div>
               </Link>
+              
+              <Link href="/employee-purchase" 
+                style={{ 
+                  backgroundColor: 'white', 
+                  borderRadius: '0.75rem', 
+                  padding: '1.5rem', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                  border: '1px solid #e5e7eb',
+                  borderLeft: '4px solid #7c3aed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'inherit'
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>🛒</div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#7c3aed' }}>MSP Family 임직원가 구매</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>직원 물품 구매 관리</p>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
