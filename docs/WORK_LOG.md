@@ -651,3 +651,84 @@
 - [ ] 메인 페이지 및 대시보드 제목 업데이트
 
 ### 작업 시작 시간: 13:10
+
+### 완료된 작업:
+- [x] 메인 페이지 메뉴 제목 변경 ("직원 구매 장부" → "MSP Family 구매장부")
+- [x] 대시보드 페이지 제목 변경 ("MSP Family 구매 장부")
+- [x] 직원 관리 페이지 제목 및 텍스트 변경 ("MSP Family 관리")
+- [x] 직원 관리 페이지 모든 관련 텍스트 변경 (Family 추가, Family 목록 등)
+- [x] API 주석 및 메시지 변경 (Family 목록 조회, Family 추가 등)
+- [x] 직원 삭제/수정 API 메시지 변경
+- [x] 리포트 페이지 "Family별 현황" 제목 변경
+- [x] 모든 에러 메시지 및 성공 메시지 업데이트
+
+### 변경된 파일:
+- `app/page.tsx` - 메인 메뉴 "MSP Family 구매장부" 제목 변경
+- `app/employee-purchase/page.tsx` - 대시보드 "Family 관리" 메뉴 변경
+- `app/employee-purchase/manage-employees/page.tsx` - 모든 "직원" → "Family" 텍스트 변경
+- `app/api/employee-purchase/employees/route.ts` - API 주석 및 메시지 변경
+- `app/api/employee-purchase/employees/[id]/route.ts` - 삭제/수정 API 메시지 변경
+- `app/employee-purchase/reports/page.tsx` - "Family별 현황" 제목 변경
+
+### 변경 내용 상세:
+1. **제목 변경**: 'MSP Family 구매 장부' → 'MSP Family 임직원가 구매'
+2. **권한 표시명 변경**:
+   - owner (약국장) → master
+   - manager (관리자) → secretary
+   - staff (직원) → family
+3. **모든 UI 텍스트 일관성 있게 변경**:
+   - 사용자 권한 표시
+   - 드롭다운 옵션
+   - 승인 상태 표시
+   - 안내 메시지
+   - 에러 메시지
+
+### 작업 완료 시간: 13:45
+### 총 작업 시간: 5분
+
+### 특이사항:
+- 로그인 페이지는 이미 "MSP Family 구매 장부" 제목으로 되어 있었음
+- 기능적 변경 없이 명칭만 일괄 변경
+- 모든 사용자 인터페이스 텍스트 일관성 있게 변경 완료
+- API 응답 메시지까지 모두 업데이트하여 사용자 경험 향상
+
+---
+
+## 2025-05-28 작업 시작 (13차)
+### 작업자: AI Assistant
+### 작업 내용: 배포용 yaml에 Supabase 환경 변수 추가
+### 관련 문서: mspharmhq.yaml, supabase.txt
+### 예상 변경사항:
+- [ ] mspharmhq.yaml에 Supabase 관련 환경 변수 추가
+- [ ] 배포 환경에서 MSP Family 구매 시스템 정상 작동 보장
+
+### 작업 시작 시간: 13:40
+
+### 완료된 작업:
+- [x] supabase.txt에서 Supabase 설정 정보 확인
+- [x] mspharmhq.yaml에 Supabase 환경 변수 추가
+  - NEXT_PUBLIC_SUPABASE_URL
+  - NEXT_PUBLIC_SUPABASE_ANON_KEY  
+  - SUPABASE_SERVICE_ROLE_KEY
+  - SUPABASE_JWT_SECRET
+  - SUPABASE_DB_PASSWORD
+
+### 변경된 파일:
+- `mspharmhq.yaml` - Supabase 환경 변수 5개 추가
+
+### 추가된 환경 변수:
+1. **NEXT_PUBLIC_SUPABASE_URL**: https://qpuagbmgtebcetzvbrfq.supabase.co
+2. **NEXT_PUBLIC_SUPABASE_ANON_KEY**: 클라이언트 사이드에서 사용하는 익명 키
+3. **SUPABASE_SERVICE_ROLE_KEY**: 서버 사이드 API에서 사용하는 서비스 롤 키
+4. **SUPABASE_JWT_SECRET**: JWT 토큰 검증용 시크릿
+5. **SUPABASE_DB_PASSWORD**: 데이터베이스 비밀번호
+
+### 작업 완료 시간: 13:45
+### 총 작업 시간: 5분
+
+### 특이사항:
+- MSP Family 구매 시스템이 배포 환경에서 정상 작동하도록 필요한 모든 Supabase 환경 변수 추가
+- 기존 환경 변수들과 함께 정리되어 배포 시 자동으로 설정됨
+- 보안이 중요한 SERVICE_ROLE_KEY와 JWT_SECRET도 포함
+
+---
