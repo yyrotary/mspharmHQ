@@ -1,3 +1,5 @@
+'use client';
+
 import Link from "next/link";
 
 export default function Home() {
@@ -11,7 +13,31 @@ export default function Home() {
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}
       >
-        
+        <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>명성약국 관리 시스템</h1>
+          <Link
+            href="/master-login"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              color: 'white',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.375rem',
+              textDecoration: 'none',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+            }}
+          >
+            🔐 마스터 로그인
+          </Link>
+        </div>
       </header>
 
       {/* 메인 컨텐츠 */}
@@ -141,48 +167,6 @@ export default function Home() {
                 <div>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10b981' }}>고객 인식</h3>
                   <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>카메라를 통해 고객을 자동 인식합니다.</p>
-                </div>
-              </Link>
-              
-              <Link href="/daily-income" 
-                style={{ 
-                  backgroundColor: 'white', 
-                  borderRadius: '0.75rem', 
-                  padding: '1.5rem', 
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-                  border: '1px solid #e5e7eb',
-                  borderLeft: '4px solid #8b5cf6',
-                  display: 'flex',
-                  alignItems: 'center',
-                  textDecoration: 'none',
-                  color: 'inherit'
-                }}
-              >
-                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>📊</div>
-                <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#8b5cf6' }}>수입/지출 관리</h3>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>일일 수입과 지출을 기록하고 관리합니다.</p>
-                </div>
-              </Link>
-              
-              <Link href="/daily-income/monthly" 
-                style={{ 
-                  backgroundColor: 'white', 
-                  borderRadius: '0.75rem', 
-                  padding: '1.5rem', 
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-                  border: '1px solid #e5e7eb',
-                  borderLeft: '4px solid #f59e0b',
-                  display: 'flex',
-                  alignItems: 'center',
-                  textDecoration: 'none',
-                  color: 'inherit'
-                }}
-              >
-                <div style={{ fontSize: '2rem', marginRight: '1.5rem' }}>📊</div>
-                <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#f59e0b' }}>월별 통계</h3>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>월간 수입/지출 통계를 확인합니다</p>
                 </div>
               </Link>
               

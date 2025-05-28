@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { format, addMonths, parseISO } from 'date-fns';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useMasterAuth } from '../../lib/master-auth';
 
 // 원화 포맷 함수
 const formatKRW = (value: number) => {
@@ -37,56 +39,43 @@ export default function MonthlyStatsPage() {
   const [stats, setStats] = useState<MonthlyStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [dbPassword, setDbPassword] = useState('');
   const [mode, setMode] = useState<'month' | 'recent' | 'all'>('month');
   const [days, setDays] = useState(31);
   const [period, setPeriod] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [remainingTime, setRemainingTime] = useState(0);
   const rowsPerPage = 10;
+  const router = useRouter();
+  const { isAuthenticated, logout, getRemainingTime, setLogoutCallback } = useMasterAuth();
 
-  // 마스터DB에서 비밀번호 가져오기
   useEffect(() => {
-    const fetchPassword = async () => {
-      try {
-        const response = await fetch('/api/master');
-        if (!response.ok) {
-          console.error('마스터DB 조회 실패');
-          return;
-        }
-        
-        const data = await response.json();
-        if (data.success && data.master?.properties?.pass) {
-          const passValue = data.master.properties.pass.rich_text?.[0]?.text?.content || '';
-          setDbPassword(passValue);
-        }
-      } catch (error) {
-        console.error('비밀번호 조회 오류:', error);
-      }
-    };
-    
-    fetchPassword();
-  }, []);
-
-  // 비밀번호 확인 함수
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // 마스터DB의 pass 속성과 비교
-    if (password === dbPassword) {
-      setIsAuthenticated(true);
-      setPasswordError('');
-    } else {
-      setPasswordError('비밀번호가 올바르지 않습니다.');
+    // 마스터 인증 확인
+    if (!isAuthenticated()) {
+      router.push('/master-login');
+      return;
     }
-  };
+
+    // 로그아웃 콜백 설정
+    setLogoutCallback(() => {
+      router.push('/master-login');
+    });
+
+    // 남은 시간 업데이트 타이머
+    const timer = setInterval(() => {
+      const remaining = getRemainingTime();
+      setRemainingTime(remaining);
+      
+      if (remaining <= 0) {
+        logout();
+        router.push('/master-login');
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // 통계 데이터 가져오기
   const fetchStats = async () => {
-    if (!isAuthenticated) return;
-    
     try {
       setLoading(true);
       setMessage('');
@@ -124,12 +113,12 @@ export default function MonthlyStatsPage() {
     }
   };
 
-  // 인증 상태나 선택된 모드, 월, 일수가 변경될 때 통계 데이터 가져오기
+  // 선택된 모드, 월, 일수가 변경될 때 통계 데이터 가져오기
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated()) {
       fetchStats();
     }
-  }, [mode, yearMonth, days, isAuthenticated]);
+  }, [mode, yearMonth, days]);
 
   // 이전 달로 이동
   const goToPreviousMonth = () => {
@@ -153,12 +142,6 @@ export default function MonthlyStatsPage() {
       console.error('날짜 변환 오류:', error);
       setMessage('날짜 형식이 올바르지 않습니다.');
     }
-  };
-
-  // 로그아웃 함수
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setPassword('');
   };
 
   // 현재 표시할 일별 데이터
@@ -193,97 +176,16 @@ export default function MonthlyStatsPage() {
     }
   };
 
-  // 비밀번호 입력 화면 렌더링
-  if (!isAuthenticated) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '1rem',
-        backgroundColor: '#f3f4f6'
-      }}>
-        <div style={{ 
-          backgroundColor: 'white',
-          borderRadius: '0.75rem',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          padding: '2rem',
-          width: '100%',
-          maxWidth: '24rem',
-          textAlign: 'center'
-        }}>
-          <h1 style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: 'bold', 
-            marginBottom: '1.5rem',
-            color: '#1e40af'
-          }}>
-            월별 통계
-          </h1>
-          
-          <p style={{ marginBottom: '1.5rem', color: '#4b5563' }}>
-            이 페이지는 비밀번호로 보호되어 있습니다.
-          </p>
-          
-          <form onSubmit={handlePasswordSubmit}>
-            <div style={{ marginBottom: '1rem' }}>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="비밀번호를 입력하세요"
-                style={{ 
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: '0.375rem',
-                  border: '1px solid #d1d5db',
-                  marginBottom: '0.5rem'
-                }}
-                autoFocus
-              />
-              
-              {passwordError && (
-                <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                  {passwordError}
-                </p>
-              )}
-            </div>
-            
-            <button
-              type="submit"
-              style={{ 
-                width: '100%',
-                backgroundColor: '#8b5cf6',
-                color: 'white',
-                fontWeight: 'bold',
-                padding: '0.75rem',
-                borderRadius: '0.375rem',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              확인
-            </button>
-          </form>
-          
-          <div style={{ marginTop: '1.5rem' }}>
-            <Link 
-              href="/"
-              style={{ 
-                color: '#6b7280',
-                textDecoration: 'none',
-                fontSize: '0.875rem'
-              }}
-            >
-              홈으로 돌아가기
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const formatTime = (milliseconds: number) => {
+    const minutes = Math.floor(milliseconds / 60000);
+    const seconds = Math.floor((milliseconds % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/master-login');
+  };
 
   return (
     <div style={{ 
@@ -292,65 +194,69 @@ export default function MonthlyStatsPage() {
       padding: '1rem',
       fontFamily: 'sans-serif'
     }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '1rem'
+      {/* 상단 헤더 - 세션 관리 */}
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '0.5rem',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        padding: '1rem',
+        marginBottom: '1rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>
-          수입/지출 통계
-        </h1>
-        
         <div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af', margin: 0 }}>
+            수입/지출 통계
+          </h1>
+          <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
+            마스터 전용 시스템
+          </p>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* 세션 타이머 */}
+          <div style={{
+            backgroundColor: remainingTime < 60000 ? '#fee2e2' : '#f0f9ff',
+            color: remainingTime < 60000 ? '#b91c1c' : '#1e40af',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.375rem',
+            fontSize: '0.875rem',
+            fontWeight: 'bold'
+          }}>
+            ⏱️ {formatTime(remainingTime)}
+          </div>
+          
+          <Link 
+            href="/master-dashboard"
+            style={{
+              backgroundColor: '#8b5cf6',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '0.375rem',
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold'
+            }}
+          >
+            대시보드
+          </Link>
+          
           <button
             onClick={handleLogout}
             style={{
-              backgroundColor: '#f3f4f6',
-              color: '#4b5563',
-              border: '1px solid #d1d5db',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              border: 'none',
               borderRadius: '0.375rem',
-              padding: '0.5rem 0.75rem',
+              padding: '0.5rem 1rem',
               fontSize: '0.875rem',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontWeight: 'bold'
             }}
           >
             로그아웃
           </button>
-          
-          <Link 
-            href="/daily-income"
-            style={{
-              backgroundColor: '#e0e7ff',
-              color: '#3730a3',
-              border: 'none',
-              borderRadius: '0.375rem',
-              padding: '0.5rem 0.75rem',
-              fontSize: '0.875rem',
-              textDecoration: 'none',
-              marginLeft: '0.5rem',
-              display: 'inline-block'
-            }}
-          >
-            일일 관리로
-          </Link>
-          
-          <Link 
-            href="/"
-            style={{
-              backgroundColor: '#dbeafe',
-              color: '#1e40af',
-              border: 'none',
-              borderRadius: '0.375rem',
-              padding: '0.5rem 0.75rem',
-              fontSize: '0.875rem',
-              textDecoration: 'none',
-              marginLeft: '0.5rem',
-              display: 'inline-block'
-            }}
-          >
-            홈으로
-          </Link>
         </div>
       </div>
       
