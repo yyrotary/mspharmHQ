@@ -705,7 +705,7 @@ function ConsultationContent() {
         symptoms: newConsultation.content,
         prescription: newConsultation.medicine,
         result: newConsultation.result,
-        patientCondition: newConsultation.stateAnalysis,
+        stateAnalysis: newConsultation.stateAnalysis,
         tongueAnalysis: newConsultation.tongueAnalysis,
         specialNotes: newConsultation.specialNote,
         imageDataArray: newConsultation.images.map(img => img.data) // Base64 이미지 데이터 배열

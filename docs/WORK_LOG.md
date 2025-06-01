@@ -1446,17 +1446,25 @@ const consultationsResponse = await fetch(`/api/consultation-v2?customerId=${cus
   - `customerId` → `customer_id`
   - `chiefComplaint` → `symptoms`
   - `consultationDate` → `consultDate`
+- [x] 추가 필드 매핑 일관성 확보
+  - 상담 생성: `patientCondition` → `stateAnalysis`로 통일
+- [x] 전체 필드 매핑 문서화 (`docs/FIELD_MAPPING_DOCUMENTATION.md` 생성)
+- [x] 개발 가이드라인 및 체크리스트 작성
 
 ### 변경된 파일:
 - `app/consultation/page.tsx` - saveConsultation 함수에서 API 데이터 필드명 수정
+- `docs/FIELD_MAPPING_DOCUMENTATION.md` - 신규 생성 (전체 필드 매핑 문서)
 
 ### 문제 원인:
 - API에서는 `symptoms`, `customer_id`, `consultDate` 필드를 필수로 요구
 - 프론트엔드에서는 `chiefComplaint`, `customerId`, `consultationDate`로 전송하여 필드명 불일치
+- 상담 생성과 수정에서 환자상태 필드명이 다름 (`patientCondition` vs `stateAnalysis`)
 - 이로 인해 API에서 필수 입력 항목 누락 오류 발생
 
-### 작업 완료 시간: 00:15
-### 총 작업 시간: 5분
-### 특이사항: API와 프론트엔드 간 필드명 불일치로 인한 문제
+### 작업 완료 시간: 00:25
+### 총 작업 시간: 15분
+### 특이사항: 
+- API와 프론트엔드 간 필드명 불일치로 인한 문제
+- 전체 시스템의 필드 매핑 표준화 문서 작성 완료
 
 ---
