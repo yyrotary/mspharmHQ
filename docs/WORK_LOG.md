@@ -1427,3 +1427,36 @@ const consultationsResponse = await fetch(`/api/consultation-v2?customerId=${cus
 ### 특이사항: 간단한 데이터 접근 경로 수정으로 문제 해결
 
 ---
+
+## 2025-05-31 새 상담일지 저장 필수 입력정보 누락 문제 해결 (33차) - 00:10
+### 작업자: AI 시스템
+### 작업 내용: 새 상담일지 작성 시 필수 입력정보 누락으로 저장이 안되는 문제 해결
+### 관련 문서: 
+- [ ] app/consultation/page.tsx
+- [ ] app/api/consultation-v2/route.ts
+### 예상 변경사항:
+- [ ] 프론트엔드에서 API로 전송하는 필드명 수정
+- [ ] API 필수 필드 검증과 프론트엔드 데이터 구조 일치시키기
+### 작업 시작 시간: 00:10
+
+### 완료된 작업:
+- [x] API 필수 필드 검증 로직 분석 (`symptoms`, `customer_id`, `consultDate` 필수)
+- [x] 프론트엔드 데이터 전송 구조 분석
+- [x] 필드명 불일치 문제 발견 및 수정
+  - `customerId` → `customer_id`
+  - `chiefComplaint` → `symptoms`
+  - `consultationDate` → `consultDate`
+
+### 변경된 파일:
+- `app/consultation/page.tsx` - saveConsultation 함수에서 API 데이터 필드명 수정
+
+### 문제 원인:
+- API에서는 `symptoms`, `customer_id`, `consultDate` 필드를 필수로 요구
+- 프론트엔드에서는 `chiefComplaint`, `customerId`, `consultationDate`로 전송하여 필드명 불일치
+- 이로 인해 API에서 필수 입력 항목 누락 오류 발생
+
+### 작업 완료 시간: 00:15
+### 총 작업 시간: 5분
+### 특이사항: API와 프론트엔드 간 필드명 불일치로 인한 문제
+
+---

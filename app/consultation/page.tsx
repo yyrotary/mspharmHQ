@@ -700,9 +700,9 @@ function ConsultationContent() {
       
       // 상담일지 API 호출 데이터 준비 (Supabase 기반)
       const apiData = {
-        customerId: customer.id,
-        consultationDate: newConsultation.consultDate,
-        chiefComplaint: newConsultation.content,
+        customer_id: customer.id,
+        consultDate: newConsultation.consultDate,
+        symptoms: newConsultation.content,
         prescription: newConsultation.medicine,
         result: newConsultation.result,
         patientCondition: newConsultation.stateAnalysis,
