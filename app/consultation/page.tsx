@@ -239,10 +239,26 @@ function ConsultationContent() {
       if (response.ok && result.success) {
         setMessage('새 고객이 등록되었습니다.');
         setShowCustomerForm(false);
-        //setCustomer(result.customer);
         
-        // 상담일지 폼 열기
-        //setShowNewForm(true);
+        // 등록된 고객 정보 설정
+        setCustomer(result.customer);
+        
+        // 고객 등록 폼 초기화
+        setNewCustomer({
+          name: '',
+          phone: '',
+          gender: '',
+          birth: '',
+          address: '',
+          specialNote: '',
+          estimatedAge: undefined
+        });
+        
+        // 새 상담일지 폼 열기
+        setShowNewForm(true);
+        
+        // 성공 메시지 업데이트
+        setMessage(`${result.customer.name} 고객이 등록되었습니다. 새 상담일지를 작성해주세요.`);
       } else {
         throw new Error(result.error || '고객 정보 저장 중 오류가 발생했습니다.');
       }
@@ -703,11 +719,11 @@ function ConsultationContent() {
         customer_id: customer.id,
         consultDate: newConsultation.consultDate,
         symptoms: newConsultation.content,
-        prescription: newConsultation.medicine,
+        medicine: newConsultation.medicine,  // prescription → medicine
         result: newConsultation.result,
         stateAnalysis: newConsultation.stateAnalysis,
         tongueAnalysis: newConsultation.tongueAnalysis,
-        specialNotes: newConsultation.specialNote,
+        specialNote: newConsultation.specialNote,  // specialNotes → specialNote
         imageDataArray: newConsultation.images.map(img => img.data) // Base64 이미지 데이터 배열
       };
       

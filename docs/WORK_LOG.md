@@ -1468,3 +1468,108 @@ const consultationsResponse = await fetch(`/api/consultation-v2?customerId=${cus
 - 전체 시스템의 필드 매핑 표준화 문서 작성 완료
 
 ---
+
+## 2025-05-31 새 고객 등록 후 상담일지 작성 자동 전환 기능 추가 (34차) - 00:30
+### 작업자: AI 시스템
+### 작업 내용: 새 고객 등록 완료 후 바로 그 고객으로 새 상담일지 작성 모드로 자동 전환
+### 관련 문서: 
+- [ ] app/consultation/page.tsx
+### 예상 변경사항:
+- [ ] 고객 등록 성공 후 고객 정보 자동 설정
+- [ ] 새 상담일지 폼 자동 열기
+- [ ] 사용자 경험 개선
+### 작업 시작 시간: 00:30
+
+### 완료된 작업:
+- [x] `registerNewCustomer` 함수에서 주석 처리된 코드 활성화
+- [x] 고객 등록 성공 후 `setCustomer(result.customer)` 실행
+- [x] 고객 등록 폼 자동 초기화 추가
+- [x] 새 상담일지 폼 자동 열기 (`setShowNewForm(true)`)
+- [x] 사용자 친화적인 성공 메시지 개선
+
+### 변경된 파일:
+- `app/consultation/page.tsx` - registerNewCustomer 함수 개선
+
+### 기능 개선사항:
+1. **자동 워크플로우**: 고객 등록 → 상담일지 작성으로 자연스러운 흐름
+2. **폼 초기화**: 고객 등록 폼이 자동으로 초기화되어 다음 고객 등록 준비
+3. **명확한 피드백**: "김철수 고객이 등록되었습니다. 새 상담일지를 작성해주세요." 메시지
+4. **사용자 경험**: 추가 클릭 없이 바로 상담일지 작성 가능
+
+### 작업 완료 시간: 00:35
+### 총 작업 시간: 5분
+### 특이사항: 기존 주석 처리된 코드를 활성화하고 개선하여 구현
+
+---
+
+## 2024-12-19 상담일지 저장 필드 매핑 문제 해결 (35차) - 14:30
+### 작업자: AI Assistant
+### 작업 내용: 상담일지 저장 시 special_note와 prescription 필드가 DB에 저장되지 않는 문제 해결
+### 관련 문서: 
+- [x] FIELD_MAPPING_DOCUMENTATION.md (참조)
+- [x] WORK_LOG.md (업데이트)
+### 예상 변경사항:
+- [x] 프론트엔드 API 호출 필드명 수정
+### 작업 시작 시간: 14:30
+
+### 문제 분석:
+- **문제**: 상담일지 저장 시 `special_note`와 `prescription` 필드가 DB에 저장되지 않음
+- **원인**: 프론트엔드에서 API로 전송하는 필드명과 API에서 처리하는 필드명 불일치
+  1. 프론트엔드: `specialNotes` → API 기대값: `specialNote`
+  2. 프론트엔드: `prescription` → API 기대값: `medicine`
+
+### 완료된 작업:
+- [x] `app/consultation/page.tsx` 파일의 `saveConsultation` 함수 분석
+- [x] `/api/consultation-v2/route.ts` API 엔드포인트 분석
+- [x] `app/lib/supabase-consultation.ts`의 `createConsultationInSupabase` 함수 분석
+- [x] 필드 매핑 불일치 문제 확인
+- [x] 프론트엔드 API 데이터 필드명 수정:
+  - `prescription: newConsultation.medicine` → `medicine: newConsultation.medicine`
+  - `specialNotes: newConsultation.specialNote` → `specialNote: newConsultation.specialNote`
+
+### 변경된 파일:
+- `app/consultation/page.tsx` - saveConsultation 함수의 apiData 필드명 수정
+
+### 수정 내용:
+```typescript
+// 수정 전
+const apiData = {
+  customer_id: customer.id,
+  consultDate: newConsultation.consultDate,
+  symptoms: newConsultation.content,
+  prescription: newConsultation.medicine,     // ❌ 잘못된 필드명
+  result: newConsultation.result,
+  stateAnalysis: newConsultation.stateAnalysis,
+  tongueAnalysis: newConsultation.tongueAnalysis,
+  specialNotes: newConsultation.specialNote, // ❌ 잘못된 필드명
+  imageDataArray: newConsultation.images.map(img => img.data)
+};
+
+// 수정 후
+const apiData = {
+  customer_id: customer.id,
+  consultDate: newConsultation.consultDate,
+  symptoms: newConsultation.content,
+  medicine: newConsultation.medicine,         // ✅ 올바른 필드명
+  result: newConsultation.result,
+  stateAnalysis: newConsultation.stateAnalysis,
+  tongueAnalysis: newConsultation.tongueAnalysis,
+  specialNote: newConsultation.specialNote,  // ✅ 올바른 필드명
+  imageDataArray: newConsultation.images.map(img => img.data)
+};
+```
+
+### 작업 완료 시간: 14:45
+### 총 작업 시간: 15분
+
+### 특이사항:
+- 이전 33차 작업에서 필드 매핑 문서화를 했음에도 불구하고 일부 필드에서 불일치 발생
+- `FIELD_MAPPING_DOCUMENTATION.md`에 기록된 매핑 규칙과 실제 구현 간 차이 확인
+- 향후 필드 추가 시 문서와 구현의 일관성 유지 필요
+
+### 테스트 필요:
+- [ ] 새 상담일지 작성 시 특이사항 필드 저장 확인
+- [ ] 새 상담일지 작성 시 처방약 필드 저장 확인
+- [ ] 기존 상담일지 수정 시 해당 필드들 정상 동작 확인
+
+---
