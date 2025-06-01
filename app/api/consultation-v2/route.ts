@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createConsultationInSupabase } from '@/app/lib/supabase-consultation';
 import { createClient } from '@supabase/supabase-js';
-import { uploadConsultationImages, deleteConsultationImages } from '@/app/lib/consultation-utils';
+import { uploadConsultationImages, uploadAdditionalConsultationImages, deleteConsultationImages } from '@/app/lib/consultation-utils';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -136,41 +136,55 @@ export async function PUT(request: Request) {
       );
     }
 
-    // 이미지 업로드 처리 (필요시)
-    let imageUrls: string[] = updateData.image_urls || [];
+    // 기존 상담 정보 조회 (기존 이미지 URL 포함)
+    const { data: existingConsultation, error: fetchError } = await supabase
+      .from('consultations')
+      .select(`
+        consultation_id,
+        image_urls,
+        customers!inner(customer_code)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // 기존 이미지 URL 보존
+    let imageUrls: string[] = existingConsultation?.image_urls || [];
+
+    // 새 이미지 업로드 처리 (기존 이미지에 추가)
     if (updateData.imageDataArray && Array.isArray(updateData.imageDataArray) && updateData.imageDataArray.length > 0) {
-      // 상담 정보와 고객 코드 조회
-      const { data: consultation, error: consultationError } = await supabase
-        .from('consultations')
-        .select(`
-          consultation_id,
-          customers!inner(customer_code)
-        `)
-        .eq('id', id)
-        .single();
-
-      if (consultationError) throw consultationError;
-
-      if (consultation && consultation.customers) {
-        imageUrls = await uploadConsultationImages(
-          consultation.customers.customer_code,
-          consultation.consultation_id,
-          updateData.imageDataArray
-        );
+      if (existingConsultation && existingConsultation.customers && existingConsultation.customers.customer_code) {
+        try {
+          const newImageUrls = await uploadAdditionalConsultationImages(
+            existingConsultation.customers.customer_code,
+            existingConsultation.consultation_id,
+            updateData.imageDataArray,
+            imageUrls.length // 기존 이미지 개수 전달
+          );
+          
+          // 새 이미지 URL을 기존 이미지 URL에 추가
+          imageUrls = [...imageUrls, ...newImageUrls];
+          console.log(`기존 이미지 ${existingConsultation.image_urls?.length || 0}개 + 새 이미지 ${newImageUrls.length}개 = 총 ${imageUrls.length}개`);
+        } catch (uploadError) {
+          console.error('새 이미지 업로드 실패:', uploadError);
+          // 이미지 업로드 실패해도 다른 필드 수정은 계속 진행
+        }
       }
     }
 
-    // 상담 데이터 업데이트
+    // 상담 데이터 업데이트 (날짜 필드 추가)
     const { data: updatedConsultation, error } = await supabase
       .from('consultations')
       .update({
+        consult_date: updateData.consultDate ? new Date(updateData.consultDate).toISOString() : undefined, // ISO 형식으로 날짜와 시간 모두 저장
         symptoms: updateData.symptoms,
         patient_condition: updateData.stateAnalysis,
         tongue_analysis: updateData.tongueAnalysis,
         special_notes: updateData.specialNote,
         prescription: updateData.medicine,
         result: updateData.result,
-        image_urls: imageUrls
+        image_urls: imageUrls // 기존 이미지 + 새 이미지
       })
       .eq('id', id)
       .select()
@@ -180,7 +194,8 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({
       success: true,
-      consultation: updatedConsultation
+      consultation: updatedConsultation,
+      message: `상담일지가 수정되었습니다. (이미지 ${imageUrls.length}개)`
     });
 
   } catch (error) {
@@ -218,7 +233,7 @@ export async function DELETE(request: Request) {
     if (fetchError) throw fetchError;
 
     // 관련 이미지 삭제
-    if (consultation && consultation.customers) {
+    if (consultation && consultation.customers && consultation.customers.customer_code) {
       try {
         await deleteConsultationImages(
           consultation.customers.customer_code,

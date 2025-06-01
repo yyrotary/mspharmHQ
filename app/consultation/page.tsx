@@ -180,11 +180,14 @@ function ConsultationContent() {
       if (consultationsData.success) {
         // Supabase 데이터를 기존 형식으로 변환
         const formattedConsultations = consultationsData.consultations.map((consultation: any) => {
+          // consult_date를 직접 사용 (이제 TIMESTAMP WITH TIME ZONE으로 시간 정보 포함)
+          let consultationDateTime = consultation.consult_date || '';
+          
           return {
             id: consultation.id,
             customerName: customerInfo.name,
             phoneNumber: customerInfo.phone,
-            consultationDate: consultation.consult_date || '',
+            consultationDate: consultationDateTime,
             consultationContent: consultation.symptoms || '',
             prescription: consultation.prescription || '',
             result: consultation.result || '',
@@ -1417,17 +1420,29 @@ function ConsultationContent() {
     // 날짜 형식 변환 (datetime-local 입력에 맞는 형식으로)
     let consultDate = consultation.consultationDate;
     
-    // ISO 형식이 아니거나 'T'가 없는 경우 처리
-    if (!consultDate.includes('T')) {
-      // 날짜만 있는 경우 시간 부분을 추가 (기본 오전 9시)
-      consultDate = `${consultDate}T09:00`;
-    } else {
-      // 'T'가 있는 경우 초와 밀리초 부분 제거
-      consultDate = consultDate.split('.')[0];
-      if (consultDate.length > 16) {
-        // 'YYYY-MM-DDTHH:MM:SS' -> 'YYYY-MM-DDTHH:MM' 형식으로 변환
-        consultDate = consultDate.substring(0, 16);
+    try {
+      // ISO 형식 날짜를 Date 객체로 변환
+      const date = new Date(consultDate);
+      
+      if (!isNaN(date.getTime())) {
+        // 유효한 날짜인 경우 로컬 시간대로 변환하여 datetime-local 형식으로 포맷
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        
+        consultDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+      } else {
+        // 날짜가 유효하지 않은 경우 현재 시간으로 설정
+        const now = new Date();
+        consultDate = now.toISOString().slice(0, 16);
       }
+    } catch (error) {
+      console.warn('날짜 변환 오류:', error);
+      // 오류 발생 시 현재 시간으로 설정
+      const now = new Date();
+      consultDate = now.toISOString().slice(0, 16);
     }
     
     setEditFormData({
@@ -1462,23 +1477,12 @@ function ConsultationContent() {
       setLoading(true);
       setMessage('상담일지 수정 중...');
       
-      // 1. 새 이미지 업로드 (customer_code 기반)
-      let imageUrls: string[] = [];
+      // 새 이미지가 있는 경우 업로드 메시지 표시
       if (editFormData.images.length > 0) {
-        setMessage('이미지 업로드 중...');
-        // customer_code 기반 업로드를 위해 customer 정보에서 customer_code 추출
-        const customerCode = customer?.customer_code || '';
-        if (customerCode) {
-          imageUrls = await uploadEditImages(customerCode);
-        }
-        
-        // 모든 이미지 업로드 실패 시
-        if (imageUrls.length === 0 && editFormData.images.length > 0) {
-          throw new Error('모든 이미지 업로드에 실패했습니다.');
-        }
+        setMessage(`상담일지 수정 중... (새 이미지 ${editFormData.images.length}개 업로드)`);
       }
       
-      // 2. 상담일지 업데이트 (consultation-v2 API 사용)
+      // 상담일지 업데이트 (consultation-v2 API에서 이미지 처리 포함)
       const response = await fetch(`/api/consultation-v2`, {
         method: 'PUT',
         headers: {
@@ -1486,20 +1490,21 @@ function ConsultationContent() {
         },
         body: JSON.stringify({
           id: editingConsultation.id,
+          consultDate: editFormData.consultDate, // 날짜 필드 추가
           symptoms: editFormData.content,
           stateAnalysis: editFormData.stateAnalysis,
           tongueAnalysis: editFormData.tongueAnalysis,
           specialNote: editFormData.specialNote,
           medicine: editFormData.medicine,
           result: editFormData.result,
-          imageDataArray: editFormData.images.map(img => img.data)
+          imageDataArray: editFormData.images.map(img => img.data) // 새 이미지만 전송
         }),
       });
       
       const result = await response.json();
       
       if (response.ok && result.success) {
-        setMessage('상담일지가 업데이트되었습니다.');
+        setMessage(result.message || '상담일지가 업데이트되었습니다.');
         
         // 상담일지 목록 갱신 (consultation-v2 API 사용)
         const consultationsResponse = await fetch(`/api/consultation-v2?customerId=${customer!.id}`);
@@ -1539,6 +1544,9 @@ function ConsultationContent() {
           specialNote: '',    // 특이사항 초기화
           images: []
         });
+        
+        // 성공 메시지를 잠시 후 지우기
+        setTimeout(() => setMessage(''), 3000);
       } else {
         throw new Error(result.error || '상담일지 업데이트 중 오류가 발생했습니다.');
       }
@@ -1900,9 +1908,15 @@ function ConsultationContent() {
               <button
                 onClick={() => {
                   setShowCustomerForm(true);
+                  // 모든 고객 정보 필드 초기화
                   setNewCustomer({
-                    ...newCustomer,
-                    name: ''
+                    name: '',
+                    phone: '',
+                    gender: '',
+                    birth: '',
+                    address: '',
+                    specialNote: '',
+                    estimatedAge: ''
                   });
                 }}
                 style={{ 
@@ -3183,7 +3197,7 @@ function ConsultationContent() {
                                     // 날짜가 유효하지 않은 경우 원본 문자열 표시
                                     return consultation.consultationDate || '날짜 없음';
                                   }
-                                  return date.toLocaleDateString('ko-KR', {
+                                  return date.toLocaleString('ko-KR', {
                                     year: 'numeric',
                                     month: 'long',
                                     day: 'numeric',
@@ -3202,27 +3216,6 @@ function ConsultationContent() {
                               </p>
                             )}
                           </div>
-                          <p style={{ fontSize: '1rem', color: '#4b5563' }}>
-                            {(() => {
-                              try {
-                                const date = new Date(consultation.consultationDate);
-                                if (isNaN(date.getTime())) {
-                                  // 날짜가 유효하지 않은 경우 원본 문자열 표시
-                                  return consultation.consultationDate || '날짜 없음';
-                                }
-                                return date.toLocaleDateString('ko-KR', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                });
-                              } catch (error) {
-                                console.warn('날짜 포맷팅 오류:', error);
-                                return consultation.consultationDate || '날짜 없음';
-                              }
-                            })()}
-                          </p>
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                             <button
                               onClick={() => initEditForm(consultation)}
@@ -3662,82 +3655,143 @@ function ConsultationContent() {
                             </div>
                             {/* 새 이미지 미리보기 */}
                             {editFormData.images.length > 0 && (
-                              <div style={{ 
-                                display: 'grid', 
-                                gridTemplateColumns: 'repeat(2, 1fr)', 
-                                gap: '0.75rem', 
-                                marginTop: '0.75rem' 
-                              }}>
-                                {editFormData.images.map((image, index) => (
-                                  <div 
-                                    key={index} 
-                                    style={{ 
-                                      position: 'relative', 
-                                      borderRadius: '0.5rem', 
-                                      overflow: 'hidden', 
-                                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                                      transition: 'transform 0.2s', 
-                                      transform: 'scale(1)'
-                                    }}
-                                    className="hover:scale-105"
-                                  >
-                                    <img 
-                                      src={image.data} 
-                                      alt={`새 이미지 ${index + 1}`} 
+                              <div style={{ marginBottom: '1rem' }}>
+                                <h4 style={{ 
+                                  fontSize: '1rem', 
+                                  fontWeight: 'bold', 
+                                  color: '#1f2937', 
+                                  marginBottom: '0.5rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem'
+                                }}>
+                                  📸 새로 추가할 이미지 ({editFormData.images.length}개)
+                                  <span style={{
+                                    fontSize: '0.75rem',
+                                    backgroundColor: '#3b82f6',
+                                    color: 'white',
+                                    padding: '0.25rem 0.5rem',
+                                    borderRadius: '0.25rem'
+                                  }}>
+                                    추가됨
+                                  </span>
+                                </h4>
+                                <div style={{ 
+                                  display: 'grid', 
+                                  gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', 
+                                  gap: '0.75rem',
+                                  padding: '0.75rem',
+                                  backgroundColor: '#eff6ff',
+                                  borderRadius: '0.5rem',
+                                  border: '1px solid #bfdbfe'
+                                }}>
+                                  {editFormData.images.map((image, index) => (
+                                    <div 
+                                      key={index} 
                                       style={{ 
-                                        width: '100%', 
-                                        height: '8rem', 
-                                        objectFit: 'cover' 
-                                      }}
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() => removeEditImage(index)}
-                                      style={{ 
-                                        position: 'absolute', 
-                                        top: '0.5rem', 
-                                        right: '0.5rem', 
-                                        backgroundColor: '#ef4444', 
-                                        color: 'white', 
-                                        borderRadius: '50%', 
-                                        width: '2rem', 
-                                        height: '2rem', 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        justifyContent: 'center', 
-                                        opacity: '1', 
+                                        position: 'relative', 
+                                        borderRadius: '0.5rem', 
+                                        overflow: 'hidden', 
                                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                                        fontSize: '1.25rem', 
-                                        fontWeight: 'bold',
-                                        border: 'none',
-                                        cursor: 'pointer'
+                                        transition: 'transform 0.2s', 
+                                        transform: 'scale(1)',
+                                        border: '2px solid #3b82f6'
                                       }}
+                                      className="hover:scale-105"
                                     >
-                                      ×
-                                    </button>
-                                  </div>
-                                ))}
+                                      <img 
+                                        src={image.data} 
+                                        alt={`새 이미지 ${index + 1}`} 
+                                        style={{ 
+                                          width: '100%', 
+                                          height: '8rem', 
+                                          objectFit: 'cover' 
+                                        }}
+                                      />
+                                      <div style={{
+                                        position: 'absolute',
+                                        top: '2px',
+                                        left: '2px',
+                                        backgroundColor: '#3b82f6',
+                                        color: 'white',
+                                        fontSize: '0.625rem',
+                                        padding: '0.125rem 0.25rem',
+                                        borderRadius: '0.125rem'
+                                      }}>
+                                        새로운
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeEditImage(index)}
+                                        style={{ 
+                                          position: 'absolute', 
+                                          top: '0.5rem', 
+                                          right: '0.5rem', 
+                                          backgroundColor: '#ef4444', 
+                                          color: 'white', 
+                                          borderRadius: '50%', 
+                                          width: '2rem', 
+                                          height: '2rem', 
+                                          display: 'flex', 
+                                          alignItems: 'center', 
+                                          justifyContent: 'center', 
+                                          opacity: '1', 
+                                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+                                          fontSize: '1.25rem', 
+                                          fontWeight: 'bold',
+                                          border: 'none',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                                <p style={{ 
+                                  marginTop: '0.5rem', 
+                                  fontSize: '0.875rem', 
+                                  color: '#1d4ed8',
+                                  fontWeight: '500'
+                                }}>
+                                  ➕ 이 이미지들이 기존 이미지에 추가됩니다.
+                                </p>
                               </div>
                             )}
+                            
                             {/* 기존 이미지 표시 */}
-                            {consultation.symptomImages && consultation.symptomImages.length > 0 && (
-                              <div>
-                                <p style={{ 
-                                  marginTop: '1rem', 
-                                  marginBottom: '0.5rem', 
-                                  fontWeight: '600', 
-                                  color: '#1e40af'
-                                }}>
-                                  기존 이미지
-                                </p>
-                                <div style={{ 
+                            {editingConsultation && editingConsultation.symptomImages && editingConsultation.symptomImages.length > 0 && (
+                              <div style={{ marginBottom: '1rem' }}>
+                                <h4 style={{ 
+                                  fontSize: '1rem', 
+                                  fontWeight: 'bold', 
+                                  color: '#1f2937', 
+                                  marginBottom: '0.5rem',
                                   display: 'flex',
-                                  flexWrap: 'nowrap',
-                                  overflowX: 'auto',
-                                  gap: '0.75rem',
-                                  padding: '0.5rem 0',
+                                  alignItems: 'center',
+                                  gap: '0.5rem'
                                 }}>
-                                  {consultation.symptomImages.filter(Boolean).map((imageUrl: string, index: number) => (
+                                  📷 기존 이미지 ({editingConsultation.symptomImages.filter(Boolean).length}개)
+                                  <span style={{
+                                    fontSize: '0.75rem',
+                                    backgroundColor: '#10b981',
+                                    color: 'white',
+                                    padding: '0.25rem 0.5rem',
+                                    borderRadius: '0.25rem'
+                                  }}>
+                                    유지됨
+                                  </span>
+                                </h4>
+                                <div style={{ 
+                                  display: 'flex', 
+                                  gap: '0.5rem', 
+                                  flexWrap: 'wrap',
+                                  padding: '0.75rem',
+                                  backgroundColor: '#f0fdf4',
+                                  borderRadius: '0.5rem',
+                                  border: '1px solid #bbf7d0'
+                                }}>
+                                  {editingConsultation.symptomImages.filter(Boolean).map((imageUrl: string, index: number) => (
                                     <div 
                                       key={`existing-${index}`} 
                                       style={{ 
@@ -3745,8 +3799,9 @@ function ConsultationContent() {
                                         width: '100px',
                                         height: '100px',
                                         borderRadius: '0.25rem',
-                                        border: '1px solid #d1d5db',
-                                        overflow: 'hidden'
+                                        border: '2px solid #10b981',
+                                        overflow: 'hidden',
+                                        position: 'relative'
                                       }}
                                     >
                                       <img 
@@ -3758,15 +3813,28 @@ function ConsultationContent() {
                                           objectFit: 'cover' 
                                         }}
                                       />
+                                      <div style={{
+                                        position: 'absolute',
+                                        top: '2px',
+                                        right: '2px',
+                                        backgroundColor: '#10b981',
+                                        color: 'white',
+                                        fontSize: '0.625rem',
+                                        padding: '0.125rem 0.25rem',
+                                        borderRadius: '0.125rem'
+                                      }}>
+                                        기존
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
                                 <p style={{ 
                                   marginTop: '0.5rem', 
                                   fontSize: '0.875rem', 
-                                  color: '#6b7280' 
+                                  color: '#059669',
+                                  fontWeight: '500'
                                 }}>
-                                  기존 이미지는 유지됩니다. 삭제하려면 새로운 상담일지를 작성하세요.
+                                  ✅ 기존 이미지는 자동으로 유지됩니다. 새 이미지를 추가하면 기존 이미지와 함께 저장됩니다.
                                 </p>
                               </div>
                             )}

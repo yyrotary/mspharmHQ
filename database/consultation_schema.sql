@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS consultations (
   customer_id UUID NOT NULL,
   
   -- 상담 정보
-  consult_date DATE NOT NULL,
+  consult_date TIMESTAMP WITH TIME ZONE NOT NULL,
   symptoms TEXT NOT NULL,
   patient_condition TEXT,
   tongue_analysis TEXT,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS consultations (
   CONSTRAINT consultations_customer_id_fkey 
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
   CONSTRAINT consultations_consult_date_check 
-    CHECK (consult_date <= CURRENT_DATE),
+    CHECK (consult_date <= now()),
   CONSTRAINT consultations_symptoms_check 
     CHECK (length(symptoms) > 0)
 );

@@ -57,6 +57,59 @@ export async function uploadConsultationImages(
   return results.filter(url => url !== null) as string[];
 }
 
+// 수정 시 새 이미지 업로드를 위한 함수 (기존 이미지와 중복되지 않도록)
+export async function uploadAdditionalConsultationImages(
+  customerCode: string,
+  consultationId: string,
+  imageDataArray: string[],
+  existingImageCount: number = 0
+): Promise<string[]> {
+  const timestamp = Date.now();
+  
+  const uploadPromises = imageDataArray.map(async (imageData, index) => {
+    try {
+      // Base64 데이터 처리
+      const base64Data = imageData.includes(';base64,')
+        ? imageData.split(';base64,')[1]
+        : imageData;
+
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      // 고유한 파일 경로 생성 (타임스탬프 포함)
+      const filePath = generateUniqueConsultationImagePath(
+        customerCode,
+        consultationId,
+        existingImageCount + index + 1,
+        timestamp
+      );
+
+      // Supabase Storage에 업로드
+      const { data, error } = await supabase.storage
+        .from('consultation-images')
+        .upload(filePath, buffer, {
+          contentType: 'image/jpeg',
+          upsert: false // 덮어쓰기 방지
+        });
+
+      if (error) throw error;
+
+      // 공개 URL 생성
+      const { data: publicUrl } = supabase.storage
+        .from('consultation-images')
+        .getPublicUrl(filePath);
+
+      return publicUrl.publicUrl;
+
+    } catch (error) {
+      console.error(`추가 이미지 ${index + 1} 업로드 실패:`, error);
+      return null;
+    }
+  });
+
+  const results = await Promise.all(uploadPromises);
+  return results.filter(url => url !== null) as string[];
+}
+
 export async function generateNextConsultationId(
   customerId: string,
   customerCode: string
@@ -80,6 +133,17 @@ export function generateConsultationImagePath(
   fileExtension: string = 'jpg'
 ): string {
   return `${customerCode}/${consultationId}/image_${imageIndex}.${fileExtension}`;
+}
+
+// 고유한 파일 경로 생성 (타임스탬프 포함)
+export function generateUniqueConsultationImagePath(
+  customerCode: string,
+  consultationId: string,
+  imageIndex: number,
+  timestamp: number,
+  fileExtension: string = 'jpg'
+): string {
+  return `${customerCode}/${consultationId}/image_${imageIndex}_${timestamp}.${fileExtension}`;
 }
 
 export async function deleteConsultationImages(
