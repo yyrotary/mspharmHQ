@@ -1,0 +1,79 @@
+{
+  "migration_summary": {
+    "start_time": "2025-06-01T00:22:49.449Z",
+    "end_time": "2025-06-01T00:28:30.601Z",
+    "duration_seconds": 341,
+    "total_phases": 7,
+    "success_phases": 5,
+    "warning_phases": 2,
+    "failed_phases": 0
+  },
+  "phases": [
+    {
+      "phase": "ENVIRONMENT_CHECK",
+      "status": "success",
+      "message": "환경 변수 및 연결 확인 완료",
+      "details": {
+        "customerCount": 1
+      },
+      "timestamp": "2025-06-01T00:22:49.599Z"
+    },
+    {
+      "phase": "CLEAR_EXISTING_DATA",
+      "status": "success",
+      "message": "기존 데이터 삭제 완료",
+      "timestamp": "2025-06-01T00:22:49.945Z"
+    },
+    {
+      "phase": "DIRECTORY_STRUCTURE",
+      "status": "success",
+      "message": "디렉토리 구조 생성 완료",
+      "timestamp": "2025-06-01T00:22:49.945Z"
+    },
+    {
+      "phase": "EXTRACT_NOTION_DATA",
+      "status": "success",
+      "message": "Notion 데이터 추출 완료: 67개",
+      "details": {
+        "totalConsultations": 67
+      },
+      "timestamp": "2025-06-01T00:22:50.587Z"
+    },
+    {
+      "phase": "MIGRATE_IMAGES",
+      "status": "success",
+      "message": "이미지 마이그레이션 완료: 성공 67개, 실패 0개",
+      "details": {
+        "successCount": 67,
+        "errorCount": 0
+      },
+      "timestamp": "2025-06-01T00:28:11.481Z"
+    },
+    {
+      "phase": "INSERT_CONSULTATION_DATA",
+      "status": "warning",
+      "message": "데이터 삽입 완료: 성공 50개, 실패 17개",
+      "details": {
+        "successCount": 50,
+        "errorCount": 17
+      },
+      "timestamp": "2025-06-01T00:28:15.149Z"
+    },
+    {
+      "phase": "INTEGRITY_CHECK",
+      "status": "warning",
+      "message": "무결성 체크 완료: 1개 이슈 발견",
+      "details": {
+        "totalIssues": 1,
+        "issueTypes": {
+          "relation_check_error": 1
+        }
+      },
+      "timestamp": "2025-06-01T00:28:30.601Z"
+    }
+  ],
+  "recommendations": [
+    "경고가 발생한 단계가 있습니다. 데이터 품질을 확인하고 필요시 수동으로 수정하세요.",
+    "무결성 체크에서 이슈가 발견되었습니다. integrity_check.json 파일을 확인하여 문제를 해결하세요."
+  ]
+}

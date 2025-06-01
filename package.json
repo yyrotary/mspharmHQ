@@ -7,7 +7,19 @@
     "dev:https": "next dev --experimental-https",
     "build": "next build --no-lint",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "update:consultation-image-urls": "tsx scripts/update-consultation-image-urls.ts",
+    "migrate:consultation-images": "tsx scripts/migrate-consultation-images.ts",
+    "extract:notion-consultations": "tsx scripts/extract-notion-consultations.ts",
+    "insert:consultation-data": "tsx scripts/insert-consultation-data.ts",
+    "test:migration": "tsx scripts/test-migration.ts",
+    "test:system": "tsx scripts/test-complete-system.ts",
+    "test:consultation": "tsx scripts/test-consultation-api.ts",
+    "test:customer": "tsx scripts/test-customer-api.ts",
+    "check:integrity": "tsx scripts/run-integrity-check.ts",
+    "cleanup:test": "tsx scripts/cleanup-test-consultation.ts",
+    "test:supabase": "tsx scripts/check-environment.ts",
+    "test:image-upload": "tsx scripts/test-image-upload-customer-code.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -23,9 +35,12 @@
     "@tensorflow/tfjs-core": "^4.22.0",
     "@types/react-datepicker": "^6.2.0",
     "autoprefixer": "^10.4.21",
+    "axios": "^1.9.0",
     "bcryptjs": "^3.0.2",
+    "cheerio": "^1.0.0",
     "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
+    "fs-extra": "^11.3.0",
     "googleapis": "^148.0.0",
     "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.5.48",
@@ -48,6 +63,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
+    "tsx": "^4.19.4",
     "typescript": "^5"
   }
 }

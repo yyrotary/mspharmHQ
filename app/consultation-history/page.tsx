@@ -46,7 +46,8 @@ function ConsultationHistoryContent() {
       setLoading(true);
       setMessage('상담 내역을 불러오는 중입니다...');
 
-      const response = await fetch(`/api/consultation/history?startDate=${startDate}&endDate=${endDate}`);
+      // Supabase API 사용 (consultation-v2)
+      const response = await fetch(`/api/consultation-v2?startDate=${startDate}&endDate=${endDate}&limit=100`);
       
       if (!response.ok) {
         throw new Error('상담 내역 조회에 실패했습니다.');
@@ -55,19 +56,19 @@ function ConsultationHistoryContent() {
       const data = await response.json();
 
       if (data.success) {
-        // 날짜 기준 내림차순 정렬
+        // Supabase 데이터를 Notion 형식으로 변환
         const sortedConsultations = data.consultations
           .map((consultation: any) => {
             try {
               return {
                 id: consultation.id,
-                customerId: consultation.properties.고객.relation[0]?.id || '',
-                customerName: consultation.properties.고객명?.rich_text?.[0]?.text?.content || '이름 없음',
-                consultationDate: consultation.properties.상담일자?.date?.start || '',
-                consultationContent: consultation.properties.호소증상?.rich_text?.[0]?.text?.content || '',
-                prescription: consultation.properties.처방약?.rich_text?.[0]?.text?.content || '',
-                result: consultation.properties.결과?.rich_text?.[0]?.text?.content || '',
-                symptomImages: consultation.properties.symptomImages || []
+                customerId: consultation.customer_id,
+                customerName: consultation.customer?.name || '이름 없음',
+                consultationDate: consultation.consult_date || '',
+                consultationContent: consultation.symptoms || '',
+                prescription: consultation.prescription || '',
+                result: consultation.result || '',
+                symptomImages: consultation.image_urls || []
               };
             } catch (error) {
               console.error('상담 내역 데이터 변환 오류:', error);
@@ -75,6 +76,14 @@ function ConsultationHistoryContent() {
             }
           })
           .filter((item): item is ConsultationHistoryItem => item !== null)
+          .filter((item: ConsultationHistoryItem) => {
+            // 날짜 필터링
+            if (!item.consultationDate) return false;
+            const consultDate = moment(item.consultationDate);
+            const start = moment(startDate);
+            const end = moment(endDate);
+            return consultDate.isBetween(start, end, 'day', '[]');
+          })
           .sort((a: ConsultationHistoryItem, b: ConsultationHistoryItem) => 
             moment(b.consultationDate).valueOf() - moment(a.consultationDate).valueOf()
           );
@@ -341,7 +350,18 @@ function ConsultationHistoryContent() {
                           <div style={{ flex: 1 }}>
                             <span style={{ fontWeight: 'bold', color: '#1e40af' }}>{consultation.customerName}</span>
                             <span style={{ color: '#6b7280', marginLeft: 8 }}>
-                              {moment(consultation.consultationDate).format('YYYY-MM-DD HH:mm')}
+                              {(() => {
+                                try {
+                                  const date = moment(consultation.consultationDate);
+                                  if (!date.isValid()) {
+                                    return consultation.consultationDate || '날짜 없음';
+                                  }
+                                  return date.format('YYYY-MM-DD HH:mm');
+                                } catch (error) {
+                                  console.warn('날짜 포맷팅 오류:', error);
+                                  return consultation.consultationDate || '날짜 없음';
+                                }
+                              })()}
                             </span>
                           </div>
                         </div>

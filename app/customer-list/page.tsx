@@ -4,9 +4,27 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CustomerListHeader from '@/app/components/CustomerListHeader';
 import CustomerTable from '@/app/components/CustomerTable';
-import { NotionCustomer } from '@/app/lib/notion-schema';
 import Loading from '@/app/components/Loading';
 import Link from 'next/link';
+
+// Supabase 고객 타입 정의
+interface Customer {
+  id: string;
+  customer_code: string;
+  name: string;
+  phone?: string;
+  gender?: string;
+  birth_date?: string;
+  estimated_age?: number;
+  address?: string;
+  special_notes?: string;
+  face_embedding?: string;
+  google_drive_folder_id?: string;
+  consultation_count?: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
+}
 
 export default function CustomerListPage() {
   return (
@@ -19,7 +37,7 @@ export default function CustomerListPage() {
 function CustomerListContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [customers, setCustomers] = useState<NotionCustomer[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [sortField, setSortField] = useState<string>('고객번호');
@@ -37,10 +55,10 @@ function CustomerListContent() {
       setLoading(true);
       setMessage(showTrash ? '휴지통 내역을 불러오는 중입니다...' : '고객 목록을 불러오는 중입니다...');
       
-      // API 엔드포인트 설정
+      // Supabase API 사용 (customer)
       const endpoint = showTrash 
-        ? '/api/customer/trash' 
-        : '/api/customer/list';
+        ? '/api/customer?includeDeleted=true' 
+        : '/api/customer';
       
       const response = await fetch(endpoint);
       
@@ -83,13 +101,13 @@ function CustomerListContent() {
   };
   
   // 고객 선택 처리
-  const handleCustomerSelect = (customer: NotionCustomer) => {
+  const handleCustomerSelect = (customer: Customer) => {
     // 선택한 고객의 상담일지 페이지로 이동
     router.push(`/consultation?customerId=${customer.id}&directView=true`);
   };
   
   // 고객 삭제 처리
-  const handleCustomerDelete = async (customer: NotionCustomer) => {
+  const handleCustomerDelete = async (customer: Customer) => {
     try {
       setLoading(true);
       setMessage('고객을 휴지통으로 이동 중입니다...');
@@ -122,7 +140,7 @@ function CustomerListContent() {
   };
   
   // 고객 복원 처리
-  const handleCustomerRestore = async (customer: NotionCustomer) => {
+  const handleCustomerRestore = async (customer: Customer) => {
     try {
       setLoading(true);
       setMessage('고객을 복원 중입니다...');
@@ -155,7 +173,7 @@ function CustomerListContent() {
   };
   
   // 고객 완전 삭제 처리
-  const handleCustomerPermanentDelete = async (customer: NotionCustomer) => {
+  const handleCustomerPermanentDelete = async (customer: Customer) => {
     try {
       if (!window.confirm('이 작업은 되돌릴 수 없습니다. 고객 정보를 완전히 삭제하시겠습니까?')) {
         return;

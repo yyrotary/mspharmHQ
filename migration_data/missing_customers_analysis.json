@@ -1,0 +1,33 @@
+{
+  "total_notion_records": 72,
+  "active_records": 68,
+  "deleted_records": 4,
+  "supabase_customers": 66,
+  "missing_records": 2,
+  "records_to_add": [
+    {
+      "notion_id": "1e68065e-4391-81eb-8d80-d02edf39fcbc",
+      "customer_code": "00028",
+      "name": "송정숙",
+      "gender": "여성",
+      "is_deleted": false,
+      "created_at": "2025-05-01T06:52:00.000Z",
+      "updated_at": "2025-05-01T06:52:00.000Z",
+      "new_customer_code": "00073",
+      "original_code": "00028"
+    },
+    {
+      "notion_id": "1e48065e-4391-81f2-afdd-c541adc258ff",
+      "customer_code": "00027",
+      "name": "박귀화",
+      "gender": "여성",
+      "estimated_age": 70,
+      "is_deleted": false,
+      "created_at": "2025-04-29T10:31:00.000Z",
+      "updated_at": "2025-04-29T10:31:00.000Z",
+      "new_customer_code": "00074",
+      "original_code": "00027"
+    }
+  ],
+  "analysis_date": "2025-05-31T12:34:21.443Z"
+}

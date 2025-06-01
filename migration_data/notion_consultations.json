@@ -1,0 +1,1467 @@
+[
+  {
+    "id": "2038065e-4391-81c5-a293-d850e11f56f8",
+    "consultation_id": "00068_001",
+    "customer_id": "2038065e-4391-81e8-b570-c18c88671946",
+    "consult_date": "2025-02-18T11:02:00.000+00:00",
+    "symptoms": "소변문제로 상담\n생전 처음으로 생겼다함\n",
+    "patient_condition": "잠그럭저럭\n소화안되는편,\n퍼진변은 없고 덩어리\n입마름있음\n간혹 어지럼, 심장두근거림 있음.",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "활력비책에픽\n유나펜액체 30포\n서비스로 아티진 2판 6일치드림",
+    "result": "3.21방문시 넘 좋았다함.",
+    "image_files": [
+      {
+        "name": "00068_1748608584555_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1jRzyhX7sfihyWfXf9GwyrPw9YuReSeY8/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-30T11:08:00.000Z"
+  },
+  {
+    "id": "2038065e-4391-8167-be7f-e51075304bd0",
+    "consultation_id": "00068_001",
+    "customer_id": "2038065e-4391-81e8-b570-c18c88671946",
+    "consult_date": "2025-03-21T11:07:00.000+00:00",
+    "symptoms": "방광염영양제 더 구매원함\n좌골 신경통으로 다리까지 아프고 저림. 검사상 이상없다함. 약안먹고 포기중. 시술해도 효과없었다함.\n\n다음약은..?\n반대설,치흔, 기허...==> 황실비급, 활비, 조케프, 아티진?\n활비에픽,조케프,아티진, 충임비급?\n---> 혀부은 상태와 기운업,신경통...\n: 황실비급, 조케프, 피크노,큐라, 트레이스미네랄이 좋을듯함.\n",
+    "patient_condition": null,
+    "tongue_analysis": "소변문제 좋음..혀색이 좋아짐\n열문이 선명히 드러남\n설하정맥 설첨까지 블루",
+    "special_notes": null,
+    "prescription": "활비에픽 1달\n유나펜 1달 \n조케프2-2  1달\n피크노1-1  1달\n큐라맥스1-1 추가함 1달",
+    "result": "4.23일 방문시 소변상태는 여전히 좋고\n좌골신경통증은 좋은건지 잘 모르겠다함\n",
+    "image_files": [
+      {
+        "name": "00068_1748608620037_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1d-xgScSPWuhp3VCiiq1l2GVZ4QYw5Lk7/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-30T11:17:00.000Z"
+  },
+  {
+    "id": "1ff8065e-4391-8199-8c14-d42130b53414",
+    "consultation_id": "00066_001",
+    "customer_id": "1ff8065e-4391-8195-82a9-d5c56ec0e74a",
+    "consult_date": "2025-04-07T23:14:00.000+00:00",
+    "symptoms": "피로회복제찾으심\n벤포밸비 재구매,그린프로폴리스(염증얘기하셔서) 1통 재구매\n(1-1) ,기혈대보는 전에 구매하셔서 남음---> 뭐가 좋아진지 모르심, 경옥고 대신 사셨는데 좀 좋았다 예의상 하신것 같음. 근대 재구매한다고 하심.",
+    "patient_condition": "소화:그럭저럭\n변: 무른편\n술많이 드시는편, 혈압약만 드심(고지혈,당뇨약안드심)",
+    "tongue_analysis": "오늘 혀를 보니...안되겄어...담탁많음. 혈관막힘. 있을거 같은데.\n간의 니태를 없애고 일단..다음엔 간편한->밀포, 상황파라, 써큐 1통드릴예정 녹기보랑..",
+    "special_notes": null,
+    "prescription": "녹기보 1달\n간편한세상 1달\n오메가 1통\n선물: 상황파라\n태음인같음, 귀가 부처님, 과묵 진중\n뚝심 목소리 굵음저음",
+    "result": "좋았다함. ",
+    "image_files": [
+      {
+        "name": "00066_1748259298452_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1FdvU2vO3xCz4qf6c6f3TaRttKijIrDgZ/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-26T11:19:00.000Z"
+  },
+  {
+    "id": "1d88065e-4391-8143-8d26-d579f6c76f5d",
+    "consultation_id": "00007_001",
+    "customer_id": "1d88065e-4391-81b3-ab07-ec7882f2d202",
+    "consult_date": "2025-04-17",
+    "symptoms": "살살 춥고, 입맛없고 입이쓰다함\n기운없다 피곤하다함, 마르고 당뇨있음\n관절염없음\n",
+    "patient_condition": "감기약 어제 탔었고 기운없고 추워하는듯.\n면역도 떨어지고.\n---> 넘 피곤하다고 하는거 같아 이렇게 드렸는데 실제 진쌍화랑,갈청 + 기혈대보 드렸으면 좋았을듯 싶다.",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "장비스틱 3포 3일간 (1-0)\n아티진 1판 3일 (2-0)",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-04-17T14:56:00.000Z"
+  },
+  {
+    "id": "1d88065e-4391-8144-9ef5-e0ea88403d5d",
+    "consultation_id": "00006_001",
+    "customer_id": "1d88065e-4391-8186-8274-c4666f679425",
+    "consult_date": "2025-04-17",
+    "symptoms": "주호소증: 얼굴에 열이 오른다. 화끈한느낌이 확올라옴\n",
+    "patient_condition": "오늘 관절약처방받으로 왔음.\n-변상태: 2일 또는 3일에 1번 봄\n-소화 잘됨\n-잠: 잠이 잘 안오고 자주 깬다\n입마름심함, 커피를 하루에3잔 매일마신다함.\n소양인으로 추정, \n진액부족, 물부족, 경면설이 보이는것으로 보아 음허도 있고, 비위흡수기능도 안좋음, ",
+    "tongue_analysis": "담홍설, 경면설, 황태는커피마셔서오염, 설첨 부위 w유(기허),입마름, \n심장열문, ",
+    "special_notes": "다음 방문시에는 혀색이 덜 빨개졌다면... 신허를 체크해서 로얄제리 + 트리테이스 + 광혜고 \n경면설과 설태자양상태보고...",
+    "prescription": "퀴노아 30포(2-0)\n표리쌍해 10포(1-0)\n15일치 먹어봐라 함.\n---> 혀상태에 따라 열감상태에 따라 간장약, 로얄제리포르테, 표리쌍해 또는 진액(녹용든것?)",
+    "result": "소양인으로 추정, \n진액부족, 물부족, 경면설이 보이는것으로 보아 음허도 있고, 비위흡수기능도 안좋음, ",
+    "image_files": [
+      {
+        "name": "00006_1744891254132_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1rqVpoZMkbhbimlS4xVP42c_ieOXK9ggF/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-17T11:59:00.000Z"
+  },
+  {
+    "id": "1d88065e-4391-810b-b9a1-ef987d19d0ac",
+    "consultation_id": "00001_002",
+    "customer_id": "1d78065e-4391-8113-81b3-d730c78cad8f",
+    "consult_date": "2025-04-17",
+    "symptoms": "피곤, 몸에 뭐가 남, 해독문제있음",
+    "patient_condition": "태음인\n녹용기혈대보 7일째 먹고있음\n등판뾰루지, 머리속뾰루지\n담낭물혹있음, 지방간있음",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "녹용기혈대보\n간편한세상\n",
+    "result": "담자설, ",
+    "image_files": [
+      {
+        "name": "00001_002_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1xeA5iohlwIxOX9XIdG7D1VksmTCPLcJY/view"
+        }
+      },
+      {
+        "name": "00001_1745106618597_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1qSQ03QG35XKkLRE22VB52tzoX_VOxMrZ/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-17T08:24:00.000Z"
+  },
+  {
+    "id": "1d98065e-4391-81fd-a6a7-ee306f4646c7",
+    "consultation_id": "00008_001",
+    "customer_id": "1d98065e-4391-8111-8bc0-ce422da5daa7",
+    "consult_date": "2025-04-18",
+    "symptoms": "피곤하다 알러지 꽃가루 전립선",
+    "patient_condition": null,
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "마스크",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00008_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1QVSQ7Rzntt-S2u9Pw4GYwBYJHdFyIsei/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-18T01:38:00.000Z"
+  },
+  {
+    "id": "1dc8065e-4391-81a4-978e-ed06534487e5",
+    "consultation_id": "00014_001",
+    "customer_id": "1dc8065e-4391-816d-81d7-d1446db1ed37",
+    "consult_date": "2025-04-21T07:36:00.000+00:00",
+    "symptoms": "너무 기운없음, 기운올리는 약 먹고 싶어서 오심",
+    "patient_condition": "소화불량 심함, 음식을 먹으면 그냥 소화불량임\n병원에서 위장관 어디가 좁아졌다며 큰병원 가라고 했다함(안동병원 예약 5.11일)\n입도 마르고 쓰다.\n변: 최근 설사를 자주한다.\n\n",
+    "tongue_analysis": "담백설, 담홍설, 거품침, 부분적 무태, 간영역이 상대적으로 태가 진함, 경동맥융기\n설첨 변형된 w",
+    "special_notes": "소음인같아보임,",
+    "prescription": "침향 광혜단 15일분 (설사, 기운빠짐, 배에 힘이 없어보였음)",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00014_1745236650879_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1eXXcrk5PzXRpWBG2PTNiM7HCOuVPK1xi/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-21T07:50:00.000Z"
+  },
+  {
+    "id": "1dc8065e-4391-812d-acd6-ff4dc7cd53f8",
+    "consultation_id": "00013_001",
+    "customer_id": "1dc8065e-4391-814c-abd6-da74990555a8",
+    "consult_date": "2025-04-21T09:00:00.000+00:00",
+    "symptoms": "갱년기 질건조로 인해 호르몬제 복용중인데..도. 얼굴열감이 있다\n얼굴부위전체적으로 빨갰음. 검은 얼굴(타서..)",
+    "patient_condition": "소화: 잘됨\n변: 매일 덩어리\n잠: 잘잔다\n혈압,고지혈약 복용중",
+    "tongue_analysis": "담자설, 약간 청설빛 - 몸 내부가 찬거 같은데\n전혀 안춥다, 추운적도 없다 하심. (소양인인듯..)",
+    "special_notes": "만약 효과가 그저그렇다면, \n표리쌍해(아침), 황실비급(저녁)을 1달 드리고 싶다. 피크노제놀도 1달 추가해서....",
+    "prescription": "보라페민 4개월 (1-1)\n표리쌍해 5일분 드림 (아침 미지근하게 1포): 열내리는 전처리약.",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00013_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/12gOwE-jmVACwmLseIc6eKwGY-zeIiVPM/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-21T01:08:00.000Z"
+  },
+  {
+    "id": "1dd8065e-4391-8198-b252-fe6b583ed7e6",
+    "consultation_id": "00018_001",
+    "customer_id": "1dd8065e-4391-818a-8d75-cde7ed20766d",
+    "consult_date": "2025-04-22T02:13:00.000+00:00",
+    "symptoms": "새벽5시마다 속 미식거림,아픔\n",
+    "patient_condition": "잠: 잘잠\n변: 변비없음\n소화: 그럭저럭, 입맛없음, 음식이 먹기싫음입마름있음, 신경성\n혈압약만 드신다함\n최근 1달치 위장약(안동)드셨으나 밤에 여전히 아팠음\n*소음?",
+    "tongue_analysis": "혀를 닦는것도 아닌데 담홍설(태가없음) 경면설\n위장열문,설첨홍설",
+    "special_notes": "입맛이없다,먹기싫다 해서 비위잡고,소건중의 배아픔진정도 기대 - 소황제\n위,소장 흡수,속쓰림 모두 개선- 메이데이  --> 나중엔 설태가 올라오면..퀴노아와 메이데이...",
+    "prescription": "메이데이 40포 1-1 \n소황제 1달   *서비스: 포도당캔디1병, 아티진1판",
+    "result": "*",
+    "image_files": [
+      {
+        "name": "00018_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1kk17h-d05aJtaFOKC9XOy7DKdrtBBYwv/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-22T02:14:00.000Z"
+  },
+  {
+    "id": "2038065e-4391-8176-810f-da62b553f896",
+    "consultation_id": "00068_001",
+    "customer_id": "2038065e-4391-81e8-b570-c18c88671946",
+    "consult_date": "2025-04-23T11:17:00.000+00:00",
+    "symptoms": "약 재구매하러 오심\n좌골신경통은 여전히 아픔. 약간 안아픈듯 한 느낌이 있는듯? 하다해서 드시러 오심",
+    "patient_condition": "요즘 신경쓰는일이 많아짐. 노동 안함\n소변좋아짐, 혀에 혈액이 차오름이 보임\n잠:그럭저럭\n소화:보통\n변:좋음\n입마름있음, 긴장시 두근거림 여전히 있음, 어지럼이 덜함\n요즘 스트레스와 신경쓰는일이 있음\n5개월전 헬리코박터 제균했음, 그때부터 속이 따꼼했는데 그거 없어짐\n노동일조차도 외적인 일 하지 않는다 하심. (부자 사모님?)",
+    "tongue_analysis": "체질분석:  \n새끼손가락 짧음, 입술건조항상있음\n피부고움. 잠잘때꿈많이 꿈, \n상열감, 배 냉함, 완경후 15년지남\n===> 소양인으로 추정",
+    "special_notes": null,
+    "prescription": "황실비급 아침 : 복냉,피곤,기운,반대설이 여전해서 바꿔봄\n표리쌍해 30일 저녁 --: 열좀 꺼보자\n조케프 2-2\n큐라 1-1\n피크노 1-1",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00068_1748608668523_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1Fj9KSQya89ptepqXjsiHvwXP3Ffqt-Bg/view"
+        }
+      },
+      {
+        "name": "00068_1748608668523_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/11yUAqcbjFJRXAJqVIq0X019mP4KPSpRL/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-30T12:31:00.000Z"
+  },
+  {
+    "id": "1e18065e-4391-81f3-8e1e-e41bcb17653a",
+    "consultation_id": "00023_001",
+    "customer_id": "1e08065e-4391-8138-8e60-f6eecc8aa89d",
+    "consult_date": "2025-04-24T15:39:00.000+00:00",
+    "symptoms": "본인 건강이 염려된다.\n칼슘(미네랄)과 임팩타민구매하심. 그러면서 \n건강걱정(건강검진 겁나서 안받으심)\n요즘 팔다리어깨가 약해진 느낌, 무척 피곤해짐 근래들어\n",
+    "patient_condition": "혈압,당뇨,고지혈약 안먹음, 술거의안드심, 커피하루에 10잔(프리설탕커피)\n소화: 잘됨\n변:덩어리(가끔 퍼진변),방귀 잦음, 냄새있음\n잠:숙면(아주잘), 꿈을 간간히 꿈\n앉았다 일어나면 어지럽다, 추위 많이 탄다. 식사량: 많이 안먹는편, 대식가아님, 식사시간불규칙",
+    "tongue_analysis": "소양인: 손가락 매우짧음, 눈매등 인상강함, 태음은 아님!\n설진: 담백설, 반대설,설첨홍설, 황니태(혀전반), 깊은위장열문",
+    "special_notes": "18세베트남조카: 다리기형수술(키는 60kg 180인데..인대삽입등 복원수술)에 도움되는약구입\n: 조케프 1달, 오스칼 1달, 머슬매니아 1달",
+    "prescription": "간편한 1통 (1-0) 코랄2-2 상황파라 1-0 헤모커리 6-0\n*서비스 기혈대보 3일뜨겁게 저녁에드셔라 드림\n*다음엔 니태상황에 따라 간장약, 메이데이, 상파, 활력비책 또는 녹기혈대보 드리자.",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00023_1745643770101_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/15jobVGA8MANMrTb9kxgVDre9iQCyyR4R/view"
+        }
+      },
+      {
+        "name": "00023_1745643770101_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1EYwfW_Ih-iM1Seh2CxhjjS5OilNbyfaB/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-26T04:59:00.000Z"
+  },
+  {
+    "id": "1e18065e-4391-81f2-9873-e7a8744410ab",
+    "consultation_id": "00021_001",
+    "customer_id": "1e08065e-4391-810e-ad0d-c629325308df",
+    "consult_date": "2025-04-24T17:20:00.000+00:00",
+    "symptoms": "얼굴 입주변 씰룩, 눈아래파르르 떨림, 풍걸릴까봐 걱정되서 오심\n",
+    "patient_condition": "변비: 있음\n소화: 소화약하다, 잘체함\n소변: 2번정도 잠깰정도\n잠: 부족하다(소변땜시), 아기땜시\n추위 무척탄다, 기허,양허, 땀은 안난다\n",
+    "tongue_analysis": "설진사진없음, 소음인, 기허,양허상태",
+    "special_notes": "충임을 드시면 좋을분임",
+    "prescription": "충임 3일간 뜨겁게 1일1회\n써큐 1-1 3일간\n작감 2-2 3일간\n",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-04-26T06:23:00.000Z"
+  },
+  {
+    "id": "1e08065e-4391-81af-896c-d501f056fe4d",
+    "consultation_id": "00026_001",
+    "customer_id": "1e08065e-4391-81da-b519-f222c6252074",
+    "consult_date": "2025-04-25T10:48:00.000+00:00",
+    "symptoms": "\n자주 염증(몸에 뭐가 자주남)\n잇몸출혈도 자주",
+    "patient_condition": "\n당뇨,고지혈,혈압약드심\n현제 비타민씨,저분자콜라겐(다먹음),오메가3드심\n\n\n",
+    "tongue_analysis": null,
+    "special_notes": "살이하얌, 습열이 많아보임(지아웃체질같아보임)\n말이많으심, 간허도 있어보임\n소양인 느낌(태음은 아닌걸로..)",
+    "prescription": "덴프로: 잇몸염증 + 몸속염증\n씨씨콜라겐: 이왕이면 좋고 맛있고 몸에 좋은거로\n\n",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-04-25T10:49:00.000Z"
+  },
+  {
+    "id": "1e18065e-4391-8112-bd8a-f80580557cff",
+    "consultation_id": "00022_001",
+    "customer_id": "1e08065e-4391-816f-bdc4-eedb34740191",
+    "consult_date": "2025-04-26T05:18:00.000+00:00",
+    "symptoms": "알레르기 파부염이 넘 심하다, 오른쪽다리아래쪽 시커먼자국,울퉁불퉁,빨간염증도고여있음.\n몸에도 계속 올라옴, 고양이 알레르기있다함.",
+    "patient_condition": "시골적응중,먹을거 신경안쓰고 간편식드셨다함. 밀가루,라면등으로 야채안드셨다함.안좋아함\n알레그라180mg 처방받음\n배냉하지 않음,완경함, 갱년기증상없음(예전 생리시절 어혈있었음)\n변: 덩어리로 매일, 가스,방귀있음. 냄새는 그럭저럭\n소화:요즘 불편\n잠: 잘잠, 꿈안꿈\n소변: 좋다\n종기 잘안난다(몸에 습열체크하려고..)\n먹는영양제: 비타민디, 밀크씨슬, 콘드로이틴드심\n",
+    "tongue_analysis": "담백설,담자설,황태, 위식도열문, 위식도부분 황니태, 치흔, 간영역 항진보임(매끈)\n: 하초내장영역 니황태, 습역많음 , 위장",
+    "special_notes": "소양인인거 같음 :새끼손가락 짦음, 뭔가 단단한 느낌(약하지않은..), 말많으심\n*다음엔 그린프로, 밀포, 소화효소, 비타민씨고함량 (적혈구연전)",
+    "prescription": "시아플렉스크림: 피부검은자국,염증자국에..항산화,가려움진정\n뷰티올리고 1통 1-0 : 배출잘되게\n식물성오메가(셀메드4만원):  1-1  피부내부염증,피부장벽,피부건조\n그린프로폴리스 1달 : 1-2 ---> 내부염증,면역올리고 장염증제거목적\n서비스:밀포 6일 ---> 간해독",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00022_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1GGYooEdvv5X4N1DqAp4sKdx0W5GOwdin/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-26T05:20:00.000Z"
+  },
+  {
+    "id": "1e18065e-4391-81ef-a35f-cb8bef934b68",
+    "consultation_id": "00027_001",
+    "customer_id": "1e18065e-4391-81af-a846-d736315ae736",
+    "consult_date": "2025-04-26T06:43:00.000+00:00",
+    "symptoms": "설사를 계속함\n3일전 상황파라 구매했는데 계속 설사",
+    "patient_condition": "계속 설사.\n",
+    "tongue_analysis": "담백설,청설, 반대설, 위장관자잘한 열문\n차다는 느낌, 거품침",
+    "special_notes": "청설: 내부가 차다. 녹기보 드려서 같이 드시면 좋을듯.",
+    "prescription": "아티진 2판 2-0 / 메이데이 8일 1-1 /뷰티올리고 6일 1-0\n상파랑 같이 드시라고 함",
+    "result": "4.25일..보건소에서 생생장캡슐 많이 처방받음. 그거 드시겠다함.",
+    "image_files": [
+      {
+        "name": "00027_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/14JmBLdZMMiOtLk8qvLLu-AczF_AO_w4J/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-26T06:44:00.000Z"
+  },
+  {
+    "id": "1e18065e-4391-816f-9b7d-c5fdb2cb84cf",
+    "consultation_id": "00019_001",
+    "customer_id": "1e08065e-4391-815b-a3cd-fbbdc90a71c5",
+    "consult_date": "2025-04-26T06:49:00.000+00:00",
+    "symptoms": "왼쪽 눈아래, 왼쪽볼쪽 씰룩거림",
+    "patient_condition": "소화: 안됨, 밥먹고 울렁거림\n변: 덩어리보거나 퍼진변 보거나 번갈아\n복냉없음, (처녀시절에도 복냉없었음)\n열이 올라있음(얼굴 매일 빨갛다), 추위안탄다(겨울에도)\n잠: 부족(소변 자주보느라)\n2년전 왼쪽귀뒤 혈관협착으로 혈관 떼네는 수술하심",
+    "tongue_analysis": "소양인으로 추정. ",
+    "special_notes": "표리쌍해를 드리면 좋겠다. 혈액 채워주는 약이랑...",
+    "prescription": "-유산균먹고 싶다해서 펜타디 구매함(장이 나쁘진 않다고 말하면서 본인이 원함)\n-눈,얼굴씰룩증상 처방으로==> 1)엠지페롤 2-0 1통 2)써큐레이트 1-0  1통\n*써비스 표리쌍해 1포랑 확편환 2알 씹어드시라고 드림\n",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00019_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1U8c05KZmBVR0LtECqepg1MtP1sjePU7o/view"
+        }
+      },
+      {
+        "name": "00019_001_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1Yn04oGijO5LjmPbCdnBH6mT-g8l52uZu/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-26T06:51:00.000Z"
+  },
+  {
+    "id": "1e18065e-4391-8159-a95b-ef987a4b976b",
+    "consultation_id": "00028_001",
+    "customer_id": "1e18065e-4391-81d2-b47e-fc063cd71f7e",
+    "consult_date": "2025-04-26T07:34:00.000+00:00",
+    "symptoms": "엉덩이 앉는 부위 좁쌀처럼 수포자주생김(아시클로버 바르면 나아짐)",
+    "patient_condition": "소화:잘됨\n변상태: 체크못함\n배:차다, 예전부터 차가움\n최근 너무 피곤하다. 최근 장염이었다.",
+    "tongue_analysis": "담백설, 백니태, 어점,어반, 설첨홍설,심장영역융기되면서 붉다. 하초영역함몰이어서 물어보니 자궁암으로 인해 절제했다함(젊을적에)",
+    "special_notes": "소양인으로 추정(살이 희다) 소음인느낌은 아님.",
+    "prescription": "황실비급 1-0(1달) : 복냉,피로심함, 간,신,허로 인한 피로, 혈허, 따뜻하게 해줄진액보급으로\n그린프로폴리스 2-0(점심,저녁): 몸속내 염증,바이러스제거, 하초 니태로 인한 장염에도 도움",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00028_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1gblPrMMOIgrVP3VH_zTVXl_51HUFIRR_/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-26T07:38:00.000Z"
+  },
+  {
+    "id": "1e48065e-4391-8151-8f50-e08ef4a465a3",
+    "consultation_id": "00023_002",
+    "customer_id": "1e08065e-4391-8138-8e60-f6eecc8aa89d",
+    "consult_date": "2025-04-29T10:40:00.000+00:00",
+    "symptoms": "약먹는중 아직 그저그렇다",
+    "patient_condition": "약간 니태가 좀 걷어짐.",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": null,
+    "result": null,
+    "image_files": [
+      {
+        "name": "00023_002_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1TuIG2DsqKSPbYZHmjpDaovR_tWGVnaw-/view"
+        }
+      }
+    ],
+    "created_at": "2025-04-29T10:41:00.000Z"
+  },
+  {
+    "id": "1e48065e-4391-81b2-9a87-f49885e4b13e",
+    "consultation_id": "00074_001",
+    "customer_id": "1e48065e-4391-81f2-afdd-c541adc258ff",
+    "consult_date": "2025-04-29T10:42:00.000+00:00",
+    "symptoms": "기운이 없다. 어제는 목욕하고 나와서 어지럽고 힘들어서 3번이나 쉬었다 집에 걸어감\n앉았다 일어나면 핑돈다\n머리압력도 높아진거 같다.",
+    "patient_condition": "소화: 잘된다\n변: 덩어리보다는 퍼진변 본다\n잠: 그런대로\n입맛이 없다. 입이 쓰진 않은데 맛이 안느껴진다",
+    "tongue_analysis": "담홍설, 설첨 홍설, 홍반\n황니태, 부분무태, 활태, 침이 주르륵.",
+    "special_notes": "작년 허리수술이후 기운이 없다, 다리힘도 없고..\n혀상태로 보아 영양결핍(부태,부분무태), 기혈소모, 장도 안좋고",
+    "prescription": "침향 광혜고 드렸는데..괜찮으실지..\n--> 만약 안맞는다 호소하면..활력비책에픽 + 퀴노아 드려야할분임.\n:서비스로 아티진 6일분 + 상황파라 6일분 드림 (산양유 단백질을 아침에 따뜻하게 드신다함 그때드시라고 함)",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00074_001.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1CSzdMkvg77LneVSWq0LvQ3uPv7TuhKVg/view?usp=drive_link"
+        }
+      }
+    ],
+    "created_at": "2025-04-29T10:44:00.000Z"
+  },
+  {
+    "id": "1e68065e-4391-816c-b681-c384c6b7bf02",
+    "consultation_id": "00029_001",
+    "customer_id": "1e68065e-4391-81d8-81e5-f87c450db2b7",
+    "consult_date": "2025-05-01T06:53:00.000+00:00",
+    "symptoms": "무릎이 주사맞아도, 처방약 먹어도, 콘드로이틴1200먹어도 아픔\n검사상 관절,연골 이상은 없다함\n",
+    "patient_condition": "소화:잘안됨\n변비 매우극심. 배누르면 딱딱하고 아프다(5일만에 변본다)\n갑상선저하증약드심, 심장스텐트시술,협심증약드심, 박동기달았음\n살질이 희고, 매우피곤하다",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "뷰티인사이드 15병\n리프리놀포르테 15일치 ",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00029_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1xQ91uYj1iLTA-a94-2V5_nEPEyntCY1F/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-01T06:56:00.000Z"
+  },
+  {
+    "id": "1e68065e-4391-81c0-a2b8-e976c35d201b",
+    "consultation_id": "00030_001",
+    "customer_id": "1e68065e-4391-81eb-b835-dfcb8f4643bc",
+    "consult_date": "2025-05-01T11:57:00.000+00:00",
+    "symptoms": "아랫입술따갑다, 면역약 먹고싶다\n가래,쉰목소리 있다.\n알약잘 못먹음. 넘기는게 힘들다 하심(예전엔 이정도는 아니었는데...)",
+    "patient_condition": "소화:잘안됨\n변:퍼진변\n잠:못잔다.\n아랫입술염증(두꺼워지고 붓고따갑고)-병원약먹으면 괜찮아지고 안먹으니 안좋은듯.\n갑상선기능저하증약 복용중\n수영 매일하는데 수영후 기운극심 저하,다리휘청함.",
+    "tongue_analysis": "담백설,반대설, 양허(내부가 차가움), 백태",
+    "special_notes": "25.5.7일 방문 그린프로폴리스 어젯저녁에 저녁먹은 한참뒤에 드시고 잤는데\n등쪽까지 아픔.--> 위염이 원래있었는데 (죽먹는중)...드시고 자서 위자극받은상황\n프로폴리스 먹어서 소변염증이 좋아진듯하다 평가는 하심\n그린프로폴리스를 1일 1회1알로 식후복용하셔라 함",
+    "prescription": "갑상선영양제: 트레이스 1달(2-0)\n면역,염증 : 그린프로폴리스 1달(1-2)\n효소: 카무트 1달(1-0)\n가래쉰목소리: 경방맥문동 6포 + 반후 6포\n친정엄마(당뇨,기운없음): 홍삼코큐텐 1동 구매함",
+    "result": "   * 아무래도 양허개선과 (녹용기혈대보) + 위장관 개선(트리플액션)을 드시는게 좋을듯.\n",
+    "image_files": [
+      {
+        "name": "00030_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1jIMowAXRdJC8sAQthVL17ZEXOIqkMkZi/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-01T12:02:00.000Z"
+  },
+  {
+    "id": "1e88065e-4391-819d-89fa-dc1bf5e3decf",
+    "consultation_id": "00011_001",
+    "customer_id": "1da8065e-4391-813e-8810-fbefa70f20ad",
+    "consult_date": "2025-05-03T09:08:00.000+00:00",
+    "symptoms": "설첨 구내염, 설변(간영역) 구내염으로 아프다\n몸이 가려워 잠 잘 못잔다",
+    "patient_condition": "변: 변비약간(처음은 굵게 시원하게나옴) 원래 퍼진변이엇음\n소화: 소화잘 안됨.\n",
+    "tongue_analysis": "설첨부위, 간위치에 구내염빨갛게(간 피곤, 심장피곤)",
+    "special_notes": null,
+    "prescription": "예전구매: 에이스유산균 드시고 계심, 메이데이+위메드 구매해서 드시고계심(속편하다고 했는데 몇일끊었다함, 피부가 가렵고 해서 걱정되어서)\n--> 예전구매약 다 드시라고 말씀드림\n\n",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00011_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1-AAWqd8rjqLUpXEql_WqSAo3V7VWeOfl/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-03T09:10:00.000Z"
+  },
+  {
+    "id": "1e88065e-4391-8119-b894-fc52cd477275",
+    "consultation_id": "00031_001",
+    "customer_id": "1e88065e-4391-8140-9666-f822f255f5bb",
+    "consult_date": "2025-05-03T09:58:00.000+00:00",
+    "symptoms": "아티진 2알, 뷰티올리고 2일 먹고\n배가 너무 아팠다. 배꼽 아랫배 왼쪽이 너무\n그래서 아티진 2판 +뷰올 20일치 반품함.\n원래 엘포피플로라만 드셨었음(다른 유산균먹으면 안맞고 아팠던거 같음)",
+    "patient_condition": null,
+    "tongue_analysis": "홍설,자설,설첨어점,황조태, 거품침, 심장열문, 위장관계 열문",
+    "special_notes": "장에서도 진액부족이 심한듯.",
+    "prescription": null,
+    "result": null,
+    "image_files": [
+      {
+        "name": "00031_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1i5zC5jKfRRXwluQyq118z8yEwxBP-Asp/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-03T10:00:00.000Z"
+  },
+  {
+    "id": "1e88065e-4391-8156-af27-fc13585ecf90",
+    "consultation_id": "00032_001",
+    "customer_id": "1e88065e-4391-816a-84f0-e366340f6a2c",
+    "consult_date": "2025-05-03T10:08:00.000+00:00",
+    "symptoms": "여드름 심함\n어지럼, 생리를 많이 건너뛴다.",
+    "patient_condition": "기숙사생활,고등학생됨\n여드름심함, 생",
+    "tongue_analysis": "담백설,어점,설첨홍설, 백태(기허백태로 보임)",
+    "special_notes": "담백설이므로 고등학교동안 혈액을 많이 채워줘야함!",
+    "prescription": "10일전에 (페럼리퀴드 1달 오메가3 3달치)\n입술이 벗겨져서(자주그렇다함) -투엑스비디큐 가져감\n",
+    "result": "10일만에 오메가,페럼리 먹고 여드름많이진정됨",
+    "image_files": [
+      {
+        "name": "00032_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1uuPYoUhsMpUr0MMnLwDNJF_B68zCRxHL/view"
+        }
+      },
+      {
+        "name": "00032_1746267593586_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1LpSrh5rwrY1Gn_n-FmkN-asvY8brWbXK/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-03T10:10:00.000Z"
+  },
+  {
+    "id": "1ed8065e-4391-818e-9d14-f41762282331",
+    "consultation_id": "00034_001",
+    "customer_id": "1ed8065e-4391-81a6-8b60-da5d2be74fa3",
+    "consult_date": "2025-05-07T04:38:00.000+00:00",
+    "symptoms": "대장암 관리, 피곤, 건강관리원함",
+    "patient_condition": null,
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": null,
+    "result": null,
+    "image_files": [
+      {
+        "name": "00034_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1avCPw_tL6YTR0N42_NuZGEMBqAlyIbZi/view"
+        }
+      },
+      {
+        "name": "00034_001_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1y5K5U7QIzKirghqK0aMRVEeYwK2T0ZQE/view"
+        }
+      },
+      {
+        "name": "00034_001_3.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1vMtkZnlNzUz7ZcNbvXeOUNJT9unlbHzb/view"
+        }
+      },
+      {
+        "name": "00034_001_4.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1OdUAyKzA-_zAEH1X77Y1SXyFY7TZFJJ6/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-08T04:41:00.000Z"
+  },
+  {
+    "id": "1ed8065e-4391-81eb-98b1-f5c5092b30b2",
+    "consultation_id": "00033_001",
+    "customer_id": "1ed8065e-4391-8163-ad5d-e07475bf5f5b",
+    "consult_date": "2025-05-08T01:10:00.000+00:00",
+    "symptoms": "발이 부었다.\n늘먹던 써큐 먹고 싶어서 오심",
+    "patient_condition": "소화:잘됨\n변:묽은편(덩어리 지지 않는다)\n잠: 잘잔다(2-3시간 만 푹자고 깸. 소변봄)\n손붓는다, 피곤하면 눈주변 붓는다\n배가 냉하다.손차다, 발차다. 25.5.8일 오늘 발이부어서 알닥통0.5정에서 1정으로 증량",
+    "tongue_analysis": "담백설,활태,심장영역열문, 백태, 배가 냉함을 개선해야할분.",
+    "special_notes": "배가너무참. 중심따뜻하게 할약이 필요함.그래야 손발 부종,냉감, 눈붓기없어질듯\n심장의 기운도 떨어지므로 따뜻하게 해서 순환돌릴약으로 가면 좋겠다.\n활력에픽 추천함",
+    "prescription": "써큐레이트 2달만 사감(원래 드셨던거.)\n서비스: 배따듯하게 할 녹용기혈대보 1포 드림  --> 다음엔 활력비책에픽을 추가드셔보시기로.",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00033_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1L_S47rDBqorGZbCxjyrEksqcPaO_PzV9/view"
+        }
+      },
+      {
+        "name": "00033_001_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1KunIJPkRGdNAHQI9ycYi66i9XumOyzc6/view"
+        }
+      },
+      {
+        "name": "00033_001_3.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1Gg3hOUtzM_DNKKKULc-jLSc30FitiZrs/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-08T01:12:00.000Z"
+  },
+  {
+    "id": "1f08065e-4391-8135-ab66-f0bf8f61c4c8",
+    "consultation_id": "00035_001",
+    "customer_id": "1f08065e-4391-8168-b793-d71a77cbe9ce",
+    "consult_date": "2025-05-11T02:18:00.000+00:00",
+    "symptoms": "중풍약찾음\n팔에힘이빠지고 다리힘도 빠짐\n손발 차다",
+    "patient_condition": "연로한 할아버지",
+    "tongue_analysis": "암자설,홍설, 청설 황태,박태, (담자설이 아니었음.열이 있었음, )\n",
+    "special_notes": "-->황태(담탁,습탁)+ 암자,홍설,청설, 박태 (기허,음허,열증, 영양분부족)개선...쪽으로갔어야\n---> 써큐+피크노+ 밀포 + 광혜단으로 가면 좋았을까?",
+    "prescription": "연통환 9포(1-1-1)\n써큐 1판 1-1\n녹기보 2포 1일 1회",
+    "result": "녹기보등 약드시고 입원함(온몸이 너무 쑤시고 아파서), 청심환사러(부인)방문함...",
+    "image_files": [
+      {
+        "name": "00035_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1FUoWU4pmKhpfArlQpL_3z8hTyv-ElZQj/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-11T02:22:00.000Z"
+  },
+  {
+    "id": "1f08065e-4391-8127-9360-da241b4efb3e",
+    "consultation_id": "00030_002",
+    "customer_id": "1e68065e-4391-81eb-b835-dfcb8f4643bc",
+    "consult_date": "2025-05-11T11:11:00.000+00:00",
+    "symptoms": "소화가 안된다.",
+    "patient_condition": "가운데 손톱 아픔, 약지 손톱 아픔\n소화안됨.",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "확편환 1, 올체(위령탕)1포, 생록천 1병 먹고 좋았음\n확편한 3, 올체 3포, 평위천 2병으로 재구매해감",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-11T11:12:00.000Z"
+  },
+  {
+    "id": "1f18065e-4391-816c-aaa0-ce1972caace3",
+    "consultation_id": "00036_001",
+    "customer_id": "1f18065e-4391-8135-9f92-f02c1fe1383c",
+    "consult_date": "2025-05-12T11:26:00.000+00:00",
+    "symptoms": "전립선(휴다트,씨트로신0.2)먹는데도 소변이 잘 안나오고 자주. 눌때 묵직하다",
+    "patient_condition": "소화:보통, 술아예안드심\n변:덩어리, 가스 자주있다\n잠:보통, 소변보러 밤중 깸",
+    "tongue_analysis": "설하정맥:블루 끝까지있음, \n반대설,담백설,설첨담홍,심장영역소태,간영역설변 홍설,하초영역 황니태",
+    "special_notes": "심장소모되는일 있으신듯. 하초황니태(습탁정체)\n반대+담백: 기허,양허도 있으심",
+    "prescription": "녹용기혈대보 저녁 1달\n유나펜리퀴드 저녁 1포 30일치\n써팔메토 2만원짜리",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00036_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/11hSIe9p6huFWxud0VHQXRAlcyRZiXTtV/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-12T12:03:00.000Z"
+  },
+  {
+    "id": "1f18065e-4391-8195-b7bf-c78471a078fe",
+    "consultation_id": "00037_001",
+    "customer_id": "1f18065e-4391-810d-af8c-c29103f51fdc",
+    "consult_date": "2025-05-12T12:07:00.000+00:00",
+    "symptoms": "소변 못참겠음. 자주마려움. \n네프신,유나펜먹어봐는데도..",
+    "patient_condition": "오랜신경안정제로 음허상태로 보임. 잦은소변과 참기힘듦은 오래되지 않았다(약 3달)하니...\n음허보충 및 방광습열",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "뷰티인사이드 10병\n유나펜 10일\n네프신 0 - 4 드시기로",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00037_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1hdIdhoUHK_AHxVS5BDhZviJF_X2gQwVM/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-12T12:08:00.000Z"
+  },
+  {
+    "id": "1f28065e-4391-8100-9f26-f8365051b2eb",
+    "consultation_id": "00035_002",
+    "customer_id": "1f08065e-4391-8168-b793-d71a77cbe9ce",
+    "consult_date": "2025-05-13T03:57:00.000+00:00",
+    "symptoms": "아직저리다.근데 알약은 효과없고 녹기대가 좋은듯하다.",
+    "patient_condition": "약간 채워짐",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "녹기대만 2포 구매함-더 오래드셔라 말씀드렸음",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-13T03:58:00.000Z"
+  },
+  {
+    "id": "1f28065e-4391-8156-aafb-f15bfe915ac0",
+    "consultation_id": "00038_001",
+    "customer_id": "1f18065e-4391-81bc-aefd-cb1633385b64",
+    "consult_date": "2025-05-13T03:58:00.000+00:00",
+    "symptoms": "소변볼때묵직,아픔-네프신(40404)프로폴리스칸(2-2-2) 계속재구매\n가스가 많이찰때 너무 아픔 진통제찾음",
+    "patient_condition": "방광암10년째임. 그이후로 아플때 네프신+프로폴리스칸이 맞아서 재구매중\n변은 덩어리 또는 퍼진변 번갈아.\n가스가 차서 배가 아픔(아마도 변비있을때 아픈듯)",
+    "tongue_analysis": "하초황니태, 암자설(담자설빛) 설진사진없음. 차가운혀였음",
+    "special_notes": null,
+    "prescription": "가스로인해복통시 스파토민 드림\n가스제거로 뷰티올리고 10일, 상황파라 10일, 아티진 2판",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-13T04:02:00.000Z"
+  },
+  {
+    "id": "1f28065e-4391-81e8-96f0-f63e81bb4fde",
+    "consultation_id": "00039_001",
+    "customer_id": "1f28065e-4391-819d-bf37-c8c17e95b45b",
+    "consult_date": "2025-05-13T05:12:00.000+00:00",
+    "symptoms": "밥을 안먹고 다리힘없고 비틀거린다.누워있다.\n코를 푼다. 코푸시럽에스 드렸다함. 지금은 코안나옴.\n미음은 드셨음. ",
+    "patient_condition": "체한것 아님. 담음,답탁이 무척많은분. 감기기운이 있는듯\n콧물로 나온듯하다.\n일단 소청 3포, 녹기보 3포, 조케리 3포 + 아웃콜에프(감기약 필요시)",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "일단 소청 3포, 녹기보 3포, 조케리 3포 + 아웃콜에프(감기약 필요시)",
+    "result": "2번먹고 다나아서 오늘 복지관가셨다함. 근데 보약지어먹는다 함.ㅠㅠ",
+    "image_files": [],
+    "created_at": "2025-05-13T05:15:00.000Z"
+  },
+  {
+    "id": "1f38065e-4391-8159-b2f3-dd2d2dca5a33",
+    "consultation_id": "00041_001",
+    "customer_id": "1f28065e-4391-8179-a467-f4583c9d828a",
+    "consult_date": "2025-05-13T23:47:00.000+00:00",
+    "symptoms": "우측측면편두통 심하다 말하면서 오른쪽눈 찡그림 진통제 먹었는데도 아픔",
+    "patient_condition": null,
+    "tongue_analysis": "담홍설 조태 열문 혀가얇음 입이 쓰다",
+    "special_notes": null,
+    "prescription": "써큐 1판 피크노 1판\n간편한 3일 광혜고 2일\n탁센 필요시",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00041_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1t1HTcNK-FXTYyISpQ-1LVoqOllT-UgwR/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-14T00:12:00.000Z"
+  },
+  {
+    "id": "1f38065e-4391-8179-b317-f745743c24fa",
+    "consultation_id": "00043_001",
+    "customer_id": "1f38065e-4391-8169-b709-fd7d95425ebd",
+    "consult_date": "2025-05-14T00:50:00.000+00:00",
+    "symptoms": "간염환자임,b형,ytf 찾음",
+    "patient_condition": "변: 딱딱한변\n소화잘된.ㄴ편\n잠 잘잠\n피로가 많다\n담배 핌,술 가끔\n혈압당뇨 없다\n간염약은 안먹는상태\n",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "간편한세상",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00043_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1ib78zLuYfr9Qexns8pg1a-e2sYfScfWv/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-14T00:52:00.000Z"
+  },
+  {
+    "id": "1f38065e-4391-81c6-9280-c217ca77109e",
+    "consultation_id": "00045_001",
+    "customer_id": "1f38065e-4391-8173-b7d3-c3443fa1742e",
+    "consult_date": "2025-05-14T11:58:00.000+00:00",
+    "symptoms": "위궤양진단(식도근처,위중간,십이지장근처)\n생리통극심",
+    "patient_condition": "소화:위궤양으로인한통증(약처방먹고있음)\n변:토끼똥,검은색\n잠:깊은잠 못잠\n소변:잘봄\n입맛:식욕좋다, 입마름있다, 자궁문제있음",
+    "tongue_analysis": "설하정맥:검다.",
+    "special_notes": "위궤양진단시 의사가 암이 안되게 조심하라했다하함.",
+    "prescription": "아교궁: 0-1 1달 (생리통,자궁 냉감및 문제개선)\n퀴노아: 1-0 1달 (위궤양으로인한 영양결핍\n헤모커리: 0-6 1달(혈부족증 채워주기, 단백질도)\n리버케어: 1-0 1달(간음허 채워주기. 입마름, 토끼통, 생리, 술많이먹은이력등등..스트레스)\n이지페인레이디 생리통 있을때만\n서비스: 프리다 6판 - 2알씩 생리통시 드세요, 쌍화고 6포 - 생리통시 드세요\n\n\n",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00045_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1noiQrg9y-LJqT3ClKMOy_2tvQgynRujo/view"
+        }
+      },
+      {
+        "name": "00045_001_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1x18j2MNi6uuNUzT1QgnP1ru4V9VvmKTk/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-14T12:03:00.000Z"
+  },
+  {
+    "id": "1f38065e-4391-814e-b392-edb6fd6e98e8",
+    "consultation_id": "00044_001",
+    "customer_id": "1f38065e-4391-81e1-aa5d-c5d3312d6b9a",
+    "consult_date": "2025-05-14T14:43:00.000+00:00",
+    "symptoms": "너무피곤 아침울렁거림\n위염도 있다",
+    "patient_condition": null,
+    "tongue_analysis": null,
+    "special_notes": "가족약: 펜타디 3통, 비디 3통\n남편약:더나음콘드로이틴2달,코랇통",
+    "prescription": "본인약: 황실비급 10일 아침\n트레이스미네랄 (2-0)\n서비스: 아티진 9일치",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00044_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1F5HS_bKPnGNXtsmLnp6LiGwQR-62QVCn/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-14T14:46:00.000Z"
+  },
+  {
+    "id": "1f48065e-4391-81bf-bd19-fa9b9bc881ef",
+    "consultation_id": "00048_001",
+    "customer_id": "1f48065e-4391-8185-80e5-cfe0668b1224",
+    "consult_date": "2025-05-15T04:22:00.000+00:00",
+    "symptoms": "너무 기운이 없음, 입맛도 없다, 머리도 띵하다.",
+    "patient_condition": null,
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "장비스틱 + 밀포 + 하이맥스 리퀴드 3일치\n서비스:포터나 1포 드림",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-15T04:25:00.000Z"
+  },
+  {
+    "id": "1f48065e-4391-8150-ba52-d6cb02c0e252",
+    "consultation_id": "00049_001",
+    "customer_id": "1f48065e-4391-8188-a851-de3709fea09b",
+    "consult_date": "2025-05-15T04:29:00.000+00:00",
+    "symptoms": "일어날때, 드러누울때, 고개젖힐때 어지럽다.한참동안\n",
+    "patient_condition": "변: 덩어리와 퍼진변 번갈아봄\n소화: 그럭저럭, 입맛살아있음.",
+    "tongue_analysis": "사진없음:담홍설,약간홍설, 태가없다, 활태였음..약간사각설,약간 반대설",
+    "special_notes": null,
+    "prescription": "훼럼리퀴드 5일 1-0\n하이맥스리퀴드 5일 1-0",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-15T04:37:00.000Z"
+  },
+  {
+    "id": "1f48065e-4391-81cc-b529-f9f7adadae53",
+    "consultation_id": "00050_001",
+    "customer_id": "1f48065e-4391-8199-8d14-c517cfd4fc26",
+    "consult_date": "2025-05-15T11:50:00.000+00:00",
+    "symptoms": "비문증 진단(작년에. 도베셀처방받아 먹는데 차도가 없음)\n",
+    "patient_condition": "소화:위염있음, 잘체함(피자,기름기많은 음식무조건 체함)\n변:덩어리지만 무른경향\n잠:못잔다\n배차갑다. (완경은 되었으나 젊을적 생리통없었음)\n눈이 뿌였다. 비문증 뭔가 떠있는게 있다.",
+    "tongue_analysis": null,
+    "special_notes": "다음번엔 글라우빌, 피크노제놀, 소화효소 드리고 싶다\n진액은?",
+    "prescription": "글라우빌 2-0 1달\n황실비급 1-0 (10병) 아침\n표리쌍해 0-1(10병) 저녁\n",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-15T12:19:00.000Z"
+  },
+  {
+    "id": "1f58065e-4391-8173-9111-c370118b07c8",
+    "consultation_id": "00057_001",
+    "customer_id": "1f58065e-4391-811b-a593-efc17676a145",
+    "consult_date": "2025-05-15T15:10:00.000+00:00",
+    "symptoms": "기운떨어짐",
+    "patient_condition": "소화:안됨,위장약드심,입이씀\n변:딱딱하진 않다\n잠:못잠, 수면제드심\n추위 너무탐,춥다하심",
+    "tongue_analysis": "왜사,수박설,조태,후백태",
+    "special_notes": null,
+    "prescription": "1.활력비책에픽 1달 (1일1회인데\n반포씯 나누어 드셔라 괜찮으면 다드시라함)\n2.아티진 1달",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00057_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1yQ-SpcOY0YG_MSx34I2zatpiuhpniXYq/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-16T15:14:00.000Z"
+  },
+  {
+    "id": "1f48065e-4391-8191-b73a-c65165d00483",
+    "consultation_id": "00051_001",
+    "customer_id": "1f48065e-4391-81fa-82a9-c44acab6d423",
+    "consult_date": "2025-05-15T23:54:00.000+00:00",
+    "symptoms": "너무피곤",
+    "patient_condition": "소화:보통\n변:퍼진변 냄새심하지.않음\n잠:그럭저럭\n기운없음,입마름\n소변은 보통\n아침에 백태가너무껴서 닦는다",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "파나시아환 1알\n활력비책에픽 10일",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00051_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1kVAztpWxLu-2_issGUPWbr_XgwL2lfuH/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-15T23:57:00.000Z"
+  },
+  {
+    "id": "1f58065e-4391-815d-a4e5-c717a1c25423",
+    "consultation_id": "00052_001",
+    "customer_id": "1f58065e-4391-8163-817c-d3015b3364ae",
+    "consult_date": "2025-05-16T01:40:00.000+00:00",
+    "symptoms": "교통사고로 뼈부러진 다리가 아픔. 오른쪽다리 정강이랑 발끝저림",
+    "patient_condition": null,
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "조케리퀴드 30포 (15일)\n큐라맥스 1통 1-1 (1달)",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00052_1747359886969_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1Hd8BLwaR_BLyUBY3cMw4fClrufQOKn2r/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-16T01:42:00.000Z"
+  },
+  {
+    "id": "1f58065e-4391-8189-bc9d-e444caed6366",
+    "consultation_id": "00054_001",
+    "customer_id": "1f58065e-4391-81a5-bc72-cb25d1ce014a",
+    "consult_date": "2025-05-16T01:45:00.000+00:00",
+    "symptoms": "피곤하다. 입도 쓰다.기운없고.잠이 잘 안든다.",
+    "patient_condition": null,
+    "tongue_analysis": "사진없음: 전체경면설, 부분적 황태조금남음, 담홍설(붉었다), 주름진혀,활태(침이주르륵)",
+    "special_notes": "천식증상있었음",
+    "prescription": "소황제 10일 (양허,기허입맛..등등...등\n아티진 3판(9일): 입이 쓴것....",
+    "result": "3번드시고 모두 반품함. 2일째 못잤다함",
+    "image_files": [
+      {
+        "name": "00054_1747699758769_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1PaII__zh0u-ClRPrTa0sWW8SAterrYv6/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-16T01:48:00.000Z"
+  },
+  {
+    "id": "1f68065e-4391-81b3-9e30-d0ac05b3bcd3",
+    "consultation_id": "00059_001",
+    "customer_id": "1f68065e-4391-81c9-b505-df149fa87a6b",
+    "consult_date": "2025-05-16T02:49:00.000+00:00",
+    "symptoms": "콘드로이친 먹고싶어서",
+    "patient_condition": "식은땀 줄줄(낮, 밤둘다)\n관절도 여기저기 아픔",
+    "tongue_analysis": "담백설,황니태, 하초깊은 열문, 어반, 반대설, 치흔, 간영역융기. 약간 사각설(폐기허)",
+    "special_notes": "흑염소 계속드셨다함. 요즘 중단함(잘했다함. 황니태심함,)\n소화문제로 인한 피로,기허가 보임\n--> 다음번에 혀상태(니태)개선, 하초열문을 위한 간편한세상, 위메드 , 기운보고 활비에픽드릴것",
+    "prescription": "조인트케어리퀴드 30포 (1일 1회 1포)\n5.17일 옆구리통증,온몸아프다해서 근이완제 2-2,작감 2-2, 활력비책에픽 3일분 드림",
+    "result": "5/17일 방문 옆구리가 아프고(결린것처럼),어깨도 아프고 (명현반응)\n조케리 1포 드셨는데 아주 달고 맛있었다함(잘맞음)\n",
+    "image_files": [
+      {
+        "name": "00059_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1WA_SjFgo138XH3rlSUTu1_Mm68HkvmCI/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-17T02:50:00.000Z"
+  },
+  {
+    "id": "1f58065e-4391-810a-a0a2-d1c69e79cef0",
+    "consultation_id": "00055_001",
+    "customer_id": "1f58065e-4391-8165-8bc1-e868a1c68db6",
+    "consult_date": "2025-05-16T14:46:00.000+00:00",
+    "symptoms": "너무 피곤",
+    "patient_condition": "소화: 안되는편\n변: 덩어리아님 무른경향\n잠: 잘못잠",
+    "tongue_analysis": "반대설",
+    "special_notes": null,
+    "prescription": "광혜단",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00055_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1BOzwBr--NxmyQk0sF4GA_WlhLwOe_BpE/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-16T14:48:00.000Z"
+  },
+  {
+    "id": "1f58065e-4391-8154-aa3d-d533862d3af7",
+    "consultation_id": "00056_001",
+    "customer_id": "1f58065e-4391-8130-9090-ed5e6266457c",
+    "consult_date": "2025-05-16T14:59:00.000+00:00",
+    "symptoms": "어깨경직이 넘 심함,목뒤까지 올라와묵직,아프다, 스트레스로 극심해서 가슴중앙아프고 횡경막아래배쪽에 뭔가차있는 느낌",
+    "patient_condition": "소화:안됨\n변:매일 쾌변(뷰올먹는중)\n잠:아주 잘잠\n하품 많이함, 혀마름,입이 쓰진않다\n요즘 물을많이 먹게된다,방광염 자주 생기긴 하나 현재 소변은 문제없음,거품도 없음",
+    "tongue_analysis": "소양인(표리쌍해 달다함)\n담백설,반대설,혀가긴장,설첨홍설,어점\n중부혈,협곡혈누르니 모두 아파함",
+    "special_notes": "밀포,코랄,혈압케어,훼럼리퀴드 복용중임",
+    "prescription": "영심안신: 5일 \n사역산 10포 bid\n롱파워 1판 1알 qd\n피크노 1판 1알qd\n배농 1판 4알 bid\n광혜고: 3일. 달면 계속먹자함",
+    "result": "다음날 어깨경직이 많이 풀렸다함",
+    "image_files": [
+      {
+        "name": "00056_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1U1wBdfmGaN_iY-DKCuDQ09Z4WDoU4d1L/view"
+        }
+      },
+      {
+        "name": "00056_001_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/17YWYcOCxbolArmiUmkV7-m2knmUprxud/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-16T15:06:00.000Z"
+  },
+  {
+    "id": "1f68065e-4391-81e0-9870-dd68945907df",
+    "consultation_id": "00060_001",
+    "customer_id": "1f68065e-4391-81a4-a4b1-ed67d394e1a8",
+    "consult_date": "2025-05-17T03:10:00.000+00:00",
+    "symptoms": "코피가 나심(엎드려서 뭔가 하면 계속 코피남 3일째)",
+    "patient_condition": "기운없음.입마름, 입도 쓰다.\n위장도 않좋아서 위염약드심",
+    "tongue_analysis": "담홍설,담자설, 반대설, 설첨 홍설, 심장식도열문 및 소모가많이 되어보임, 간영역 붉음",
+    "special_notes": null,
+    "prescription": "침향광혜고 10일분\n밀포 1판 (1-0) 6일분\n피크노 1판(1-1)  3일\n써큐 1판 (1-1) 3일\n",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00060_1747451708257_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1o0KubEq6hI73BJsEUkOT6NMGSPcC2O3i/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-17T03:14:00.000Z"
+  },
+  {
+    "id": "1f68065e-4391-81ed-9bbb-e23309c46f73",
+    "consultation_id": "00061_001",
+    "customer_id": "1f68065e-4391-814e-a6d7-cf73b0a95bb2",
+    "consult_date": "2025-05-17T09:58:00.000+00:00",
+    "symptoms": "황반변성있는데 안과갔더니 왼쪽눈에 피고임이있어서 수술해서 빼기로함. 처음엔 앞이 안보였음. 지금은 희미함. 5/22일 시술예약됨\n피가 굳지 않게하는약 달라고함.",
+    "patient_condition": "뇌경색약(고지혈+항혈전),혈압은안드심,,수면제드심\n소화: 위염(틀니한 이후로 혀마름심함)\n변: 묽은편\n잠: 수면제 드셔야 잠\n",
+    "tongue_analysis": "홍설,수박설,왜사,심장부터식도,위장열문, 거품침, 황니태(중앙)",
+    "special_notes": null,
+    "prescription": "아이맥스 2판(1-1) 6일\n피크노 2판(1-1) 6일\n광혜고 6일  (1-0)\n트리플액션 6일 (1-0)",
+    "result": "약드시고 3일후 두통심해지고 몸에 발진이 나서 중단하심. (어혈이나 염증이 몸속에 많고, 간열에 대한 부분을 체크하지 못한게 아쉽....)",
+    "image_files": [
+      {
+        "name": "00061_1747580681096_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1mdlVuXzMF3J6KFP9p6gw2zNPA80Drv2p/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-17T10:02:00.000Z"
+  },
+  {
+    "id": "1f68065e-4391-81bd-bb72-f330a2188c1b",
+    "consultation_id": "00062_001",
+    "customer_id": "1f68065e-4391-810b-b8e1-c539e2f35447",
+    "consult_date": "2025-05-17T10:31:00.000+00:00",
+    "symptoms": "술먹으면 뒷목(머리쪽올라가는 특정한곳)이 3일째 아프다. 다른부위 두통없음.",
+    "patient_condition": "당뇨,혈압,고지혈약드심\n입마름없다\n변: 무른경향\n술 먹는다. ",
+    "tongue_analysis": "태음인임(100%확실)",
+    "special_notes": null,
+    "prescription": "녹용기혈대보 3포\n피크노 1-1 1판\n써큐 1-1 1판\n트리플액션 3포 (1-0)\n간편한 3포(1-0)\n터논 진통제 필요시\n",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00062_1747580632573_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1_EVpAC7Sz5TTtKYw-cSdzvR8yYXf0F9q/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-17T11:11:00.000Z"
+  },
+  {
+    "id": "1f98065e-4391-81c7-8f2d-f5287f4f8445",
+    "consultation_id": "00054_002",
+    "customer_id": "1f58065e-4391-81a5-bc72-cb25d1ce014a",
+    "consult_date": "2025-05-19T00:43:00.000+00:00",
+    "symptoms": "2일째 잠못잠. 어지러움",
+    "patient_condition": "음허한혀: 침향광혜고 반포씩 드시도록 하면서, 위음이 부족(경면,부태등), 트레이스미네랄도 추가",
+    "tongue_analysis": "무척 음허한혀임\n홍설,수박설(혀가조그마함) 단축설(기허), 설첨항진, 홍점어혈반, 부태, 부분경면설,거품침, 심장식도열문",
+    "special_notes": null,
+    "prescription": null,
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-20T00:48:00.000Z"
+  },
+  {
+    "id": "1f98065e-4391-8178-82ad-f603245ce75b",
+    "consultation_id": "00063_001",
+    "customer_id": "1f98065e-4391-8103-857b-c726f2ee7487",
+    "consult_date": "2025-05-20T11:51:00.000+00:00",
+    "symptoms": "오른쪽혀뿌리끝.편도위치로 너무 아픔(3일째인데\n일반약 사먹어도 아픔). 지금은 몸살까지 왔음.\n어깨뼈,쇄골뼈,손가락뼈 관절의 돌출된  뼈가 아프다라고 표현 -->",
+    "patient_condition": "갑상선암수술했었음\n소화-밥을 못먹고 일함. 너무 혀가 아파서.말도잘 못함\n변-잘본다. 덩어리로(다시 체크할것)\n잠_못잔다. 땀 많이 흘림(식당. 식은땀도) 입마름없음\n입 안쓰다. 식당일로 너무 덥고 피곤하다. 추위안탄다(겨울엔 추위타는지 체크)",
+    "tongue_analysis": "홍설,단축설, 설첨w(심기허,심음허),심장영역융기, 위장열문, 설변부분 맨들, 박태\n입술건조(터짐)",
+    "special_notes": "음허하고(물질이 부족, 일많이해서), 갑상선암제거이후 체력저하인데 계속일함(음허상태,영양,수면,스트레스과다)\n먹는것도 부실, 말랐음.\n침향광혜고(아침), 트레이스미네랄, 퀴노아, 장생비책고(부스팅...)을 드리고 싶다. 스트레스물어보고 영심안심탕드리고싶음\n",
+    "prescription": "병원에서 항생제+덱시핀 받으심, 병원수액 맞을 예정임\n표리쌍해 1일 1회 4회분 (열을 꺼주고 싶었음)\n파나시아환 1일 반개  2알 드림(4회분) ---> 이렇게먹어보고 괜찮으면 나머지 다 하루에 드셔라 권함 (최강면역제제)\n해여라 4포 1일 1회 4회분 (수액충전..땀과다)\n퀴노아 1통 (2-0) 15일분 (밥못먹으니 채우는약)",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00063_1747749839681_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1Nh8mhqYVWB8GlrfFkttOMQd0bBjea3sF/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-20T12:56:00.000Z"
+  },
+  {
+    "id": "1f98065e-4391-8142-8a3e-ceb75ef19ba5",
+    "consultation_id": "00064_001",
+    "customer_id": "1f98065e-4391-8199-808e-c9e9bd6acedd",
+    "consult_date": "2025-05-20T14:04:00.000+00:00",
+    "symptoms": "콧물 코막힘 계속 더움 땀남",
+    "patient_condition": null,
+    "tongue_analysis": "1일전 녹기보 드신후 1일지난 사진임",
+    "special_notes": null,
+    "prescription": "코감콜 + 녹기보 2포, 소청 2포",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00064_001_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1b6B9rlo2369rz9_C24sq8ZImvCdxA17e/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-20T14:05:00.000Z"
+  },
+  {
+    "id": "1f98065e-4391-81c7-8b13-e9b9964b4999",
+    "consultation_id": "00064_002",
+    "customer_id": "1f98065e-4391-8199-808e-c9e9bd6acedd",
+    "consult_date": "2025-05-20T14:24:00.000+00:00",
+    "symptoms": "콧물,코막힘 + 더워서 식은땀자주남, 집에서 벗어제낀다.",
+    "patient_condition": null,
+    "tongue_analysis": null,
+    "special_notes": "녹기보+소청 드시고 귀 먹먹함이 있었는데 덜해진듯 하다고 하심",
+    "prescription": "코감콜 1통\n녹기보 + 소청 2회분 (오늘 또 2회분 재구매)\n",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00064_1747751273492_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1Uxpea8eq-8C-HaOyRIu8HaXkyAnOdZbE/view"
+        }
+      },
+      {
+        "name": "00064_1747751273492_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1JmmWJQN9HQe6n5WMzWj_lAZzIhNrSi_R/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-20T14:26:00.000Z"
+  },
+  {
+    "id": "1f98065e-4391-811e-9e98-e471b187cf82",
+    "consultation_id": "00065_001",
+    "customer_id": "1f98065e-4391-8105-9ad9-c35ff2efea71",
+    "consult_date": "2025-05-20T14:28:00.000+00:00",
+    "symptoms": "뇌경색으로 1달반 입원했다 최근 퇴원했는데\n설사 계속하고 입맛이 없다\n본인 못오고 박원심님이 말해서 사러옴.",
+    "patient_condition": null,
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "광혜단 5일치 + 듀오베린정(설사약)",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-20T14:29:00.000Z"
+  },
+  {
+    "id": "1fc8065e-4391-8150-ba87-c5ee3f596e2d",
+    "consultation_id": "00035_003",
+    "customer_id": "1f08065e-4391-8168-b793-d71a77cbe9ce",
+    "consult_date": "2025-05-23T10:59:00.000+00:00",
+    "symptoms": "녹기보 먹고 너무 아팠다. 입원까지 함. (온몸이 너무 아파서..)",
+    "patient_condition": null,
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "우황청심원사러오심\n--> 음허,기허, 열꺼줄약 필요..음허로인한조태.황태(담탁습탁없애줄약도.)\n--> 침향광혜고  + 밀포,써큐,피크노 ",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-23T11:03:00.000Z"
+  },
+  {
+    "id": "1ff8065e-4391-8121-bc7b-c5061e88a029",
+    "consultation_id": "00066_002",
+    "customer_id": "1ff8065e-4391-8195-82a9-d5c56ec0e74a",
+    "consult_date": "2025-05-26T11:19:00.000+00:00",
+    "symptoms": "녹기보 또 먹어야하냐..재구매하러 오심.\n",
+    "patient_condition": "소화: 좋다표현\n변: 퍼진변에서 덩어리약간..\n잠: 숙면은 안됨. 소변보느라 여러차례 깨심\n먼저약먹고 좋았다표현하심(녹기보,간편한..)",
+    "tongue_analysis": "단축설(혀를 길게못내밈), 니태가 좀 걷어짐. 박태가 드러남.\n아직 멀었음. 하초부분 깊은 열문 보임",
+    "special_notes": "하초에 백후태,니태가 껴서 하초습담처리가 필요해보임. 하초를 따듯하게 할 물질과\n기운(단축설)올리고 박태를 자양할 물질 필요, ",
+    "prescription": "활력비책에픽 1달/간편한 1달/프렌치징코(서비스드림)\n--> 다음엔 에픽,써큐,간편한세상,    니태가 제거가 덜되면 다시 녹기보로 갈것(기혈수돌려서 빼주는약).",
+    "result": "5.31일 방문--에픽 1번먹고 쉰다함.속이 답답해져서.(열이 튐..양기를 채우는약으로 선택했는데\n열이 튄다.)--> 양기보하고 열을 분산,기혈돌려주는 녹용기혈대보를 꼭 드셔야함..",
+    "image_files": [
+      {
+        "name": "00066_1748259213427_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1ysekJYfYpXwltgcRrq0XkC2zM1N4-2FY/view"
+        }
+      },
+      {
+        "name": "00066_1748259213427_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1GyheixRN615HUgf0e3O2kIKodDkwGppt/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-26T11:22:00.000Z"
+  },
+  {
+    "id": "2048065e-4391-8190-9020-c422155d87f2",
+    "consultation_id": "00030_003",
+    "customer_id": "1e68065e-4391-81eb-b835-dfcb8f4643bc",
+    "consult_date": "2025-05-30T08:33:00.000+00:00",
+    "symptoms": "소화제 확편환 2알 사러 방문\n눈때문에 도브라정250 처방받았는데\n이것먹고 윗속에 뭐가 달라붙는 느낌으로 속이 불편해진다 호소\n눈영양제 드시고 싶어함..",
+    "patient_condition": "먼저보다는 혀색 채워짐\n입술색도 검고,터질듯 부어있고 건조한게 좀 색도 옅여지고\n부기도 가라앉고 건조감이 조금 가심.\n속도 좀 편해보임. ",
+    "tongue_analysis": null,
+    "special_notes": "황실비급과 간편한세상, 트리플액션이 잘 작동하고 있는듯하다.\n계속 드시면 좋겠다 말씀드림\n위음부족,위마름이 동시에 있는듯..(기운없음과 찌꺼기가 쌓여서..결국 불편해진거다)",
+    "prescription": "퀴노아 1통  재구매\n간편한 10일 (간습열, 해독, 습담제거)\n카무트 효소 1달치 재구매\n확편환 2알 구매\n\n",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00030_1748684192438_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/14JxXFk9Txi2RX-9KFCZJqSvQC1QIhLlu/view"
+        }
+      },
+      {
+        "name": "00030_1748684192438_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1wtO-AWAmoPOnNKJkne3xmKKOb-0K0g6B/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-31T08:41:00.000Z"
+  },
+  {
+    "id": "2038065e-4391-8163-838d-e977e1c94d13",
+    "consultation_id": "00067_001",
+    "customer_id": "2038065e-4391-8101-9197-da36227b2229",
+    "consult_date": "2025-05-30T10:47:00.000+00:00",
+    "symptoms": "담이 머리끝부터 목덜미 등, 내장안까지 돌아다니는 느낌이 느껴진다. 검사상 문제없는데 장까지 내려오면 소화도 안된다.",
+    "patient_condition": "*소화: 잘됨\n*변: 무른편(덩어리 전혀아님)\n*잠: 잘잠(중간에 안깨고 쭉-)\n\n",
+    "tongue_analysis": null,
+    "special_notes": "*담이 꿀렁대며 돌아다니는 상황인데.\n파나시아 1-0, 써큐레이트 1-1, 기혈대보 1-1이었으면 좋았을듯싶다.\n효과가 나오면 1달 더 드시거나, 비싸다면\n써큐레이트 1-1, 기혈대보 1-1, 활력비책에픽 1-0을 드리고 싶다.",
+    "prescription": "파나시아환 1달 (1-0)\n써큐레이트 1달 (1-0)\n기혈대보 30포(1-0) :졸리면 저녁에 드셔라함",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-30T10:55:00.000Z"
+  },
+  {
+    "id": "2038065e-4391-8192-9531-cefbe3972ce5",
+    "consultation_id": "00068_001",
+    "customer_id": "2038065e-4391-81e8-b570-c18c88671946",
+    "consult_date": "2025-05-30T10:55:00.000+00:00",
+    "symptoms": "방광염재발함",
+    "patient_condition": "*변:덩어리형태(퍼지지않음),매일 개운하게.\n*소화: 늘 안된다, 소식함\n*잠: 잘자는 편이다\n*중부혈,단중혈눌러보니 너무 아파함(스트레스가 많은편, 해결안되는 상태로 살아가야하는 거슬리는게 반복적인 상태라 함)",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "활력비책에픽 1달 (1-0)\n아티진 1달 (2-0)\n유나펜리퀴드 30포 (1-0)\n영심안심탕 10포 ---> 30일을 권했으나 거절하심.그럼 매일 10일 무조건 드셔라함.",
+    "result": null,
+    "image_files": [],
+    "created_at": "2025-05-30T11:02:00.000Z"
+  },
+  {
+    "id": "2048065e-4391-813e-b0ab-e39b344b09ff",
+    "consultation_id": "00069_001",
+    "customer_id": "2048065e-4391-8131-8b02-cb36e6f7f010",
+    "consult_date": "2025-05-31T08:18:00.000+00:00",
+    "symptoms": "2년전 코로나겪은이후 기침이안떨어짐\n영남대병원에서 씨투스정+호흡기쓰면서도\n김재왕내과에서 항생제+소론도,코데농을 드셔야 기침이 멈춘다며\n김재왕내과약을 계속 드심. 부작용우려심함",
+    "patient_condition": "소화: 소식함, 그럭저럭(많이 먹으면 답답해서 못참음.오래되었음)\n변: 덩어리형태(딲딱이도 아니고 퍼짐도 아님), 냄새,방귀 별루\n잠: 잘못잠 (입면도 안되고 지속수면도 안됨), \n누워있으면 너무 편안해서 좋다.땅으로꺼진느낌은 전혀아님\n입마름 없다.\n입술이 내내 건조한편이다(원래 그렇다. 소양인)\n하체-허벅지무릎부분이 찬바람드는 느낌이다. 복냉없다.\n손이 무척뜨끈했음. 발안시려움.\n알약 삼키는게 너무 고역임(어릴적부터 그랬다함.비위가 좋은편아\n님)\n혈압약 드심(맘대로 안드시고 계심. )",
+    "tongue_analysis": "암자설에 가까운 홍설",
+    "special_notes": null,
+    "prescription": "거절하심\n폐음허를 채워줄약 필요해보임\n청상기가환 + 장생천키즈  + 표리쌍해 ",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00069_1748680585925_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1hOMn5ALHEDnnnhjNQpeReYCx3Job6qVj/view"
+        }
+      },
+      {
+        "name": "00069_1748680585925_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1UcRuckL3bErsSr0-V_XSsjzMwWma481j/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-31T08:32:00.000Z"
+  },
+  {
+    "id": "2048065e-4391-81cd-ba29-eb735b9bc9f3",
+    "consultation_id": "00070_001",
+    "customer_id": "2048065e-4391-81aa-8be7-d26eea9d007e",
+    "consult_date": "2025-05-31T09:38:00.000+00:00",
+    "symptoms": "이명때문에 약드시는 중인데도 어지럽다\n입맛도 없고 기운 너무 없고 조금만 움직여도식은땀도 많이 난다.",
+    "patient_condition": "소화: 입맛없다, 입마름심하다\n변: 퍼진경향, 덩어리 아님\n잠: 못잔다(공황장애 약드시는중이다)\n살 하얗다,걱정이 많아보임. 마르진 않은 보통체격과 살집(평균체형)",
+    "tongue_analysis": "담백설(혈허극심)\n설첨w(기허,심음허)\n왜사",
+    "special_notes": null,
+    "prescription": "활력비책에픽1달\n아티진 1달",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00070_1748685430004_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/168l2w_Vg0zVll1jN7fsA0ZSvmpv4ishk/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-31T09:56:00.000Z"
+  },
+  {
+    "id": "2048065e-4391-816a-ba8a-f79c55d713c4",
+    "consultation_id": "00071_001",
+    "customer_id": "2048065e-4391-815f-88ab-ea6e43cc81d3",
+    "consult_date": "2025-05-31T09:57:00.000+00:00",
+    "symptoms": "소변보는쪽 아래쪽뼈부위가 아프다\n방광염증상때처럼 그렇다.\n피로에 좋은약 주세요",
+    "patient_condition": "*소화: 잘됨\n*변: 덩어리와 퍼진변을 번갈아(음식에따라)\n*잠: 잘잔다\n*소변: 요즘 아랫부위 뼈가 아프다표현\n처녀적부터 지금까지도 배가차갑다.\n살색 흰색인편",
+    "tongue_analysis": "담백설,수박설,설첨다소붉음, 심장식도열문 두줄길게있음, 장,하초영역 백태,미황태,치흔\n(수박설+치흔==> 스트레스,교감항진)",
+    "special_notes": "스트레스정도 체크해보기(중부혈,단중혈)\n",
+    "prescription": "활력비책에픽 1달\n밀포 1달\n아티장 충임 10포\n네프신(4-4-4) 프로폴리스칸 (2-2-2) 드림",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00071_1748686959037_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1PjedOSipk1K13U37cazCzzCB9gSUd-ia/view"
+        }
+      },
+      {
+        "name": "00071_1748686959037_2.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1vQFoJ_8at_Xb6NJ_Y5Q-ePdqDFK7D9gK/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-31T10:12:00.000Z"
+  },
+  {
+    "id": "2048065e-4391-81f1-888d-e43e5ef1c560",
+    "consultation_id": "00071_002",
+    "customer_id": "2048065e-4391-815f-88ab-ea6e43cc81d3",
+    "consult_date": "2025-05-31T11:03:00.000+00:00",
+    "symptoms": "속이쓰림(명치쪽), 밥을 먹어도 속이비어도 아픔\n네프신,프로폴리스칸 재구매하러 오심\n\n",
+    "patient_condition": "건강검진하면 위염이 항상 있다고 결과나옴\n밥을 먹어도 속이비어도 명치아래쪽이 아픔",
+    "tongue_analysis": "태가 더 끼었음, 중간손가락,약지 둘다아픔\n",
+    "special_notes": "충임비급으로 복냉이 가시면서 담음이 올라온듯..\n원래 위염이있는 상태인데, 담음으로 인한 아픔인듯\n황태가 오른쪽에 더 끼었음.태가 더 진해짐.",
+    "prescription": "파네린정 1판 + 트리플액션 1통 드림\n",
+    "result": "만약 계속 아프다 하면...트리플액션, 위령탕을 드시도록 할것.그리고 아티진을 드리도록.",
+    "image_files": [],
+    "created_at": "2025-05-31T11:10:00.000Z"
+  },
+  {
+    "id": "2048065e-4391-8191-9fda-df861f32f4d4",
+    "consultation_id": "00072_001",
+    "customer_id": "2048065e-4391-81a4-8e15-cb2f78c5394b",
+    "consult_date": "2025-05-31T11:13:00.000+00:00",
+    "symptoms": "최근검사시 악성빈혈로 나옴. \n사우나후에 두통이 심했음.\n오른쪽턱관절 왔었음.\n매우 기운없음",
+    "patient_condition": "소화: 평생 소식, 소화불량 잦음\n변: 덩어리로 잘본다.\n잠: 빈혈약 먹으니 잘자게 되었다.\n간검사 문제없었고 빈혈검사 수치 나쁨(악성빈혈이라 진단)\n154cm, 47kg, 최근 잘 먹으려고 더 챙겨먹으니 혀의 태가 더 생긴다. ",
+    "tongue_analysis": "담백설(혈허),단축설(신허),설변+설첨부위경면설(위음부족)\n간영역쪽 백태, 위장열문(진액부족)",
+    "special_notes": "흡수가 무척 약한사람임 ..퀴노아와 소황제, 활력비책을 장복하면 좋을듯.\n그리고 리버케어나 아티진을 계속.그러면서 기혈대보를 드시면 좋을듯하다",
+    "prescription": "이미  셀메드헤모플렉스 2-2 1달치\n비바써큐 1-0 1달치 택배배송함.\n써큐레이트 0-1 (어혈문제)\n소황제 1-0 (신허,비위,소건중,양기 천천히)\n퀴노아 1-0\n리버케어 1-0 드시기로함.\n",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00072_1748690815956_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1GK_xANu4RUFXnp5W7cIWnudA2W-680EF/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-31T11:24:00.000Z"
+  },
+  {
+    "id": "2048065e-4391-8123-999f-e37103985d9d",
+    "consultation_id": "00066_003",
+    "customer_id": "1ff8065e-4391-8195-82a9-d5c56ec0e74a",
+    "consult_date": "2025-05-31T11:24:00.000+00:00",
+    "symptoms": "그린프로폴리스 재구매하러 오심",
+    "patient_condition": "활력비책에픽은 중단상태 (드시니 속이답답-속열이튀는증상)\n술좀 많이 드셨다함.\n",
+    "tongue_analysis": null,
+    "special_notes": null,
+    "prescription": "에픽중단하고 녹기보로 드셔야할것 같음, 또는 장생비책고스틱으로 한가지 가야할거 같다!!!!\n안되면 써큐레이트+피크노와\n파나시아환을 권해봐야겠다(5일치라도)",
+    "result": null,
+    "image_files": [
+      {
+        "name": "00066_1748694929454_1.jpg",
+        "type": "external",
+        "external": {
+          "url": "https://drive.google.com/file/d/1TC2LPMAktmsO3YanZvnX24Nt2TAk48di/view"
+        }
+      }
+    ],
+    "created_at": "2025-05-31T12:34:00.000Z"
+  }
+]

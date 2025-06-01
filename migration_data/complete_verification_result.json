@@ -1,0 +1,23 @@
+{
+  "verification_date": "2025-05-31T12:36:04.602Z",
+  "notion_records": 68,
+  "supabase_customers": 68,
+  "perfect_matches": 68,
+  "partial_matches": 0,
+  "missing_records": 0,
+  "extra_in_supabase": 0,
+  "duplicate_handling": [
+    {
+      "original_code": "00028",
+      "new_code": "00073",
+      "name": "송정숙"
+    },
+    {
+      "original_code": "00027",
+      "new_code": "00074",
+      "name": "박귀화"
+    }
+  ],
+  "match_rate": 100,
+  "migration_complete": true
+}

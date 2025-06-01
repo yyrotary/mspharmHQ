@@ -180,7 +180,57 @@ AI 분석 요청
     └─→ 카테고리별 원형 차트
     │
     ▼
-통계 화면 렌더링
+### 6. 마스터 로그인 및 접근 플로우
+
+```
+메인 페이지 상단 마스터 로그인 버튼
+    │
+    ▼
+마스터 로그인 페이지
+    │
+    ├─→ 이름 입력
+    ├─→ 4자리 비밀번호 입력
+    └─→ 로그인 요청
+           │
+           ▼
+Supabase employee 테이블 조회
+    │
+    ├─→ bcrypt 비밀번호 검증
+    └─→ owner 권한 확인
+           │
+           ├─→ 성공 ─→ JWT 토큰 발급 ─→ 마스터 대시보드
+           │                                  │
+           │                                  ├─→ 수입/지출 관리
+           │                                  ├─→ 월별 통계
+           │                                  └─→ 직원 구매 관리
+           │
+           └─→ 실패 ─→ 에러 메시지 표시
+```
+
+### 7. 직원 구매 승인 플로우
+
+```
+직원 구매 신청
+    │
+    ▼
+Supabase purchase_requests 테이블 저장
+    │
+    ├─→ 영수증 이미지 → Supabase Storage
+    └─→ 상태: pending
+           │
+           ▼
+관리자/약국장 승인 페이지
+    │
+    ├─→ 대기 중 요청 목록 표시
+    └─→ 승인/거부 버튼
+           │
+           ├─→ 승인 ─→ 상태: approved
+           │            │
+           │            └─→ approved_by, approved_at 기록
+           │
+           └─→ 거부 ─→ 상태: rejected
+                        │
+                        └─→ approved_by, approved_at 기록
 ```
 
 ## 데이터 모델
@@ -232,6 +282,33 @@ interface DailyIncome {
 }
 ```
 
+### 4. 직원 (Employee)
+```typescript
+interface Employee {
+  id: string;                  // UUID
+  name: string;                // 직원명
+  password_hash: string;       // bcrypt 암호화된 비밀번호
+  role: 'staff' | 'manager' | 'owner'; // 권한
+  created_at: string;          // 생성일
+  last_login: string | null;   // 마지막 로그인
+}
+```
+
+### 5. 구매 요청 (PurchaseRequest)
+```typescript
+interface PurchaseRequest {
+  id: string;                  // UUID
+  employee_id: string;         // 직원 ID
+  total_amount: number;        // 총 금액
+  notes?: string;              // 메모
+  image_urls: string[];        // 영수증 이미지 URL
+  status: 'pending' | 'approved' | 'rejected'; // 상태
+  created_at: string;          // 신청일
+  approved_by: string | null;  // 승인자 ID
+  approved_at: string | null;  // 승인일
+}
+```
+
 ## 보안 및 데이터 보호
 
 ### 1. 데이터 보안
@@ -240,15 +317,22 @@ interface DailyIncome {
 - **환경 변수**: 민감한 정보는 환경 변수로 관리
 - **접근 제어**: 각 API별 권한 검증
 
-### 2. 개인정보 보호
+### 2. 인증 및 권한 관리
+- **마스터 시스템**: owner 권한만 수입/지출 관리 접근
+- **직원 구매**: JWT 기반 인증, 권한별 접근 제어
+- **비밀번호**: bcrypt를 통한 안전한 암호화
+- **세션 관리**: 쿠키 및 JWT 토큰 활용
+
+### 3. 개인정보 보호
 - **최소 수집**: 필요한 최소한의 정보만 수집
 - **얼굴 데이터**: 임베딩 벡터만 저장 (원본 이미지 미저장)
 - **데이터 격리**: 고객별 데이터 격리 저장
 - **삭제 정책**: 요청 시 즉시 삭제 가능
 
-### 3. 백업 및 복구
+### 4. 백업 및 복구
 - **Notion 백업**: Notion의 자동 백업 기능 활용
 - **Google Drive**: 이미지 파일 자동 백업
+- **Supabase**: 직원 구매 데이터 자동 백업
 - **로컬 캐시**: 일시적 오프라인 지원
 
 ## 성능 최적화 전략
@@ -289,12 +373,14 @@ interface DailyIncome {
 
 ## 향후 로드맵
 
-### Phase 1 (현재)
+### Phase 1 (현재 - 완료)
 - ✅ 기본 고객 관리
 - ✅ 상담 기록 관리
-- ✅ 수입/지출 관리
+- ✅ 수입/지출 관리 (마스터 전용)
 - ✅ 얼굴 인식 기능
 - ✅ AI 통합 (영수증, 약품 인식)
+- ✅ 직원 구매 장부 시스템
+- ✅ 마스터 로그인 시스템
 
 ### Phase 2 (계획)
 - 재고 관리 시스템

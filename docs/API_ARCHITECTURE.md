@@ -131,13 +131,97 @@ app/api/
 
 ### 6. 외부 서비스 연동 API
 
-#### 6.1 Google Drive API (`/api/google-drive`)
-- **기능**: 이미지 및 파일 저장
+#### 6.1 Supabase Storage API ⭐ **업데이트됨**
+- **기능**: 이미지 및 파일 저장 (Google Drive 대체)
 - **엔드포인트**:
-  - `POST /api/google-drive`: 파일 업로드
-  - `GET /api/google-drive/[fileId]`: 파일 조회
-- **인증**: 서비스 계정 인증
-- **응답**: 파일 ID, 보기 URL, 다운로드 URL
+  - `POST /api/consultation-v2`: 상담 등록 시 이미지 업로드
+  - `PUT /api/consultation-v2`: 상담 수정 시 이미지 업로드
+  - `DELETE /api/consultation-v2`: 상담 삭제 시 이미지 삭제
+- **인증**: Supabase Service Role Key
+- **폴더 구조**: customer_code 기반 직관적 구조
+  ```
+  consultation-images/
+  ├── 00001/                    # 고객 코드
+  │   ├── 00001_001/            # 상담 ID
+  │   │   ├── image_1.jpg       # 이미지 파일
+  │   │   └── image_2.jpg
+  │   └── 00001_002/
+  │       └── image_1.jpg
+  └── 00002/
+      └── 00002_001/
+          └── image_1.jpg
+  ```
+- **응답**: 공개 URL, 파일 경로
+
+#### 6.2 이미지 업로드 함수 ⭐ **업데이트됨**
+```typescript
+// app/lib/consultation-utils.ts
+export async function uploadConsultationImages(
+  customerCode: string,        // UUID → customer_code 변경
+  consultationId: string,
+  imageDataArray: string[]
+): Promise<string[]> {
+  const uploadPromises = imageDataArray.map(async (imageData, index) => {
+    // Base64 데이터 처리
+    const base64Data = imageData.includes(';base64,')
+      ? imageData.split(';base64,')[1]
+      : imageData;
+
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // customer_code 기반 파일 경로 생성
+    const filePath = generateConsultationImagePath(
+      customerCode,
+      consultationId,
+      index + 1
+    );
+
+    // Supabase Storage에 업로드
+    const { data, error } = await supabase.storage
+      .from('consultation-images')
+      .upload(filePath, buffer, {
+        contentType: 'image/jpeg',
+        upsert: true
+      });
+
+    if (error) throw error;
+
+    // 공개 URL 생성
+    const { data: publicUrl } = supabase.storage
+      .from('consultation-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl.publicUrl;
+  });
+
+  const results = await Promise.all(uploadPromises);
+  return results.filter(url => url !== null) as string[];
+}
+
+// 파일 경로 생성 함수
+export function generateConsultationImagePath(
+  customerCode: string,        // UUID → customer_code 변경
+  consultationId: string,
+  imageIndex: number,
+  fileExtension: string = 'jpg'
+): string {
+  return `${customerCode}/${consultationId}/image_${imageIndex}.${fileExtension}`;
+}
+```
+
+#### 6.3 API 변경사항 ⭐ **업데이트됨**
+- **PUT/DELETE 메서드**: customers 테이블 JOIN으로 customer_code 조회
+- **이미지 경로**: `{customerCode}/{consultationId}/image_{index}.jpg`
+- **성능 개선**: URL 길이 단축 (약 30자 절약)
+- **관리 편의성**: 직관적인 폴더 구조로 백업/복구 용이
+
+#### ~~6.1 Google Drive API (`/api/google-drive`)~~ ❌ **제거됨**
+- ~~**기능**: 이미지 및 파일 저장~~
+- ~~**엔드포인트**:~~
+  - ~~`POST /api/google-drive`: 파일 업로드~~
+  - ~~`GET /api/google-drive/[fileId]`: 파일 조회~~
+- ~~**인증**: 서비스 계정 인증~~
+- ~~**응답**: 파일 ID, 보기 URL, 다운로드 URL~~
 
 #### 6.2 Gemini API (`/api/gemini`)
 - **기능**: Google의 생성형 AI 활용
@@ -460,6 +544,60 @@ interface PurchaseRequest {
    - 승인관리 페이지에서 본인 요청에 대한 버튼 비활성화
    - API 레벨에서 본인 요청 승인/거부 시도 시 403 에러 반환
 
-4. **데이터 무결성**
-   - 요청 상태 변경 시 로그 기록
-   - 승인자 정보 추적
+## 마스터 로그인 시스템 API
+
+### 인증 API
+
+#### 마스터 로그인 및 권한 확인
+**엔드포인트**: `POST /api/employee-purchase/auth/me`
+
+**기능**: 마스터 로그인 요청을 처리하고 owner 권한을 확인합니다.
+
+**주의**: 기존 직원 구매 시스템의 `/api/employee-purchase/auth/me` 엔드포인트를 공유하여 사용합니다.
+
+**요청 바디**:
+```json
+{
+  "name": "이자영",
+  "password": "1234"
+}
+```
+
+**권한 검증**:
+- Supabase의 employee 테이블에서 사용자 확인
+- bcrypt로 비밀번호 검증
+- role이 'owner'인지 확인
+
+**응답**:
+```json
+// 성공 시 (owner 권한)
+{
+  "success": true,
+  "user": {
+    "id": "user_id",
+    "name": "이자영",
+    "role": "owner"
+  }
+}
+
+// 실패 시 (owner 권한 없음)
+{
+  "error": "Unauthorized",
+  "message": "마스터 권한이 없습니다."
+}
+```
+
+### 마스터 대시보드 접근 제어
+
+**페이지**: `/master-dashboard`
+
+**접근 제어**:
+1. 클라이언트 측에서 JWT 토큰 확인
+2. `/api/employee-purchase/auth/me`로 사용자 정보 확인
+3. role이 'owner'가 아니면 마스터 로그인 페이지로 리다이렉트
+
+### 보안 고려사항
+
+1. **권한 분리**: 직원 구매 시스템과 마스터 시스템의 권한 체계 공유
+2. **세션 관리**: 같은 JWT 토큰 및 쿠키 사용
+3. **API 재사용**: 기존 employee-purchase API를 활용하여 개발 효율성 향상

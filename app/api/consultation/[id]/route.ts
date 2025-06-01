@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import { CONSULTATION_SCHEMA, NOTION_ENV_VARS } from '@/app/lib/notion-schema';
+import { 
+  getConsultationById, 
+  updateConsultation, 
+  deleteConsultation,
+  type UpdateConsultationData 
+} from '@/app/lib/supabase-consultation';
+import { getCustomerById } from '@/app/lib/supabase-customer';
 
 // 노션 클라이언트 초기화
 const notion = new Client({
@@ -40,202 +47,127 @@ export async function GET(
 
 // 상담일지 수정
 export async function PUT(
-  request: NextRequest,
-  context: { params: { id: string } }
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
-  const id = context.params.id;
-  
-  if (!id) {
-    return NextResponse.json({ error: '상담일지 ID가 필요합니다.' }, { status: 400 });
-  }
-  
   try {
     const data = await request.json();
-    
-    // 필수 필드 검증
-    if (!data.content) {
-      return NextResponse.json({ error: '호소증상은 필수 입력 항목입니다.' }, { status: 400 });
+    const consultationId = params.id;
+
+    // 상담일지 존재 확인
+    const existingConsultation = await getConsultationById(consultationId);
+    if (!existingConsultation) {
+      return NextResponse.json({ error: '상담일지를 찾을 수 없습니다.' }, { status: 404 });
     }
-    
-    // 노션 API 형식으로 데이터 변환
-    const properties: any = {
-      '호소증상': {
-        [CONSULTATION_SCHEMA.호소증상.type]: [
-          { 
-            type: 'text', 
-            text: { 
-              content: data.content 
-            } 
+
+    // 수정 데이터 준비
+    const updateData: UpdateConsultationData = {
+      chief_complaint: data.chiefComplaint || undefined,
+      patient_condition: data.patientCondition || undefined,
+      tongue_analysis: data.tongueAnalysis || undefined,
+      prescription: data.prescription || undefined,
+      special_notes: data.specialNotes || undefined,
+      result: data.result || undefined,
+      image_urls: data.imageUrls || undefined,
+      consultation_date: data.consultationDate || undefined
+    };
+
+    // 상담일지 수정
+    const updatedConsultation = await updateConsultation(consultationId, updateData);
+
+    // 고객 정보 조회
+    const customer = await getCustomerById(updatedConsultation.customer_id);
+
+    // Notion API 형식과 호환되는 응답
+    const transformedConsultation = {
+      id: updatedConsultation.id,
+      properties: {
+        상담일지ID: {
+          title: [{ text: { content: updatedConsultation.consultation_id } }]
+        },
+        고객ID: {
+          relation: [{ id: updatedConsultation.customer_id }]
+        },
+        고객명: {
+          rollup: {
+            array: [{ rich_text: [{ text: { content: customer?.name || '' } }] }]
           }
-        ]
+        },
+        호소증상: {
+          rich_text: updatedConsultation.chief_complaint ? [{ text: { content: updatedConsultation.chief_complaint } }] : []
+        },
+        환자상태: {
+          rich_text: updatedConsultation.patient_condition ? [{ text: { content: updatedConsultation.patient_condition } }] : []
+        },
+        설진분석: {
+          rich_text: updatedConsultation.tongue_analysis ? [{ text: { content: updatedConsultation.tongue_analysis } }] : []
+        },
+        처방약: {
+          rich_text: updatedConsultation.prescription ? [{ text: { content: updatedConsultation.prescription } }] : []
+        },
+        특이사항: {
+          rich_text: updatedConsultation.special_notes ? [{ text: { content: updatedConsultation.special_notes } }] : []
+        },
+        결과: {
+          rich_text: updatedConsultation.result ? [{ text: { content: updatedConsultation.result } }] : []
+        },
+        증상이미지: {
+          files: updatedConsultation.image_urls ? updatedConsultation.image_urls.map(url => ({
+            type: 'external',
+            external: { url }
+          })) : []
+        },
+        상담일시: {
+          date: { start: updatedConsultation.consultation_date }
+        },
+        생성일시: {
+          created_time: updatedConsultation.created_at
+        }
       }
     };
-    
-    // 상담일자 정보가 있는 경우
-    if (data.consultDate) {
-      properties['상담일자'] = {
-        [CONSULTATION_SCHEMA.상담일자.type]: {
-          start: data.consultDate
-        }
-      };
-    }
-    
-    // 처방약 정보가 있는 경우
-    if (data.medicine) {
-      properties['처방약'] = {
-        [CONSULTATION_SCHEMA.처방약.type]: [
-          { 
-            type: 'text', 
-            text: { 
-              content: data.medicine 
-            } 
-          }
-        ]
-      };
-    }
-    
-    // 결과 정보가 있는 경우
-    if (data.result) {
-      properties['결과'] = {
-        [CONSULTATION_SCHEMA.결과.type]: [
-          { 
-            type: 'text', 
-            text: { 
-              content: data.result 
-            } 
-          }
-        ]
-      };
-    }
-    
-    // 환자상태 정보가 있는 경우
-    if (data.stateAnalysis) {
-      properties['환자상태'] = {
-        [CONSULTATION_SCHEMA.환자상태.type]: [
-          { 
-            type: 'text', 
-            text: { 
-              content: data.stateAnalysis 
-            } 
-          }
-        ]
-      };
-    }
-    
-    // 설진분석 정보가 있는 경우
-    if (data.tongueAnalysis) {
-      properties['설진분석'] = {
-        [CONSULTATION_SCHEMA.설진분석.type]: [
-          { 
-            type: 'text', 
-            text: { 
-              content: data.tongueAnalysis 
-            } 
-          }
-        ]
-      };
-    }
-    
-    // 특이사항 정보가 있는 경우
-    if (data.specialNote) {
-      properties['특이사항'] = {
-        [CONSULTATION_SCHEMA.특이사항.type]: [
-          { 
-            type: 'text', 
-            text: { 
-              content: data.specialNote 
-            } 
-          }
-        ]
-      };
-    }
-    
-    // 새 이미지 URL이 제공된 경우, 기존 이미지를 업데이트 (추가)
-    if (data.imageUrls && Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
-      // 먼저 현재 이미지 가져오기
-      const pageResponse = await notion.pages.retrieve({ page_id: id });
-      let existingImages = [];
-      
-      // @ts-expect-error - 타입 정의 문제 해결
-      if (pageResponse.properties?.증상이미지?.files && 
-          // @ts-expect-error - 타입 정의 문제 해결
-          Array.isArray(pageResponse.properties.증상이미지.files)) {
-        // @ts-expect-error - 타입 정의 문제 해결
-        existingImages = pageResponse.properties.증상이미지.files;
-      }
-      
-      // 이미지 이름 패턴 생성 (고객 ID 포함)
-      let imageNamePrefix = "";
-      try {
-        // @ts-expect-error - 타입 정의 문제 해결
-        const idTitle = pageResponse.properties?.id?.title?.[0]?.text?.content || "";
-        if (idTitle) {
-          const parts = idTitle.split('_');
-          if (parts.length > 0) {
-            imageNamePrefix = parts[0]; // 첫 부분을 고객 ID로 가정
-          }
-        }
-      } catch (error) {
-        console.warn('이미지 이름 패턴 생성 오류:', error);
-      }
-      
-      // 새 이미지를 기존 이미지에 추가 (Notion에 보낼 형식)
-      const allImages = [
-        ...existingImages,
-        ...data.imageUrls.map((url: string, index: number) => ({
-          type: 'external',
-          name: `${imageNamePrefix ? imageNamePrefix + '_' : ''}${Date.now()}_${index + 1}.jpg`,
-          external: {
-            url: url
-          }
-        }))
-      ];
-      
-      // 이미지 속성 업데이트
-      properties['증상이미지'] = {
-        [CONSULTATION_SCHEMA.증상이미지.type]: allImages
-      };
-    }
-    
-    // 상담일지 업데이트
-    const response = await notion.pages.update({
-      page_id: id,
-      properties: properties
+
+    return NextResponse.json({
+      success: true,
+      consultation: transformedConsultation,
+      message: '상담일지가 성공적으로 수정되었습니다.'
     });
-    
-    return NextResponse.json({ 
-      success: true, 
-      consultation: response,
-      // 고객 폴더 ID를 응답에도 포함 (클라이언트가 사용할 수 있도록)
-      customerFolderId: data.customerFolderId || null
-    });
+
   } catch (error) {
     console.error('상담일지 수정 오류:', error);
-    return NextResponse.json({ error: '상담일지 수정 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json(
+      { error: '상담일지 수정 중 오류가 발생했습니다.' },
+      { status: 500 }
+    );
   }
 }
 
 // 상담일지 삭제
 export async function DELETE(
-  request: NextRequest,
-  context: { params: { id: string } }
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
-  const id = context.params.id;
-  
-  if (!id) {
-    return NextResponse.json({ error: '상담일지 ID가 필요합니다.' }, { status: 400 });
-  }
-  
   try {
-    // Notion API는 실제 삭제 대신 보관(아카이브) 기능을 제공
-    const response = await notion.pages.update({
-      page_id: id,
-      archived: true
+    const consultationId = params.id;
+
+    // 상담일지 존재 확인
+    const existingConsultation = await getConsultationById(consultationId);
+    if (!existingConsultation) {
+      return NextResponse.json({ error: '상담일지를 찾을 수 없습니다.' }, { status: 404 });
+    }
+
+    // 상담일지 삭제
+    await deleteConsultation(consultationId);
+
+    return NextResponse.json({
+      success: true,
+      message: '상담일지가 성공적으로 삭제되었습니다.'
     });
-    
-    return NextResponse.json({ success: true, message: '상담일지가 삭제되었습니다.' });
+
   } catch (error) {
     console.error('상담일지 삭제 오류:', error);
-    return NextResponse.json({ error: '상담일지 삭제 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json(
+      { error: '상담일지 삭제 중 오류가 발생했습니다.' },
+      { status: 500 }
+    );
   }
 } 

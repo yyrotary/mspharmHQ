@@ -1,0 +1,630 @@
+{
+  "analysis_date": "2025-05-31T12:44:47.857Z",
+  "notion_consultations": 107,
+  "supabase_consultations": 91,
+  "missing_consultations": 107,
+  "customer_differences": [
+    {
+      "customer_code": "undefined",
+      "customer_name": "N/A",
+      "notion_count": 0,
+      "supabase_count": 91,
+      "difference": -91
+    },
+    {
+      "customer_code": "00001",
+      "customer_name": "신치훈",
+      "notion_count": 25,
+      "supabase_count": 0,
+      "difference": 25
+    },
+    {
+      "customer_code": "00068",
+      "customer_name": "손정희",
+      "notion_count": 4,
+      "supabase_count": 0,
+      "difference": 4
+    },
+    {
+      "customer_code": "00002",
+      "customer_name": "이자영",
+      "notion_count": 4,
+      "supabase_count": 0,
+      "difference": 4
+    },
+    {
+      "customer_code": "00066",
+      "customer_name": "배연극",
+      "notion_count": 3,
+      "supabase_count": 0,
+      "difference": 3
+    },
+    {
+      "customer_code": "00030",
+      "customer_name": "박주연",
+      "notion_count": 3,
+      "supabase_count": 0,
+      "difference": 3
+    },
+    {
+      "customer_code": "00035",
+      "customer_name": "김호",
+      "notion_count": 3,
+      "supabase_count": 0,
+      "difference": 3
+    },
+    {
+      "customer_code": "00016",
+      "customer_name": "김치훈",
+      "notion_count": 3,
+      "supabase_count": 0,
+      "difference": 3
+    },
+    {
+      "customer_code": "00006",
+      "customer_name": "임병연",
+      "notion_count": 3,
+      "supabase_count": 0,
+      "difference": 3
+    },
+    {
+      "customer_code": "00071",
+      "customer_name": "김분옥",
+      "notion_count": 2,
+      "supabase_count": 0,
+      "difference": 2
+    },
+    {
+      "customer_code": "00064",
+      "customer_name": "주원락",
+      "notion_count": 2,
+      "supabase_count": 0,
+      "difference": 2
+    },
+    {
+      "customer_code": "00054",
+      "customer_name": "정영자",
+      "notion_count": 2,
+      "supabase_count": 0,
+      "difference": 2
+    },
+    {
+      "customer_code": "00050",
+      "customer_name": "김지현 (67년생)",
+      "notion_count": 2,
+      "supabase_count": 0,
+      "difference": 2
+    },
+    {
+      "customer_code": "00041",
+      "customer_name": "김복희",
+      "notion_count": 2,
+      "supabase_count": 0,
+      "difference": 2
+    },
+    {
+      "customer_code": "00027",
+      "customer_name": "조성범",
+      "notion_count": 2,
+      "supabase_count": 0,
+      "difference": 2
+    },
+    {
+      "customer_code": "00023",
+      "customer_name": "이강일",
+      "notion_count": 2,
+      "supabase_count": 0,
+      "difference": 2
+    },
+    {
+      "customer_code": "00010",
+      "customer_name": "김지훈",
+      "notion_count": 2,
+      "supabase_count": 0,
+      "difference": 2
+    },
+    {
+      "customer_code": "00072",
+      "customer_name": "신정애",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00070",
+      "customer_name": "정금옥",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00069",
+      "customer_name": "오기숙",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00067",
+      "customer_name": "권상환",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00065",
+      "customer_name": "김기종  (아내 박원심)",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00063",
+      "customer_name": "장금옥",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00062",
+      "customer_name": "황경연",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00061",
+      "customer_name": "김연행",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00060",
+      "customer_name": "단골손님 (코피가 남)",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00059",
+      "customer_name": "박금랑",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00057",
+      "customer_name": "김화자",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00056",
+      "customer_name": "조아영",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00055",
+      "customer_name": "양순애",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00052",
+      "customer_name": "이분옥",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00051",
+      "customer_name": "이상예",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00049",
+      "customer_name": "정재숙",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00048",
+      "customer_name": "금하수",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00044",
+      "customer_name": "최은화(쌍둥이통신)",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00045",
+      "customer_name": "권혜정",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00043",
+      "customer_name": "박준범",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00039",
+      "customer_name": "조성호",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00038",
+      "customer_name": "김영수",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00037",
+      "customer_name": "남식운",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00036",
+      "customer_name": "정경웅",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00034",
+      "customer_name": "김칠흥",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00033",
+      "customer_name": "박순화",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00032",
+      "customer_name": "권유리 (엄마 조아영)",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00031",
+      "customer_name": "조화자",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00011",
+      "customer_name": "신숙향",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00029",
+      "customer_name": "송정숙",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00028",
+      "customer_name": "이재숙",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00019",
+      "customer_name": "박현영",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00021",
+      "customer_name": "김지현",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00022",
+      "customer_name": "김은희",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00026",
+      "customer_name": "금옥숙",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00018",
+      "customer_name": "곽옥분",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00015",
+      "customer_name": "이치훈",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00014",
+      "customer_name": "이화춘",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00013",
+      "customer_name": "이영옥",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00008",
+      "customer_name": "김덕한",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00007",
+      "customer_name": "김순자",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00004",
+      "customer_name": "강인선",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    },
+    {
+      "customer_code": "00003",
+      "customer_name": "함민",
+      "notion_count": 1,
+      "supabase_count": 0,
+      "difference": 1
+    }
+  ],
+  "missing_consultation_details": [
+    {
+      "notion_id": "2048065e-4391-8123-999f-e37103985d9d",
+      "customer_code": "00066",
+      "customer_name": "배연극",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-31T12:34:00.000Z"
+    },
+    {
+      "notion_id": "2048065e-4391-8191-9fda-df861f32f4d4",
+      "customer_code": "00072",
+      "customer_name": "신정애",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-31T11:24:00.000Z"
+    },
+    {
+      "notion_id": "2048065e-4391-81f1-888d-e43e5ef1c560",
+      "customer_code": "00071",
+      "customer_name": "김분옥",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-31T11:10:00.000Z"
+    },
+    {
+      "notion_id": "2048065e-4391-816a-ba8a-f79c55d713c4",
+      "customer_code": "00071",
+      "customer_name": "김분옥",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-31T10:12:00.000Z"
+    },
+    {
+      "notion_id": "2048065e-4391-81cd-ba29-eb735b9bc9f3",
+      "customer_code": "00070",
+      "customer_name": "정금옥",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-31T09:56:00.000Z"
+    },
+    {
+      "notion_id": "2048065e-4391-8190-9020-c422155d87f2",
+      "customer_code": "00030",
+      "customer_name": "박주연",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-31T08:41:00.000Z"
+    },
+    {
+      "notion_id": "2048065e-4391-813e-b0ab-e39b344b09ff",
+      "customer_code": "00069",
+      "customer_name": "오기숙",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-31T08:32:00.000Z"
+    },
+    {
+      "notion_id": "2038065e-4391-8176-810f-da62b553f896",
+      "customer_code": "00068",
+      "customer_name": "손정희",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-30T12:31:00.000Z"
+    },
+    {
+      "notion_id": "2038065e-4391-8167-be7f-e51075304bd0",
+      "customer_code": "00068",
+      "customer_name": "손정희",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-30T11:17:00.000Z"
+    },
+    {
+      "notion_id": "2038065e-4391-81c5-a293-d850e11f56f8",
+      "customer_code": "00068",
+      "customer_name": "손정희",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-30T11:08:00.000Z"
+    },
+    {
+      "notion_id": "2038065e-4391-8192-9531-cefbe3972ce5",
+      "customer_code": "00068",
+      "customer_name": "손정희",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-30T11:02:00.000Z"
+    },
+    {
+      "notion_id": "2038065e-4391-8163-838d-e977e1c94d13",
+      "customer_code": "00067",
+      "customer_name": "권상환",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-30T10:55:00.000Z"
+    },
+    {
+      "notion_id": "1ff8065e-4391-8121-bc7b-c5061e88a029",
+      "customer_code": "00066",
+      "customer_name": "배연극",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-26T11:22:00.000Z"
+    },
+    {
+      "notion_id": "1ff8065e-4391-8199-8c14-d42130b53414",
+      "customer_code": "00066",
+      "customer_name": "배연극",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-26T11:19:00.000Z"
+    },
+    {
+      "notion_id": "1fc8065e-4391-8150-ba87-c5ee3f596e2d",
+      "customer_code": "00035",
+      "customer_name": "김호",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-23T11:03:00.000Z"
+    },
+    {
+      "notion_id": "1f98065e-4391-811e-9e98-e471b187cf82",
+      "customer_code": "00065",
+      "customer_name": "김기종  (아내 박원심)",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-20T14:29:00.000Z"
+    },
+    {
+      "notion_id": "1f98065e-4391-81c7-8b13-e9b9964b4999",
+      "customer_code": "00064",
+      "customer_name": "주원락",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-20T14:26:00.000Z"
+    },
+    {
+      "notion_id": "1f98065e-4391-8142-8a3e-ceb75ef19ba5",
+      "customer_code": "00064",
+      "customer_name": "주원락",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-20T14:05:00.000Z"
+    },
+    {
+      "notion_id": "1f98065e-4391-8178-82ad-f603245ce75b",
+      "customer_code": "00063",
+      "customer_name": "장금옥",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-20T12:56:00.000Z"
+    },
+    {
+      "notion_id": "1f98065e-4391-81c7-8f2d-f5287f4f8445",
+      "customer_code": "00054",
+      "customer_name": "정영자",
+      "consultation_date": "",
+      "content": "",
+      "prescription": "",
+      "fee": null,
+      "created_at": "2025-05-20T00:48:00.000Z"
+    }
+  ]
+}

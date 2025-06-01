@@ -1,15 +1,33 @@
 'use client';
 
 import { useState } from 'react';
-import { NotionCustomer, CUSTOMER_SCHEMA, getNotionPropertyValue } from '@/app/lib/notion-schema';
+
+// Supabase 고객 타입 정의
+interface Customer {
+  id: string;
+  customer_code: string;
+  name: string;
+  phone?: string;
+  gender?: string;
+  birth_date?: string;
+  estimated_age?: number;
+  address?: string;
+  special_notes?: string;
+  face_embedding?: string;
+  google_drive_folder_id?: string;
+  consultation_count?: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
+}
 
 interface CustomerTableProps {
-  customers: NotionCustomer[];
+  customers: Customer[];
   sortField: string;
   sortDirection: 'asc' | 'desc';
   onSortChange: (field: string) => void;
-  onCustomerSelect: (customer: NotionCustomer) => void;
-  onCustomerDelete?: (customer: NotionCustomer) => void;
+  onCustomerSelect: (customer: Customer) => void;
+  onCustomerDelete?: (customer: Customer) => void;
   isTrashMode?: boolean;
 }
 
@@ -26,20 +44,14 @@ export default function CustomerTable({
   
   // 검색 필터링된 고객 목록
   const filteredCustomers = customers.filter(customer => {
-    const name = getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type) || '';
-    const phone = getNotionPropertyValue(customer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type) || '';
-    const address = getNotionPropertyValue(customer.properties.주소, CUSTOMER_SCHEMA.주소.type) || '';
-    const specialNote = getNotionPropertyValue(customer.properties.특이사항, CUSTOMER_SCHEMA.특이사항.type) || '';
-    const id = getNotionPropertyValue(customer.properties.id, 'title') || '';
-    
     const searchLower = search.toLowerCase();
     
     return (
-      String(name).toLowerCase().includes(searchLower) ||
-      String(phone).toLowerCase().includes(searchLower) ||
-      String(address).toLowerCase().includes(searchLower) ||
-      String(specialNote).toLowerCase().includes(searchLower) ||
-      String(id).toLowerCase().includes(searchLower)
+      customer.name?.toLowerCase().includes(searchLower) ||
+      customer.phone?.toLowerCase().includes(searchLower) ||
+      customer.address?.toLowerCase().includes(searchLower) ||
+      customer.special_notes?.toLowerCase().includes(searchLower) ||
+      customer.customer_code?.toLowerCase().includes(searchLower)
     );
   });
   
@@ -48,20 +60,20 @@ export default function CustomerTable({
     let valueA, valueB;
     
     if (sortField === '고객번호') {
-      valueA = getNotionPropertyValue(a.properties.id, 'title') || '';
-      valueB = getNotionPropertyValue(b.properties.id, 'title') || '';
+      valueA = a.customer_code || '';
+      valueB = b.customer_code || '';
     } else if (sortField === '고객명') {
-      valueA = getNotionPropertyValue(a.properties.고객명, CUSTOMER_SCHEMA.고객명.type) || '';
-      valueB = getNotionPropertyValue(b.properties.고객명, CUSTOMER_SCHEMA.고객명.type) || '';
+      valueA = a.name || '';
+      valueB = b.name || '';
     } else if (sortField === '전화번호') {
-      valueA = getNotionPropertyValue(a.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type) || '';
-      valueB = getNotionPropertyValue(b.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type) || '';
+      valueA = a.phone || '';
+      valueB = b.phone || '';
     } else if (sortField === '특이사항') {
-      valueA = getNotionPropertyValue(a.properties.특이사항, CUSTOMER_SCHEMA.특이사항.type) || '';
-      valueB = getNotionPropertyValue(b.properties.특이사항, CUSTOMER_SCHEMA.특이사항.type) || '';
+      valueA = a.special_notes || '';
+      valueB = b.special_notes || '';
     } else if (sortField === '상담수') {
-      valueA = a.properties.상담수?.formula?.number || 0;
-      valueB = b.properties.상담수?.formula?.number || 0;
+      valueA = a.consultation_count || 0;
+      valueB = b.consultation_count || 0;
     } else {
       valueA = '';
       valueB = '';
@@ -131,17 +143,6 @@ export default function CustomerTable({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedCustomers.map((customer) => {
-              // 각 속성값 추출
-              const id = getNotionPropertyValue(customer.properties.id, 'title') || '';
-              const name = getNotionPropertyValue(customer.properties.고객명, CUSTOMER_SCHEMA.고객명.type) || '';
-              const phone = getNotionPropertyValue(customer.properties.전화번호, CUSTOMER_SCHEMA.전화번호.type) || '';
-              const gender = getNotionPropertyValue(customer.properties.성별, CUSTOMER_SCHEMA.성별.type) || '';
-              const birth = getNotionPropertyValue(customer.properties.생년월일, CUSTOMER_SCHEMA.생년월일.type) || '';
-              const estimatedAge = getNotionPropertyValue(customer.properties.추정나이, CUSTOMER_SCHEMA.추정나이.type) || '';
-              const address = getNotionPropertyValue(customer.properties.주소, CUSTOMER_SCHEMA.주소.type) || '';
-              const specialNote = getNotionPropertyValue(customer.properties.특이사항, CUSTOMER_SCHEMA.특이사항.type) || '';
-              const consultCount = customer.properties.상담수?.formula?.number || 0;
-              
               return (
                 <tr 
                   key={customer.id}
@@ -151,86 +152,74 @@ export default function CustomerTable({
                     className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer"
                     onClick={() => onCustomerSelect(customer)}
                   >
-                    {id}
+                    {customer.customer_code}
                   </td>
                   <td 
                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer"
                     onClick={() => onCustomerSelect(customer)}
                   >
-                    {name}
+                    {customer.name}
                   </td>
                   <td 
                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer"
                     onClick={() => onCustomerSelect(customer)}
                   >
-                    {phone}
+                    {customer.phone}
                   </td>
                   <td 
                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer"
                     onClick={() => onCustomerSelect(customer)}
                   >
-                    {gender}
+                    {customer.gender}
                   </td>
                   <td 
                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer"
                     onClick={() => onCustomerSelect(customer)}
                   >
-                    {birth} {estimatedAge && `(${estimatedAge}세)`}
+                    {customer.birth_date} {customer.estimated_age && `(${customer.estimated_age}세)`}
                   </td>
                   <td 
                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer"
                     onClick={() => onCustomerSelect(customer)}
                   >
-                    {address}
+                    {customer.address}
                   </td>
                   <td 
                     className="px-6 py-4 text-sm text-gray-500 cursor-pointer max-w-xs"
                     onClick={() => onCustomerSelect(customer)}
                   >
                     <div className="truncate">
-                      {specialNote || '-'}
+                      {customer.special_notes || '-'}
                     </div>
                   </td>
                   <td 
                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer"
                     onClick={() => onCustomerSelect(customer)}
                   >
-                    {consultCount}
+                    {customer.consultation_count || 0}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     {onCustomerDelete && (
                       <button
-                        className={isTrashMode ? "text-green-600 hover:text-green-900 ml-2" : "text-red-600 hover:text-red-900 ml-2"}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          
-                          const message = isTrashMode
-                            ? `${name} 고객을 복원하시겠습니까?`
-                            : `${name} 고객을 휴지통으로 이동하시겠습니까?`;
-                            
-                          if (window.confirm(message)) {
-                            onCustomerDelete(customer);
-                          }
-                        }}
+                        onClick={() => onCustomerDelete(customer)}
+                        className="text-red-600 hover:text-red-900"
                       >
-                        {isTrashMode ? '복원' : '삭제'}
+                        {isTrashMode ? '완전삭제' : '삭제'}
                       </button>
                     )}
                   </td>
                 </tr>
               );
             })}
-            
-            {sortedCustomers.length === 0 && (
-              <tr>
-                <td colSpan={9} className="px-6 py-4 text-center text-sm text-gray-500">
-                  {search ? '검색 결과가 없습니다.' : '등록된 고객이 없습니다.'}
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
+      
+      {sortedCustomers.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          {search ? '검색 결과가 없습니다.' : '등록된 고객이 없습니다.'}
+        </div>
+      )}
     </div>
   );
 } 
