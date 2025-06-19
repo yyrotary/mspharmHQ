@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { validateKoreaDateRange, toKoreaISOString } from './date-utils';
 
 function getSupabaseClient() {
   return createClient(
@@ -450,6 +451,18 @@ export async function createConsultationInSupabase(data: ConsultationCreateInput
   try {
     const supabase = getSupabaseClient();
     
+    // 한국시간 기준 날짜 검증
+    if (data.consultDate) {
+      const validation = validateKoreaDateRange(data.consultDate, 1900, 1);
+      
+      if (!validation.isValid) {
+        console.error('날짜 검증 실패:', validation.error, '입력값:', data.consultDate);
+        throw new Error(`날짜 오류: ${validation.error}`);
+      }
+      
+      console.log('한국시간 기준 상담 날짜 검증 성공:', data.consultDate);
+    }
+    
     // 고객 정보 조회
     const { data: customer, error: customerError } = await supabase
       .from('customers')
@@ -480,11 +493,11 @@ export async function createConsultationInSupabase(data: ConsultationCreateInput
       }
     }
 
-    // 상담 데이터 삽입
+    // 상담 데이터 삽입 (한국시간 기준으로 변환)
     const consultationData = {
       consultation_id: consultationId,
       customer_id: data.customer_id,
-      consult_date: data.consultDate,
+      consult_date: toKoreaISOString(data.consultDate),
       symptoms: data.symptoms,
       patient_condition: data.stateAnalysis,
       tongue_analysis: data.tongueAnalysis,

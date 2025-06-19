@@ -1,10 +1,15 @@
 'use client';
 
-import moment from 'moment-timezone';
 import { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Loading from '@/app/components/Loading';
+import { 
+  toKoreaDateTimeLocal, 
+  formatKoreaDateTime, 
+  getKoreaDateTimeLocalRange,
+  getCurrentKoreaDateTimeLocal 
+} from '@/app/lib/date-utils';
 
 // Supabase 고객 타입 정의
 interface Customer {
@@ -87,7 +92,7 @@ function ConsultationContent() {
   });
   
   const [newConsultation, setNewConsultation] = useState<NewConsultation>({
-    consultDate: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:MM 형식
+    consultDate: getCurrentKoreaDateTimeLocal(), // 한국시간 기준
     content: '',
     medicine: '',
     result: '',
@@ -748,7 +753,7 @@ function ConsultationContent() {
         
         // 상담일지 폼 초기화
         setNewConsultation({
-          consultDate: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:MM 형식
+          consultDate: getCurrentKoreaDateTimeLocal(), // 한국시간 기준
           content: '',
           medicine: '',
           result: '',
@@ -1417,32 +1422,21 @@ function ConsultationContent() {
   const initEditForm = (consultation: FormattedConsultation) => {
     setEditingConsultation(consultation);
     
-    // 날짜 형식 변환 (datetime-local 입력에 맞는 형식으로)
+    // 한국시간 기준으로 날짜 형식 변환 (datetime-local 입력에 맞는 형식으로)
     let consultDate = consultation.consultationDate;
     
     try {
-      // ISO 형식 날짜를 Date 객체로 변환
-      const date = new Date(consultDate);
-      
-      if (!isNaN(date.getTime())) {
-        // 유효한 날짜인 경우 로컬 시간대로 변환하여 datetime-local 형식으로 포맷
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        
-        consultDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+      if (consultDate && consultDate.trim() !== '') {
+        // 한국시간 기준으로 datetime-local 형식으로 변환
+        consultDate = toKoreaDateTimeLocal(consultDate);
       } else {
-        // 날짜가 유효하지 않은 경우 현재 시간으로 설정
-        const now = new Date();
-        consultDate = now.toISOString().slice(0, 16);
+        // 날짜가 없는 경우 현재 한국시간으로 설정
+        consultDate = getCurrentKoreaDateTimeLocal();
       }
     } catch (error) {
       console.warn('날짜 변환 오류:', error);
-      // 오류 발생 시 현재 시간으로 설정
-      const now = new Date();
-      consultDate = now.toISOString().slice(0, 16);
+      // 오류 발생 시 현재 한국시간으로 설정
+      consultDate = getCurrentKoreaDateTimeLocal();
     }
     
     setEditFormData({
@@ -1796,7 +1790,7 @@ function ConsultationContent() {
     // 페이지 로드 시 상담일지 폼 초기화
     setNewConsultation(prev => ({
       ...prev,
-      consultDate: new Date().toISOString().slice(0, 16) // YYYY-MM-DDTHH:MM 형식
+              consultDate: getCurrentKoreaDateTimeLocal() // 한국시간 기준
     }));
   }, []);
 
@@ -2719,6 +2713,7 @@ function ConsultationContent() {
                     <input
                       type="datetime-local"
                       value={newConsultation.consultDate}
+{...getKoreaDateTimeLocalRange(1900, 1)}
                       onChange={(e) => setNewConsultation({...newConsultation, consultDate: e.target.value})}
                       style={{ 
                         width: '100%', 
@@ -3214,25 +3209,7 @@ function ConsultationContent() {
                               {consultation.customerName || '고객명 없음'}
                             </h2>
                             <p style={{ fontSize: '1rem', color: '#4b5563', margin: 0 }}>
-                              {(() => {
-                                try {
-                                  const date = new Date(consultation.consultationDate);
-                                  if (isNaN(date.getTime())) {
-                                    // 날짜가 유효하지 않은 경우 원본 문자열 표시
-                                    return consultation.consultationDate || '날짜 없음';
-                                  }
-                                  return date.toLocaleString('ko-KR', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  });
-                                } catch (error) {
-                                  console.warn('날짜 포맷팅 오류:', error);
-                                  return consultation.consultationDate || '날짜 없음';
-                                }
-                              })()}
+                              {formatKoreaDateTime(consultation.consultationDate)}
                             </p>
                             {consultation.phoneNumber && (
                               <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
@@ -3453,6 +3430,7 @@ function ConsultationContent() {
                             <input
                               type="datetime-local"
                               value={editFormData.consultDate}
+{...getKoreaDateTimeLocalRange(1900, 1)}
                               onChange={(e) => setEditFormData({...editFormData, consultDate: e.target.value})}
                               style={{ 
                                 width: '100%', 

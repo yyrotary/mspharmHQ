@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createConsultationInSupabase } from '@/app/lib/supabase-consultation';
 import { createClient } from '@supabase/supabase-js';
 import { uploadConsultationImages, uploadAdditionalConsultationImages, deleteConsultationImages } from '@/app/lib/consultation-utils';
+import { validateKoreaDateRange, toKoreaISOString } from '@/app/lib/date-utils';
 
 // Supabase 클라이언트 생성 함수 (환경 변수 체크 포함)
 function createSupabaseClient() {
@@ -215,17 +216,17 @@ export async function PUT(request: Request) {
     const updateFields: any = {};
     
     if (updateData.consultDate !== undefined && updateData.consultDate !== null && updateData.consultDate !== '') {
-      try {
-        const consultDate = new Date(updateData.consultDate);
-        if (isNaN(consultDate.getTime())) {
-          throw new Error('Invalid date');
-        }
-        updateFields.consult_date = consultDate.toISOString();
-        console.log('날짜 변환 성공:', updateFields.consult_date);
-      } catch (dateError) {
-        console.error('날짜 변환 오류:', dateError, '입력값:', updateData.consultDate);
-        throw new Error(`날짜 형식이 올바르지 않습니다: ${updateData.consultDate}`);
+      // 한국시간 기준 날짜 검증
+      const validation = validateKoreaDateRange(updateData.consultDate, 1900, 1);
+      
+      if (!validation.isValid) {
+        console.error('날짜 검증 실패:', validation.error, '입력값:', updateData.consultDate);
+        throw new Error(`날짜 오류: ${validation.error}`);
       }
+      
+      // 한국시간 기준으로 ISO 문자열 변환
+      updateFields.consult_date = toKoreaISOString(updateData.consultDate);
+      console.log('한국시간 기준 날짜 변환 성공:', updateFields.consult_date);
     }
     if (updateData.symptoms !== undefined) {
       updateFields.symptoms = updateData.symptoms;
