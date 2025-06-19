@@ -6,6 +6,7 @@ import Link from 'next/link';
 import moment from 'moment-timezone';
 import { NotionConsultation } from '@/app/lib/notion-schema';
 import Loading from '@/app/components/Loading';
+import { getKoreaTime, formatKoreaDateTime } from '@/app/lib/date-utils';
 
 interface ConsultationHistoryItem {
   id: string;
@@ -32,9 +33,16 @@ function ConsultationHistoryContent() {
   const [message, setMessage] = useState('');
   const [consultations, setConsultations] = useState<ConsultationHistoryItem[]>([]);
   
-  // 기간 설정을 위한 상태
-  const [startDate, setStartDate] = useState(moment().subtract(7, 'days').format('YYYY-MM-DD'));
-  const [endDate, setEndDate] = useState(moment().format('YYYY-MM-DD'));
+  // 기간 설정을 위한 상태 (한국시간 기준)
+  const [startDate, setStartDate] = useState(() => {
+    const koreaTime = getKoreaTime();
+    koreaTime.setDate(koreaTime.getDate() - 7);
+    return koreaTime.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const koreaTime = getKoreaTime();
+    return koreaTime.toISOString().split('T')[0];
+  });
 
   // 확대 이미지 모달 상태
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -56,7 +64,7 @@ function ConsultationHistoryContent() {
       const data = await response.json();
 
       if (data.success) {
-        // Supabase 데이터를 Notion 형식으로 변환
+        // Supabase 데이터를 Notion 형식으로 변환 (API에서 이미 날짜 필터링됨)
         const sortedConsultations = data.consultations
           .map((consultation: any) => {
             try {
@@ -76,17 +84,12 @@ function ConsultationHistoryContent() {
             }
           })
           .filter((item): item is ConsultationHistoryItem => item !== null)
-          .filter((item: ConsultationHistoryItem) => {
-            // 날짜 필터링
-            if (!item.consultationDate) return false;
-            const consultDate = moment(item.consultationDate);
-            const start = moment(startDate);
-            const end = moment(endDate);
-            return consultDate.isBetween(start, end, 'day', '[]');
-          })
-          .sort((a: ConsultationHistoryItem, b: ConsultationHistoryItem) => 
-            moment(b.consultationDate).valueOf() - moment(a.consultationDate).valueOf()
-          );
+          .sort((a: ConsultationHistoryItem, b: ConsultationHistoryItem) => {
+            // 한국시간 기준 날짜 정렬
+            const dateA = new Date(a.consultationDate).getTime();
+            const dateB = new Date(b.consultationDate).getTime();
+            return dateB - dateA;
+          });
 
         setConsultations(sortedConsultations);
         setMessage(`${sortedConsultations.length}건의 상담 내역을 불러왔습니다.`);
@@ -106,10 +109,15 @@ function ConsultationHistoryContent() {
     fetchConsultations();
   }, [startDate, endDate]);
 
-  // 빠른 기간 설정 함수
+  // 빠른 기간 설정 함수 (한국시간 기준)
   const setQuickPeriod = (days: number) => {
-    setStartDate(moment().subtract(days - 1, 'days').format('YYYY-MM-DD'));
-    setEndDate(moment().format('YYYY-MM-DD'));
+    const koreaTime = getKoreaTime();
+    const endKoreaTime = getKoreaTime();
+    
+    koreaTime.setDate(koreaTime.getDate() - (days - 1));
+    
+    setStartDate(koreaTime.toISOString().split('T')[0]);
+    setEndDate(endKoreaTime.toISOString().split('T')[0]);
   };
 
   // 상담 내역 클릭 처리
@@ -352,11 +360,10 @@ function ConsultationHistoryContent() {
                             <span style={{ color: '#6b7280', marginLeft: 8 }}>
                               {(() => {
                                 try {
-                                  const date = moment(consultation.consultationDate);
-                                  if (!date.isValid()) {
-                                    return consultation.consultationDate || '날짜 없음';
+                                  if (!consultation.consultationDate) {
+                                    return '날짜 없음';
                                   }
-                                  return date.format('YYYY-MM-DD HH:mm');
+                                  return formatKoreaDateTime(consultation.consultationDate);
                                 } catch (error) {
                                   console.warn('날짜 포맷팅 오류:', error);
                                   return consultation.consultationDate || '날짜 없음';

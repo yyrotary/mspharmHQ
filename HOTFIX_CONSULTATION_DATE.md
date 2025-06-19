@@ -49,11 +49,12 @@ ALTER TABLE consultations ADD CONSTRAINT consultations_consult_date_check
 
 ### 🔧 백엔드
 - `app/lib/date-utils.ts` (새로 생성 - 한국시간 유틸리티)
-- `app/api/consultation-v2/route.ts` (한국시간 검증 적용)
+- `app/api/consultation-v2/route.ts` (한국시간 검증 및 날짜 필터링 적용)
 - `app/lib/supabase-consultation.ts` (한국시간 변환 적용)
 
 ### 🎨 프론트엔드
 - `app/consultation/page.tsx` (한국시간 기준 날짜 처리)
+- `app/consultation-history/page.tsx` (상담내역 조회 한국시간 처리)
 
 ## 🚀 배포 순서
 
@@ -93,11 +94,22 @@ ALTER TABLE consultations ADD CONSTRAINT consultations_consult_date_check
 ---
 
 **적용 완료 날짜**: 2024-12-19  
-**핫픽스 버전**: v1.1.0 (한국시간 기준 통일)
+**핫픽스 버전**: v1.1.1 (상담내역 조회 시간대 문제 해결)
 
 ## 🌏 한국시간(KST) 처리 특징
 
 - **일관된 시간대**: 모든 날짜 처리가 `Asia/Seoul` 기준
 - **자동 변환**: 사용자 입력이 자동으로 한국시간으로 변환
 - **표시 통일**: 모든 날짜 표시가 한국시간 기준
-- **검증 정확성**: 한국시간 기준으로 날짜 범위 검증 
+- **검증 정확성**: 한국시간 기준으로 날짜 범위 검증
+- **검색 정확성**: 상담내역 조회 시 한국시간 기준 날짜 필터링
+
+## 🔧 추가 수정사항 (v1.1.1)
+
+### 상담내역 조회 시간대 문제 해결
+- **문제**: 당일 저장한 상담일지가 검색되지 않음 (다음날로 검색해야 조회됨)
+- **원인**: 날짜 필터링 시 UTC와 한국시간 혼재
+- **해결**: 
+  - API 날짜 필터링을 한국시간 기준으로 수정 (`startDate T00:00:00+09:00`)
+  - 프론트엔드 날짜 초기화를 한국시간 기준으로 수정
+  - 날짜 표시를 `formatKoreaDateTime()` 함수로 통일 

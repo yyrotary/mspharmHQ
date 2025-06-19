@@ -67,9 +67,13 @@ export async function GET(request: Request) {
       query = query.or(`symptoms.ilike.%${search}%,prescription.ilike.%${search}%`);
     }
 
-    // 날짜 필터링
+    // 날짜 필터링 (한국시간 기준)
     if (startDate && endDate) {
-      query = query.gte('consult_date', startDate).lte('consult_date', endDate);
+      // 한국시간 기준으로 시작일의 00:00:00과 종료일의 23:59:59로 설정
+      const startDateTime = `${startDate}T00:00:00+09:00`; // 한국시간 시작
+      const endDateTime = `${endDate}T23:59:59+09:00`;     // 한국시간 종료
+      
+      query = query.gte('consult_date', startDateTime).lte('consult_date', endDateTime);
     }
 
     // 페이지네이션
