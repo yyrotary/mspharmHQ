@@ -1555,6 +1555,25 @@ function ConsultationContent() {
       console.error('상담일지 업데이트 오류:', error);
       console.error('응답 상태:', response?.status);
       console.error('응답 데이터:', result);
+      console.error('요청 URL:', `/api/consultation-v2`);
+      console.error('요청 데이터:', {
+        id: editingConsultation?.id,
+        consultDate: editFormData.consultDate,
+        symptoms: editFormData.content,
+        hasImages: editFormData.images.length > 0
+      });
+      
+      // 배포 환경에서 헬스체크 API 호출
+      if (typeof window !== 'undefined') {
+        fetch('/api/health')
+          .then(res => res.json())
+          .then(healthData => {
+            console.error('헬스체크 결과:', healthData);
+          })
+          .catch(healthError => {
+            console.error('헬스체크 실패:', healthError);
+          });
+      }
       
       const errorMessage = (error as Error).message || '상담일지 업데이트 중 오류가 발생했습니다.';
       setMessage(errorMessage);

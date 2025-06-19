@@ -67,9 +67,20 @@ jobs:
                     "https://www.googleapis.com/oauth2/v1/certs",   "client_x509_cert_url":
                     "https://www.googleapis.com/robot/v1/metadata/x509/google-drive-api%40gdirve-456016.iam.gserviceaccount.com",   "universe_domain":
                     "googleapis.com" }'
+                # Supabase 환경 변수 (필수)
+                - name: NEXT_PUBLIC_SUPABASE_URL
+                  value: "https://qpuagbmgtebcetzvbrfq.supabase.co"
+                - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
+                  value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwdWFnYm1ndGViY2V0enZicmZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzNDYxMjMsImV4cCI6MjA2MzkyMjEyM30.f9DSJaU4MNuf1xjbXimxu2_tW-A6XNNT2PdmMBn0SEg"
+                - name: SUPABASE_SERVICE_ROLE_KEY
+                  value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwdWFnYm1ndGViY2V0enZicmZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODM0NjEyMywiZXhwIjoyMDYzOTIyMTIzfQ.GpaHfKZrT2K3lseQuFlDovgSL6As-W43Wp2eVTvkVNo"
+                - name: SUPABASE_JWT_SECRET
+                  value: "geCwFZCj4S4IqxqYLpOCii8Pj8uPGlfgrvUCWuXiAZXFFbfSV5zPzkOCkGqmy31uLvfbzvPbWjLUJ+t74ZHY8g=="
+                - name: SUPABASE_DB_PASSWORD
+                  value: "tlsclgns356#"
               args: []
             context:
               git:
-                url: git@github.com:${{ github.repository }}.git
-                ref: ${{ github.ref }}
+                url: git@github.com:yyrotary/mspharmHQ.git
+                ref: refs/heads/main
               preset: dockerfile

@@ -8,14 +8,25 @@ function createSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
+  // 배포 환경에서 디버깅을 위한 로그
+  console.log('환경 변수 상태 체크:');
+  console.log('- NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '설정됨' : '누락됨');
+  console.log('- SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? '설정됨' : '누락됨');
+  console.log('- NODE_ENV:', process.env.NODE_ENV);
+  
   if (!supabaseUrl) {
-    throw new Error('NEXT_PUBLIC_SUPABASE_URL 환경 변수가 설정되지 않았습니다.');
+    const error = new Error('NEXT_PUBLIC_SUPABASE_URL 환경 변수가 설정되지 않았습니다.');
+    console.error('Supabase URL 누락:', error);
+    throw error;
   }
   
   if (!supabaseServiceKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY 환경 변수가 설정되지 않았습니다.');
+    const error = new Error('SUPABASE_SERVICE_ROLE_KEY 환경 변수가 설정되지 않았습니다.');
+    console.error('Supabase Service Key 누락:', error);
+    throw error;
   }
   
+  console.log('Supabase 클라이언트 생성 성공');
   return createClient(supabaseUrl, supabaseServiceKey);
 }
 
