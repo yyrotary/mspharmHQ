@@ -3,10 +3,23 @@ import { createConsultationInSupabase } from '@/app/lib/supabase-consultation';
 import { createClient } from '@supabase/supabase-js';
 import { uploadConsultationImages, uploadAdditionalConsultationImages, deleteConsultationImages } from '@/app/lib/consultation-utils';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Supabase 클라이언트 생성 함수 (환경 변수 체크 포함)
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL 환경 변수가 설정되지 않았습니다.');
+  }
+  
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY 환경 변수가 설정되지 않았습니다.');
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
+
+const supabase = createSupabaseClient();
 
 // 상담 목록 조회 - 순수 Supabase 형식으로 반환
 export async function GET(request: Request) {
@@ -129,6 +142,8 @@ export async function PUT(request: Request) {
     const data = await request.json();
     const { id, ...updateData } = data;
 
+    console.log('PUT 요청 데이터:', { id, updateData });
+
     if (!id) {
       return NextResponse.json(
         { error: '상담 ID가 필요합니다.' },
@@ -142,12 +157,24 @@ export async function PUT(request: Request) {
       .select(`
         consultation_id,
         image_urls,
-        customers!inner(customer_code)
+        customers:customer_id(customer_code)
       `)
       .eq('id', id)
       .single();
 
-    if (fetchError) throw fetchError;
+    if (fetchError) {
+      console.error('기존 상담 조회 오류:', fetchError);
+      throw fetchError;
+    }
+
+    if (!existingConsultation) {
+      return NextResponse.json(
+        { error: '존재하지 않는 상담입니다.' },
+        { status: 404 }
+      );
+    }
+
+    console.log('기존 상담 정보:', existingConsultation);
 
     // 기존 이미지 URL 보존
     let imageUrls: string[] = existingConsultation?.image_urls || [];
@@ -173,24 +200,61 @@ export async function PUT(request: Request) {
       }
     }
 
-    // 상담 데이터 업데이트 (날짜 필드 추가)
+    // 업데이트할 데이터 준비 (undefined 값 제거)
+    const updateFields: any = {};
+    
+    if (updateData.consultDate !== undefined && updateData.consultDate !== null && updateData.consultDate !== '') {
+      try {
+        const consultDate = new Date(updateData.consultDate);
+        if (isNaN(consultDate.getTime())) {
+          throw new Error('Invalid date');
+        }
+        updateFields.consult_date = consultDate.toISOString();
+        console.log('날짜 변환 성공:', updateFields.consult_date);
+      } catch (dateError) {
+        console.error('날짜 변환 오류:', dateError, '입력값:', updateData.consultDate);
+        throw new Error(`날짜 형식이 올바르지 않습니다: ${updateData.consultDate}`);
+      }
+    }
+    if (updateData.symptoms !== undefined) {
+      updateFields.symptoms = updateData.symptoms;
+    }
+    if (updateData.stateAnalysis !== undefined) {
+      updateFields.patient_condition = updateData.stateAnalysis;
+    }
+    if (updateData.tongueAnalysis !== undefined) {
+      updateFields.tongue_analysis = updateData.tongueAnalysis;
+    }
+    if (updateData.specialNote !== undefined) {
+      updateFields.special_notes = updateData.specialNote;
+    }
+    if (updateData.medicine !== undefined) {
+      updateFields.prescription = updateData.medicine;
+    }
+    if (updateData.result !== undefined) {
+      updateFields.result = updateData.result;
+    }
+    
+    // 이미지 URL은 항상 업데이트 (기존 + 새 이미지)
+    updateFields.image_urls = imageUrls;
+    updateFields.updated_at = new Date().toISOString();
+
+    console.log('최종 업데이트 필드:', updateFields);
+
+    // 상담 데이터 업데이트
     const { data: updatedConsultation, error } = await supabase
       .from('consultations')
-      .update({
-        consult_date: updateData.consultDate ? new Date(updateData.consultDate).toISOString() : undefined, // ISO 형식으로 날짜와 시간 모두 저장
-        symptoms: updateData.symptoms,
-        patient_condition: updateData.stateAnalysis,
-        tongue_analysis: updateData.tongueAnalysis,
-        special_notes: updateData.specialNote,
-        prescription: updateData.medicine,
-        result: updateData.result,
-        image_urls: imageUrls // 기존 이미지 + 새 이미지
-      })
+      .update(updateFields)
       .eq('id', id)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('상담 업데이트 DB 오류:', error);
+      throw error;
+    }
+
+    console.log('상담 업데이트 성공:', updatedConsultation);
 
     return NextResponse.json({
       success: true,
@@ -200,8 +264,15 @@ export async function PUT(request: Request) {
 
   } catch (error) {
     console.error('상담 수정 오류:', error);
+    
+    // 더 자세한 에러 정보 반환
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    
     return NextResponse.json(
-      { error: '상담 수정 중 오류가 발생했습니다.' },
+      { 
+        error: '상담 수정 중 오류가 발생했습니다.',
+        details: errorMessage
+      },
       { status: 500 }
     );
   }
@@ -225,7 +296,7 @@ export async function DELETE(request: Request) {
       .from('consultations')
       .select(`
         consultation_id,
-        customers!inner(customer_code)
+        customers:customer_id(customer_code)
       `)
       .eq('id', id)
       .single();

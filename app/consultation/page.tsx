@@ -1548,11 +1548,16 @@ function ConsultationContent() {
         // 성공 메시지를 잠시 후 지우기
         setTimeout(() => setMessage(''), 3000);
       } else {
-        throw new Error(result.error || '상담일지 업데이트 중 오류가 발생했습니다.');
+        const errorMsg = result.details ? `${result.error} (${result.details})` : result.error;
+        throw new Error(errorMsg || '상담일지 업데이트 중 오류가 발생했습니다.');
       }
     } catch (error) {
       console.error('상담일지 업데이트 오류:', error);
-      setMessage((error as Error).message || '상담일지 업데이트 중 오류가 발생했습니다.');
+      console.error('응답 상태:', response?.status);
+      console.error('응답 데이터:', result);
+      
+      const errorMessage = (error as Error).message || '상담일지 업데이트 중 오류가 발생했습니다.';
+      setMessage(errorMessage);
     } finally {
       setLoading(false);
     }
