@@ -2713,7 +2713,7 @@ function ConsultationContent() {
                     <input
                       type="datetime-local"
                       value={newConsultation.consultDate}
-{...getKoreaDateTimeLocalRange(1900, 1)}
+                      {...getKoreaDateTimeLocalRange(1900, 2)}
                       onChange={(e) => setNewConsultation({...newConsultation, consultDate: e.target.value})}
                       style={{ 
                         width: '100%', 
@@ -3430,7 +3430,7 @@ function ConsultationContent() {
                             <input
                               type="datetime-local"
                               value={editFormData.consultDate}
-{...getKoreaDateTimeLocalRange(1900, 1)}
+                              {...getKoreaDateTimeLocalRange(1900, 2)}
                               onChange={(e) => setEditFormData({...editFormData, consultDate: e.target.value})}
                               style={{ 
                                 width: '100%', 

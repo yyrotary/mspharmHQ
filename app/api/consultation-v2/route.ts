@@ -216,8 +216,8 @@ export async function PUT(request: Request) {
     const updateFields: any = {};
     
     if (updateData.consultDate !== undefined && updateData.consultDate !== null && updateData.consultDate !== '') {
-      // 한국시간 기준 날짜 검증
-      const validation = validateKoreaDateRange(updateData.consultDate, 1900, 1);
+      // 한국시간 기준 날짜 검증 (2년 범위로 확장)
+      const validation = validateKoreaDateRange(updateData.consultDate, 1900, 2);
       
       if (!validation.isValid) {
         console.error('날짜 검증 실패:', validation.error, '입력값:', updateData.consultDate);

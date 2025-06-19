@@ -453,7 +453,7 @@ export async function createConsultationInSupabase(data: ConsultationCreateInput
     
     // 한국시간 기준 날짜 검증
     if (data.consultDate) {
-      const validation = validateKoreaDateRange(data.consultDate, 1900, 1);
+      const validation = validateKoreaDateRange(data.consultDate, 1900, 2);
       
       if (!validation.isValid) {
         console.error('날짜 검증 실패:', validation.error, '입력값:', data.consultDate);

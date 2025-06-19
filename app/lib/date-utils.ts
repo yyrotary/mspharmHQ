@@ -51,13 +51,13 @@ export function toKoreaDateTimeLocal(date: Date | string): string {
  * 한국시간 기준으로 날짜 범위 검증
  * @param date - 검증할 날짜
  * @param minYear - 최소 연도 (기본값: 1900)
- * @param maxYearsFromNow - 현재로부터 최대 연수 (기본값: 1)
+ * @param maxYearsFromNow - 현재로부터 최대 연수 (기본값: 2)
  * @returns 검증 결과 객체
  */
 export function validateKoreaDateRange(
   date: Date | string, 
   minYear: number = 1900, 
-  maxYearsFromNow: number = 1
+  maxYearsFromNow: number = 2
 ): { isValid: boolean; error?: string } {
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -129,12 +129,12 @@ export function formatKoreaDateTime(date: Date | string, includeTime: boolean = 
 /**
  * datetime-local 입력 필드의 min/max 값을 한국시간 기준으로 생성
  * @param minYear - 최소 연도 (기본값: 1900)
- * @param maxYearsFromNow - 현재로부터 최대 연수 (기본값: 1)
+ * @param maxYearsFromNow - 현재로부터 최대 연수 (기본값: 2)
  * @returns min, max 값 객체
  */
 export function getKoreaDateTimeLocalRange(
   minYear: number = 1900, 
-  maxYearsFromNow: number = 1
+  maxYearsFromNow: number = 2
 ): { min: string; max: string } {
   const currentKoreaTime = getKoreaTime();
   
