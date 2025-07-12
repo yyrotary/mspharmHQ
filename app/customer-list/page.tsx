@@ -106,6 +106,12 @@ function CustomerListContent() {
     router.push(`/consultation?customerId=${customer.id}&directView=true`);
   };
   
+  // 이미지 모아보기 처리
+  const handleImageGallery = (customer: Customer) => {
+    // 선택한 고객의 이미지 모아보기 페이지로 이동
+    router.push(`/consultation-history/image-gallery?customerId=${customer.id}&customerName=${encodeURIComponent(customer.name)}`);
+  };
+  
   // 고객 삭제 처리
   const handleCustomerDelete = async (customer: Customer) => {
     try {
@@ -287,6 +293,7 @@ function CustomerListContent() {
                   onSortChange={handleSortChange}
                   onCustomerSelect={handleCustomerSelect}
                   onCustomerDelete={showTrash ? handleCustomerRestore : handleCustomerDelete}
+                  onImageGallery={handleImageGallery}
                   isTrashMode={showTrash}
                 />
                 

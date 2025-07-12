@@ -28,6 +28,7 @@ interface CustomerTableProps {
   onSortChange: (field: string) => void;
   onCustomerSelect: (customer: Customer) => void;
   onCustomerDelete?: (customer: Customer) => void;
+  onImageGallery?: (customer: Customer) => void;
   isTrashMode?: boolean;
 }
 
@@ -38,6 +39,7 @@ export default function CustomerTable({
   onSortChange,
   onCustomerSelect,
   onCustomerDelete,
+  onImageGallery,
   isTrashMode = false
 }: CustomerTableProps) {
   const [search, setSearch] = useState('');
@@ -199,14 +201,25 @@ export default function CustomerTable({
                     {customer.consultation_count || 0}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    {onCustomerDelete && (
-                      <button
-                        onClick={() => onCustomerDelete(customer)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        {isTrashMode ? '완전삭제' : '삭제'}
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end space-x-2">
+                      {onImageGallery && (
+                        <button
+                          onClick={() => onImageGallery(customer)}
+                          className="text-green-600 hover:text-green-900 px-2 py-1 rounded text-xs"
+                          title="이미지 모아보기"
+                        >
+                          📷
+                        </button>
+                      )}
+                      {onCustomerDelete && (
+                        <button
+                          onClick={() => onCustomerDelete(customer)}
+                          className="text-red-600 hover:text-red-900 px-2 py-1 rounded text-xs"
+                        >
+                          {isTrashMode ? '완전삭제' : '삭제'}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

@@ -1858,6 +1858,34 @@ function ConsultationContent() {
     }
   }, [searchParams]);
 
+  // 특정 상담으로 스크롤하는 기능
+  useEffect(() => {
+    const consultationId = searchParams.get('consultationId');
+    
+    if (consultationId && consultations.length > 0) {
+      // 상담 목록이 로드된 후 특정 상담으로 스크롤
+      setTimeout(() => {
+        const targetElement = document.getElementById(`consultation-${consultationId}`);
+        if (targetElement) {
+          targetElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          
+          // 하이라이트 효과 추가
+          targetElement.style.border = '3px solid #10b981';
+          targetElement.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.3)';
+          
+          // 3초 후 하이라이트 제거
+          setTimeout(() => {
+            targetElement.style.border = '2px solid #e5e7eb';
+            targetElement.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+          }, 3000);
+        }
+      }, 500);
+    }
+  }, [consultations, searchParams]);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* 헤더 */}
@@ -2033,25 +2061,46 @@ function ConsultationContent() {
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e40af' }}>
                   고객 정보
                 </h2>
-                <button
-                  onClick={() => setShowEditCustomerForm(true)}
-                  style={{ 
-                    backgroundColor: '#3b82f6', 
-                    color: 'white', 
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.875rem', 
-                    borderRadius: '0.375rem', 
-                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <span style={{ marginRight: '0.25rem' }}>✏️</span>
-                  정보 수정
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => router.push(`/consultation-history/image-gallery?customerId=${customer.id}&customerName=${encodeURIComponent(customer.name)}`)}
+                    style={{ 
+                      backgroundColor: '#10b981', 
+                      color: 'white', 
+                      padding: '0.5rem 1rem',
+                      fontSize: '0.875rem', 
+                      borderRadius: '0.375rem', 
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <span style={{ marginRight: '0.25rem' }}>📷</span>
+                    이미지 모아보기
+                  </button>
+                  <button
+                    onClick={() => setShowEditCustomerForm(true)}
+                    style={{ 
+                      backgroundColor: '#3b82f6', 
+                      color: 'white', 
+                      padding: '0.5rem 1rem',
+                      fontSize: '0.875rem', 
+                      borderRadius: '0.375rem', 
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <span style={{ marginRight: '0.25rem' }}>✏️</span>
+                    정보 수정
+                  </button>
+                </div>
               </div>
               
               <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1rem', tableLayout: 'fixed' }}>
@@ -3184,14 +3233,16 @@ function ConsultationContent() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {consultations.map((consultation: FormattedConsultation) => (
                   <div 
-                    key={consultation.id} 
+                    key={consultation.id}
+                    id={`consultation-${consultation.id}`}
                     style={{
                       border: '2px solid #e5e7eb', 
                       borderRadius: '0.75rem', 
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                       overflow: 'hidden',
                       backgroundColor: 'white',
-                      marginBottom: '1rem'
+                      marginBottom: '1rem',
+                      transition: 'all 0.3s ease'
                     }}
                   >
                     {/* 상담 정보 헤더 */}

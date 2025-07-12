@@ -375,7 +375,7 @@ function ConsultationHistoryContent() {
                         <div style={{ marginBottom: '0.5rem', color: '#374151' }}>
                           {consultation.consultationContent}
                         </div>
-                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#6b7280', alignItems: 'center' }}>
                           <div>
                             <span style={{ fontWeight: '500' }}>처방: </span>
                             {consultation.prescription || '없음'}
@@ -384,6 +384,24 @@ function ConsultationHistoryContent() {
                             <span style={{ fontWeight: '500' }}>결과: </span>
                             {consultation.result || '없음'}
                           </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/consultation-history/image-gallery?customerId=${consultation.customerId}&customerName=${encodeURIComponent(consultation.customerName)}`);
+                            }}
+                            style={{ 
+                              padding: '0.25rem 0.75rem',
+                              backgroundColor: '#10b981',
+                              color: 'white',
+                              borderRadius: '0.375rem',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              marginLeft: 'auto'
+                            }}
+                          >
+                            📷 이미지 모아보기
+                          </button>
                         </div>
                       </div>
                     ))}
