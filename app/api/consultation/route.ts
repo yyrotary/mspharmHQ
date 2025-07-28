@@ -6,6 +6,7 @@ import {
   type ConsultationCreateInput 
 } from '@/app/lib/supabase-consultation';
 import { getCustomerById } from '@/app/lib/supabase-customer';
+import { getCurrentKoreaDate } from '@/app/lib/date-utils';
 
 // 상담일지 조회
 export async function GET(request: Request) {
@@ -109,11 +110,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '고객을 찾을 수 없습니다.' }, { status: 404 });
     }
 
-    // 상담일지 데이터 준비 (createConsultationInSupabase 함수 사용)
+    // 상담일지 데이터 준비 (모든 시간을 서울 시간 기준으로 처리)
     const consultationData: ConsultationCreateInput = {
       customer_id: data.customerId,
       symptoms: data.chiefComplaint || '',
-      consultDate: data.consultationDate || new Date().toISOString().split('T')[0],
+      consultDate: data.consultationDate || getCurrentKoreaDate(), // 서울 시간 기준 오늘 날짜
       stateAnalysis: data.patientCondition || undefined,
       tongueAnalysis: data.tongueAnalysis || undefined,
       specialNote: data.specialNotes || undefined,

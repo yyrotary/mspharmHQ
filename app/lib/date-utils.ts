@@ -7,10 +7,14 @@
 export const KOREA_TIMEZONE = 'Asia/Seoul';
 
 /**
- * 현재 한국시간을 반환
+ * 현재 한국시간을 반환 (간단하고 안전한 방식)
  */
 export function getKoreaTime(): Date {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: KOREA_TIMEZONE }));
+  const now = new Date();
+  // 서울 시간대의 현재 시각을 직접 계산
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const koreaTime = new Date(utc + (9 * 3600000)); // UTC+9 (서울 시간)
+  return koreaTime;
 }
 
 /**
@@ -19,12 +23,32 @@ export function getKoreaTime(): Date {
  * @returns ISO 형식 문자열 (한국시간 기준)
  */
 export function toKoreaISOString(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  // 한국시간으로 변환
-  const koreaTime = new Date(dateObj.toLocaleString('en-US', { timeZone: KOREA_TIMEZONE }));
-  
-  return koreaTime.toISOString();
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    // 서울 시간대로 직접 변환 (불필요한 연산 제거)
+    const koreaTimeString = dateObj.toLocaleString('sv-SE', { 
+      timeZone: KOREA_TIMEZONE,
+      year: 'numeric',
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    
+    // ISO 형식으로 반환 (YYYY-MM-DDTHH:mm:ss.000Z)
+    return koreaTimeString.replace(' ', 'T') + '.000Z';
+    
+  } catch (error) {
+    console.error('한국시간 변환 오류:', error);
+    // 오류 시 현재 서울 시간 반환
+    const now = new Date();
+    const koreaTimeString = now.toLocaleString('sv-SE', { 
+      timeZone: KOREA_TIMEZONE 
+    });
+    return koreaTimeString.replace(' ', 'T') + '.000Z';
+  }
 }
 
 /**
@@ -155,4 +179,16 @@ export function getKoreaDateTimeLocalRange(
  */
 export function getCurrentKoreaDateTimeLocal(): string {
   return toKoreaDateTimeLocal(getKoreaTime());
+}
+
+/**
+ * 현재 서울 시간 기준 날짜를 YYYY-MM-DD 형식으로 반환
+ * @returns YYYY-MM-DD 형식의 현재 서울 날짜
+ */
+export function getCurrentKoreaDate(): string {
+  const koreaTime = getKoreaTime();
+  const year = koreaTime.getFullYear();
+  const month = String(koreaTime.getMonth() + 1).padStart(2, '0');
+  const day = String(koreaTime.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 } 

@@ -216,22 +216,11 @@ export async function PUT(request: Request) {
       }
     }
 
-    // 업데이트할 데이터 준비 (undefined 값 제거)
+    // 업데이트할 데이터 준비 (created_at과 consult_date는 절대 변경하지 않음)
     const updateFields: any = {};
     
-    if (updateData.consultDate !== undefined && updateData.consultDate !== null && updateData.consultDate !== '') {
-      // 한국시간 기준 날짜 검증 (2년 범위로 확장)
-      const validation = validateKoreaDateRange(updateData.consultDate, 1900, 2);
-      
-      if (!validation.isValid) {
-        console.error('날짜 검증 실패:', validation.error, '입력값:', updateData.consultDate);
-        throw new Error(`날짜 오류: ${validation.error}`);
-      }
-      
-      // 한국시간 기준으로 ISO 문자열 변환
-      updateFields.consult_date = toKoreaISOString(updateData.consultDate);
-      console.log('한국시간 기준 날짜 변환 성공:', updateFields.consult_date);
-    }
+    // ⚠️ 상담 날짜(consult_date)와 생성시간(created_at)은 최초 생성 시에만 설정되고 
+    // 업데이트 시에는 절대 변경되지 않습니다 (사용자 요구사항)
     if (updateData.symptoms !== undefined) {
       updateFields.symptoms = updateData.symptoms;
     }
@@ -253,7 +242,9 @@ export async function PUT(request: Request) {
     
     // 이미지 URL은 항상 업데이트 (기존 + 새 이미지)
     updateFields.image_urls = imageUrls;
-    updateFields.updated_at = new Date().toISOString();
+    
+    // updated_at만 서울 시간 기준으로 갱신 (created_at과 consult_date는 절대 변경 안됨)
+    updateFields.updated_at = toKoreaISOString(new Date());
 
     console.log('최종 업데이트 필드:', updateFields);
 

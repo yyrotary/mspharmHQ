@@ -211,14 +211,14 @@ export default function CustomerTable({
                           📷
                         </button>
                       )}
-                      {onCustomerDelete && (
-                        <button
-                          onClick={() => onCustomerDelete(customer)}
+                    {onCustomerDelete && (
+                      <button
+                        onClick={() => onCustomerDelete(customer)}
                           className="text-red-600 hover:text-red-900 px-2 py-1 rounded text-xs"
-                        >
-                          {isTrashMode ? '완전삭제' : '삭제'}
-                        </button>
-                      )}
+                      >
+                        {isTrashMode ? '완전삭제' : '삭제'}
+                      </button>
+                    )}
                     </div>
                   </td>
                 </tr>

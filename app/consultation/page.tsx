@@ -2081,25 +2081,25 @@ function ConsultationContent() {
                     <span style={{ marginRight: '0.25rem' }}>📷</span>
                     이미지 모아보기
                   </button>
-                  <button
-                    onClick={() => setShowEditCustomerForm(true)}
-                    style={{ 
-                      backgroundColor: '#3b82f6', 
-                      color: 'white', 
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.875rem', 
-                      borderRadius: '0.375rem', 
-                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <span style={{ marginRight: '0.25rem' }}>✏️</span>
-                    정보 수정
-                  </button>
+                <button
+                  onClick={() => setShowEditCustomerForm(true)}
+                  style={{ 
+                    backgroundColor: '#3b82f6', 
+                    color: 'white', 
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.875rem', 
+                    borderRadius: '0.375rem', 
+                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <span style={{ marginRight: '0.25rem' }}>✏️</span>
+                  정보 수정
+                </button>
                 </div>
               </div>
               
@@ -3233,7 +3233,7 @@ function ConsultationContent() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {consultations.map((consultation: FormattedConsultation) => (
                   <div 
-                    key={consultation.id}
+                    key={consultation.id} 
                     id={`consultation-${consultation.id}`}
                     style={{
                       border: '2px solid #e5e7eb', 

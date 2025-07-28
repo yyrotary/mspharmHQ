@@ -493,7 +493,9 @@ export async function createConsultationInSupabase(data: ConsultationCreateInput
       }
     }
 
-    // 상담 데이터 삽입 (한국시간 기준으로 변환)
+    // 상담 데이터 삽입 (모든 시간을 서울 시간 기준으로 설정)
+    const currentSeoulTime = toKoreaISOString(new Date());
+    
     const consultationData = {
       consultation_id: consultationId,
       customer_id: data.customer_id,
@@ -504,7 +506,9 @@ export async function createConsultationInSupabase(data: ConsultationCreateInput
       special_notes: data.specialNote,
       prescription: data.medicine,
       result: data.result,
-      image_urls: imageUrls
+      image_urls: imageUrls,
+      created_at: currentSeoulTime,   // 생성시간도 서울 시간으로 명시적 설정
+      updated_at: currentSeoulTime    // 수정시간도 서울 시간으로 명시적 설정
     };
 
     const { data: consultation, error } = await supabase
