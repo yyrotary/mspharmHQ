@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { validateKoreaDateRange, toKoreaISOString } from './date-utils';
+import { validateDateRange, normalizeDate } from './date-utils';
 
 function getSupabaseClient() {
   return createClient(
@@ -12,7 +12,7 @@ export interface SupabaseConsultation {
   id: string;
   consultation_id: string;
   customer_id: string;
-  consult_date: string;
+  consult_date: string; // DATE 타입: YYYY-MM-DD 형식
   symptoms: string;
   patient_condition?: string;
   tongue_analysis?: string;
@@ -36,7 +36,7 @@ export interface Consultation {
   special_notes?: string;
   result?: string;
   image_urls?: string[];
-  consultation_date: string;
+  consultation_date: string; // DATE 타입: YYYY-MM-DD 형식
   created_at: string;
   updated_at: string;
 }
@@ -50,7 +50,7 @@ export interface CreateConsultationData {
   special_notes?: string;
   result?: string;
   image_urls?: string[];
-  consultation_date: string;
+  consultation_date: string; // DATE 타입: YYYY-MM-DD 형식
 }
 
 export interface UpdateConsultationData {
@@ -61,7 +61,7 @@ export interface UpdateConsultationData {
   special_notes?: string;
   result?: string;
   image_urls?: string[];
-  consultation_date?: string;
+  consultation_date?: string; // DATE 타입: YYYY-MM-DD 형식
 }
 
 export interface SearchConsultationsParams {
@@ -75,7 +75,7 @@ export interface SearchConsultationsParams {
 export interface ConsultationCreateInput {
   customer_id: string;
   symptoms: string;
-  consultDate: string;
+  consultDate: string; // DATE 타입: YYYY-MM-DD 형식
   stateAnalysis?: string;
   tongueAnalysis?: string;
   specialNote?: string;
@@ -451,16 +451,16 @@ export async function createConsultationInSupabase(data: ConsultationCreateInput
   try {
     const supabase = getSupabaseClient();
     
-    // 한국시간 기준 날짜 검증
+    // 순수한 날짜 검증 (YYYY-MM-DD 형식)
     if (data.consultDate) {
-      const validation = validateKoreaDateRange(data.consultDate, 1900, 2);
+      const validation = validateDateRange(data.consultDate, 1900, 2);
       
       if (!validation.isValid) {
         console.error('날짜 검증 실패:', validation.error, '입력값:', data.consultDate);
         throw new Error(`날짜 오류: ${validation.error}`);
       }
       
-      console.log('한국시간 기준 상담 날짜 검증 성공:', data.consultDate);
+      console.log('상담 날짜 검증 성공:', data.consultDate);
     }
     
     // 고객 정보 조회
@@ -493,22 +493,19 @@ export async function createConsultationInSupabase(data: ConsultationCreateInput
       }
     }
 
-    // 상담 데이터 삽입 (모든 시간을 서울 시간 기준으로 설정)
-    const currentSeoulTime = toKoreaISOString(new Date());
-    
+    // 상담 데이터 삽입 (날짜는 순수한 DATE 형식, 시간은 표준 ISO 형식)
     const consultationData = {
       consultation_id: consultationId,
       customer_id: data.customer_id,
-      consult_date: toKoreaISOString(data.consultDate),
+      consult_date: normalizeDate(data.consultDate), // 순수한 YYYY-MM-DD 형식
       symptoms: data.symptoms,
       patient_condition: data.stateAnalysis,
       tongue_analysis: data.tongueAnalysis,
       special_notes: data.specialNote,
       prescription: data.medicine,
       result: data.result,
-      image_urls: imageUrls,
-      created_at: currentSeoulTime,   // 생성시간도 서울 시간으로 명시적 설정
-      updated_at: currentSeoulTime    // 수정시간도 서울 시간으로 명시적 설정
+      image_urls: imageUrls
+      // created_at과 updated_at은 PostgreSQL의 기본값(now()) 사용
     };
 
     const { data: consultation, error } = await supabase

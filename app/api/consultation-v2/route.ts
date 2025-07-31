@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createConsultationInSupabase } from '@/app/lib/supabase-consultation';
 import { createClient } from '@supabase/supabase-js';
 import { uploadConsultationImages, uploadAdditionalConsultationImages, deleteConsultationImages } from '@/app/lib/consultation-utils';
-import { validateKoreaDateRange, toKoreaISOString } from '@/app/lib/date-utils';
+import { validateDateRange, normalizeDate } from '@/app/lib/date-utils';
 
 // Supabase 클라이언트 생성 함수 (환경 변수 체크 포함)
 function createSupabaseClient() {
@@ -67,13 +67,10 @@ export async function GET(request: Request) {
       query = query.or(`symptoms.ilike.%${search}%,prescription.ilike.%${search}%`);
     }
 
-    // 날짜 필터링 (한국시간 기준)
+    // 날짜 필터링 (순수한 날짜만, 타임존 영향 없음)
     if (startDate && endDate) {
-      // 한국시간 기준으로 시작일의 00:00:00과 종료일의 23:59:59로 설정
-      const startDateTime = `${startDate}T00:00:00+09:00`; // 한국시간 시작
-      const endDateTime = `${endDate}T23:59:59+09:00`;     // 한국시간 종료
-      
-      query = query.gte('consult_date', startDateTime).lte('consult_date', endDateTime);
+      // YYYY-MM-DD 형식의 순수한 날짜로 필터링
+      query = query.gte('consult_date', startDate).lte('consult_date', endDate);
     }
 
     // 페이지네이션
@@ -216,11 +213,23 @@ export async function PUT(request: Request) {
       }
     }
 
-    // 업데이트할 데이터 준비 (created_at과 consult_date는 절대 변경하지 않음)
+    // 업데이트할 데이터 준비 (created_at은 절대 변경하지 않음)
     const updateFields: any = {};
     
-    // ⚠️ 상담 날짜(consult_date)와 생성시간(created_at)은 최초 생성 시에만 설정되고 
-    // 업데이트 시에는 절대 변경되지 않습니다 (사용자 요구사항)
+    // 상담 날짜는 수정 가능하지만 순수한 DATE 형식만 허용 (타임존 영향 없음)
+    if (updateData.consultDate !== undefined && updateData.consultDate !== null && updateData.consultDate !== '') {
+      // 날짜 검증 (YYYY-MM-DD 형식)
+      const validation = validateDateRange(updateData.consultDate, 1900, 2);
+      
+      if (!validation.isValid) {
+        console.error('날짜 검증 실패:', validation.error, '입력값:', updateData.consultDate);
+        throw new Error(`날짜 오류: ${validation.error}`);
+      }
+      
+      // 순수한 날짜 형식으로 저장 (타임존 정보 없음)
+      updateFields.consult_date = normalizeDate(updateData.consultDate);
+      console.log('날짜 정규화 성공:', updateFields.consult_date);
+    }
     if (updateData.symptoms !== undefined) {
       updateFields.symptoms = updateData.symptoms;
     }
@@ -243,8 +252,8 @@ export async function PUT(request: Request) {
     // 이미지 URL은 항상 업데이트 (기존 + 새 이미지)
     updateFields.image_urls = imageUrls;
     
-    // updated_at만 서울 시간 기준으로 갱신 (created_at과 consult_date는 절대 변경 안됨)
-    updateFields.updated_at = toKoreaISOString(new Date());
+    // updated_at만 현재 시간으로 갱신 (created_at은 절대 변경 안됨)
+    updateFields.updated_at = new Date().toISOString();
 
     console.log('최종 업데이트 필드:', updateFields);
 

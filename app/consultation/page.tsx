@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Loading from '@/app/components/Loading';
 import { 
-  toKoreaDateTimeLocal, 
-  formatKoreaDateTime, 
-  getKoreaDateTimeLocalRange,
-  getCurrentKoreaDateTimeLocal 
+  normalizeDate, 
+  formatKoreaDate, 
+  getDateInputRange,
+  getCurrentKoreaDate 
 } from '@/app/lib/date-utils';
 
 // Supabase 고객 타입 정의
@@ -92,7 +92,7 @@ function ConsultationContent() {
   });
   
   const [newConsultation, setNewConsultation] = useState<NewConsultation>({
-    consultDate: getCurrentKoreaDateTimeLocal(), // 한국시간 기준
+    consultDate: getCurrentKoreaDate(), // 한국 날짜 기준 (YYYY-MM-DD)
     content: '',
     medicine: '',
     result: '',
@@ -1422,21 +1422,21 @@ function ConsultationContent() {
   const initEditForm = (consultation: FormattedConsultation) => {
     setEditingConsultation(consultation);
     
-    // 한국시간 기준으로 날짜 형식 변환 (datetime-local 입력에 맞는 형식으로)
+    // 날짜만 추출 (YYYY-MM-DD 형식)
     let consultDate = consultation.consultationDate;
     
     try {
       if (consultDate && consultDate.trim() !== '') {
-        // 한국시간 기준으로 datetime-local 형식으로 변환
-        consultDate = toKoreaDateTimeLocal(consultDate);
+        // 순수한 날짜 형식으로 정규화 (YYYY-MM-DD)
+        consultDate = normalizeDate(consultDate);
       } else {
-        // 날짜가 없는 경우 현재 한국시간으로 설정
-        consultDate = getCurrentKoreaDateTimeLocal();
+        // 날짜가 없는 경우 현재 한국 날짜로 설정
+        consultDate = getCurrentKoreaDate();
       }
     } catch (error) {
       console.warn('날짜 변환 오류:', error);
-      // 오류 발생 시 현재 한국시간으로 설정
-      consultDate = getCurrentKoreaDateTimeLocal();
+      // 오류 발생 시 현재 한국 날짜로 설정
+      consultDate = getCurrentKoreaDate();
     }
     
     setEditFormData({
@@ -2760,9 +2760,9 @@ function ConsultationContent() {
                       상담일자 *
                     </label>
                     <input
-                      type="datetime-local"
+                      type="date"
                       value={newConsultation.consultDate}
-                      {...getKoreaDateTimeLocalRange(1900, 2)}
+                      {...getDateInputRange(1900, 2)}
                       onChange={(e) => setNewConsultation({...newConsultation, consultDate: e.target.value})}
                       style={{ 
                         width: '100%', 
@@ -3479,9 +3479,9 @@ function ConsultationContent() {
                               상담일자 *
                             </label>
                             <input
-                              type="datetime-local"
+                              type="date"
                               value={editFormData.consultDate}
-                              {...getKoreaDateTimeLocalRange(1900, 2)}
+                              {...getDateInputRange(1900, 2)}
                               onChange={(e) => setEditFormData({...editFormData, consultDate: e.target.value})}
                               style={{ 
                                 width: '100%', 
