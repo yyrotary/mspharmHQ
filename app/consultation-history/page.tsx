@@ -6,7 +6,7 @@ import Link from 'next/link';
 import moment from 'moment-timezone';
 import { NotionConsultation } from '@/app/lib/notion-schema';
 import Loading from '@/app/components/Loading';
-import { getKoreaTime, formatKoreaDateTime } from '@/app/lib/date-utils';
+import { getKoreaTime, formatKoreaDate } from '@/app/lib/date-utils';
 
 interface ConsultationHistoryItem {
   id: string;
@@ -33,7 +33,7 @@ function ConsultationHistoryContent() {
   const [message, setMessage] = useState('');
   const [consultations, setConsultations] = useState<ConsultationHistoryItem[]>([]);
   
-  // 기간 설정을 위한 상태 (한국시간 기준)
+  // 기간 설정을 위한 상태 (날짜 기준)
   const [startDate, setStartDate] = useState(() => {
     const koreaTime = getKoreaTime();
     koreaTime.setDate(koreaTime.getDate() - 7);
@@ -85,7 +85,7 @@ function ConsultationHistoryContent() {
           })
           .filter((item): item is ConsultationHistoryItem => item !== null)
           .sort((a: ConsultationHistoryItem, b: ConsultationHistoryItem) => {
-            // 한국시간 기준 날짜 정렬
+            // 날짜 정렬
             const dateA = new Date(a.consultationDate).getTime();
             const dateB = new Date(b.consultationDate).getTime();
             return dateB - dateA;
@@ -109,7 +109,7 @@ function ConsultationHistoryContent() {
     fetchConsultations();
   }, [startDate, endDate]);
 
-  // 빠른 기간 설정 함수 (한국시간 기준)
+  // 빠른 기간 설정 함수
   const setQuickPeriod = (days: number) => {
     const koreaTime = getKoreaTime();
     const endKoreaTime = getKoreaTime();
@@ -363,7 +363,7 @@ function ConsultationHistoryContent() {
                                   if (!consultation.consultationDate) {
                                     return '날짜 없음';
                                   }
-                                  return formatKoreaDateTime(consultation.consultationDate);
+                                  return formatKoreaDate(consultation.consultationDate);
                                 } catch (error) {
                                   console.warn('날짜 포맷팅 오류:', error);
                                   return consultation.consultationDate || '날짜 없음';

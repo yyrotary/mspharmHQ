@@ -185,7 +185,7 @@ function ConsultationContent() {
       if (consultationsData.success) {
         // Supabase 데이터를 기존 형식으로 변환
         const formattedConsultations = consultationsData.consultations.map((consultation: any) => {
-          // consult_date를 직접 사용 (이제 TIMESTAMP WITH TIME ZONE으로 시간 정보 포함)
+          // consult_date를 직접 사용 (DATE 타입으로 순수한 날짜만 포함)
           let consultationDateTime = consultation.consult_date || '';
           
           return {
@@ -753,7 +753,7 @@ function ConsultationContent() {
         
         // 상담일지 폼 초기화
         setNewConsultation({
-          consultDate: getCurrentKoreaDateTimeLocal(), // 한국시간 기준
+          consultDate: getCurrentKoreaDate(), // 현재 한국 날짜 (YYYY-MM-DD)
           content: '',
           medicine: '',
           result: '',
@@ -1785,12 +1785,12 @@ function ConsultationContent() {
     }
   };
 
-  // 새 상담일지 폼의 시간 형식 초기화를 위한 useEffect 추가
+  // 새 상담일지 폼의 날짜 초기화를 위한 useEffect 추가
   useEffect(() => {
     // 페이지 로드 시 상담일지 폼 초기화
     setNewConsultation(prev => ({
       ...prev,
-              consultDate: getCurrentKoreaDateTimeLocal() // 한국시간 기준
+              consultDate: getCurrentKoreaDate() // 현재 한국 날짜 (YYYY-MM-DD)
     }));
   }, []);
 
@@ -3260,7 +3260,7 @@ function ConsultationContent() {
                               {consultation.customerName || '고객명 없음'}
                             </h2>
                             <p style={{ fontSize: '1rem', color: '#4b5563', margin: 0 }}>
-                              {formatKoreaDateTime(consultation.consultationDate)}
+                              {formatKoreaDate(consultation.consultationDate)}
                             </p>
                             {consultation.phoneNumber && (
                               <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>

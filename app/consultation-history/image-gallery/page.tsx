@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Loading from '@/app/components/Loading';
-import { formatKoreaDateTime } from '@/app/lib/date-utils';
+import { formatKoreaDate } from '@/app/lib/date-utils';
 
 interface ImageItem {
   id: string;
@@ -254,7 +254,7 @@ function ImageGalleryContent() {
                           }}>
                             <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>{image.customerName}</div>
                             <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>
-                              {formatKoreaDateTime(image.consultationDate)}
+                              {formatKoreaDate(image.consultationDate)}
                             </div>
                           </div>
                         </div>
@@ -328,7 +328,7 @@ function ImageGalleryContent() {
               {selectedImage.customerName}
             </div>
             <div style={{ color: '#6b7280', marginBottom: '0.5rem' }}>
-              {formatKoreaDateTime(selectedImage.consultationDate)}
+                              {formatKoreaDate(selectedImage.consultationDate)}
             </div>
             <div style={{ fontSize: '0.875rem', color: '#374151' }}>
               {selectedImage.consultationContent}
