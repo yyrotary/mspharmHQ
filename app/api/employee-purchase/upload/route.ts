@@ -38,11 +38,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 파일 크기 체크 (10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // 파일 크기 체크 (4MB - Vercel 제한 고려)
+    if (file.size > 4 * 1024 * 1024) {
       console.error('Upload: File too large:', file.size);
       return NextResponse.json(
-        { error: '파일 크기는 10MB 이하여야 합니다' },
+        { error: '파일 크기는 4MB 이하여야 합니다. 이미지를 압축해주세요.' },
         { status: 400 }
       );
     }

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
+import imageCompression from 'browser-image-compression';
 
 interface User {
   id: string;
@@ -44,23 +45,49 @@ export default function NewPurchaseRequest() {
     }
   };
 
-  const handleImageCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length + images.length > 5) {
       toast.error('최대 5개의 이미지만 업로드 가능합니다');
       return;
     }
 
-    setImages([...images, ...files]);
-    
-    // 미리보기 생성
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageUrls(prev => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+    // 이미지 압축 옵션 (Vercel 4.5MB 제한 고려)
+    const options = {
+      maxSizeMB: 3, // 최대 3MB로 압축
+      maxWidthOrHeight: 1920, // 최대 해상도
+      useWebWorker: true,
+      fileType: 'image/jpeg' as const, // JPEG로 변환하여 용량 절감
+    };
+
+    try {
+      const compressedFiles: File[] = [];
+      
+      for (const file of files) {
+        toast.loading(`이미지 압축 중... (${file.name})`);
+        const compressedFile = await imageCompression(file, options);
+        compressedFiles.push(compressedFile);
+        toast.dismiss();
+        
+        console.log(`Original: ${(file.size / 1024 / 1024).toFixed(2)}MB → Compressed: ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+      }
+
+      setImages([...images, ...compressedFiles]);
+      
+      // 미리보기 생성
+      compressedFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImageUrls(prev => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+      
+      toast.success('이미지가 추가되었습니다');
+    } catch (error) {
+      console.error('Image compression error:', error);
+      toast.error('이미지 처리 중 오류가 발생했습니다');
+    }
   };
 
   const removeImage = (index: number) => {
@@ -205,7 +232,7 @@ export default function NewPurchaseRequest() {
                 multiple
               />
               <p className="text-xs text-gray-500 mt-2">
-                최대 5개의 이미지를 업로드할 수 있습니다. (각 파일 최대 10MB)
+                최대 5개의 이미지를 업로드할 수 있습니다. (자동으로 압축됩니다)
               </p>
             </div>
 
