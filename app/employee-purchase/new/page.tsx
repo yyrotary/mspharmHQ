@@ -205,7 +205,7 @@ export default function NewPurchaseRequest() {
                 multiple
               />
               <p className="text-xs text-gray-500 mt-2">
-                최대 5개의 이미지를 업로드할 수 있습니다. (각 파일 최대 5MB)
+                최대 5개의 이미지를 업로드할 수 있습니다. (각 파일 최대 10MB)
               </p>
             </div>
 
