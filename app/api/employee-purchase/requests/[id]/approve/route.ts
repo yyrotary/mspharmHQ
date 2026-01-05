@@ -4,7 +4,7 @@ import { verifyEmployeeAuth } from '@/app/lib/employee-purchase/auth';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyEmployeeAuth(request);
@@ -18,7 +18,7 @@ export async function POST(
     }
 
     const supabase = getEmployeePurchaseSupabase();
-    const requestId = params.id;
+    const { id: requestId } = await params;
 
     // 구매 요청 존재 확인
     const { data: existingRequest, error: fetchError } = await supabase
