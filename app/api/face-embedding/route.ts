@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     const mimeType = imageFile.type || 'image/jpeg';
     
     // Gemini 2.0 Flash 모델 사용 (더 빠르고 가벼움)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     // 이미지 분석 요청
     let responseText = '';

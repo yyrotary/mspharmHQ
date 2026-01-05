@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Gemini API 초기화
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
-const modelName = 'gemini-1.5-flash';
+const modelName = 'gemini-2.5-flash';
 
 export async function POST(request: Request) {
   try {

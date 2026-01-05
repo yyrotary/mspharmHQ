@@ -21,6 +21,9 @@ export interface Customer {
   google_drive_folder_id?: string;
   consultation_count: number;
   is_deleted: boolean;
+  pin_code: string;
+  is_initial_pin: boolean;
+  pin_updated_at: string;
   created_at: string;
   updated_at: string;
 }

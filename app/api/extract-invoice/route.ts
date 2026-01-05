@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 // Gemini API 키
 const GEMINI_API_KEY = 'AIzaSyCNyZ7ZuQR0RNjXhky9GKD1FApRDEOeV14';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 // 한국어 거래 내역서에서 특정 패턴 추출을 위한 정규식
 const SUPPLIER_PATTERN = /공\s*급\s*처\s*:?\s*([가-힣a-zA-Z0-9()\s]+)/;

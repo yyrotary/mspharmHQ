@@ -19,14 +19,15 @@
 
 ## 🏥 프로젝트 개요
 
-MSPharmHQ는 명성약국의 운영을 디지털화하는 통합 관리 시스템입니다. 고객 관리, 상담 기록, 재무 관리, AI 기반 자동화 기능을 제공합니다.
+MSPharmHQ는 명성약국의 운영을 디지털화하는 통합 관리 시스템입니다. 약사용 관리 시스템과 고객용 모바일 서비스를 모두 제공합니다.
 
 ### 핵심 가치
 - 📊 **데이터 중심**: 모든 업무 데이터의 체계적 관리
-- 🤖 **AI 자동화**: 얼굴 인식, 영수증 스캔, 약품 인식
+- 🤖 **AI 자동화**: 얼굴 인식, 영수증 스캔, 약품 인식, 음식 분석
 - ☁️ **클라우드 기반**: 언제 어디서나 접근 가능
 - 📱 **반응형 디자인**: 모바일/태블릿/데스크톱 지원
 - 🚀 **고성능**: Supabase PostgreSQL 기반 빠른 데이터 처리
+- 👥 **고객 중심**: 고객이 직접 사용할 수 있는 모바일 서비스
 
 ## 🔄 최신 변경사항 (2024-12-19)
 
@@ -70,7 +71,14 @@ MSPharmHQ는 명성약국의 운영을 디지털화하는 통합 관리 시스�
 - **상담 연결**: 이미지에서 해당 상담 내역으로 직접 이동 (자동 스크롤)
 - **실무 활용**: 약국 상담 시 고객의 증상 호전도 확인 및 설명 도구
 
-#### 6. 마이그레이션 완료 통계
+#### 6. 고객용 모바일 앱 출시 ⭐ **NEW**
+- **PIN 인증**: 6자리 숫자로 간편 로그인
+- **상담 기록 조회**: 고객이 직접 상담 내역 확인
+- **AI 음식 분석**: Gemini Vision API로 실시간 음식 분석
+- **생활 기록**: 수면, 운동, 복약 등 생활 패턴 기록
+- **모바일 최적화**: 스마트폰 카메라 지원 및 터치 최적화
+
+#### 7. 마이그레이션 완료 통계
 - **전체 고객 수**: 69명 (완전 마이그레이션)
 - **전체 상담일지 수**: 67개 (무결성 검증 완료)
 - **이미지 파일**: 66개 (Supabase Storage 이전 완료)
@@ -96,14 +104,17 @@ MSPharmHQ는 명성약국의 운영을 디지털화하는 통합 관리 시스�
 
 ```
 docs/
-├── PROJECT_STRUCTURE.md    # 프로젝트 구조 및 디렉토리 설명 ✅
-├── API_ARCHITECTURE.md     # API 설계 및 엔드포인트 명세 ✅
-├── SYSTEM_ARCHITECTURE.md  # 시스템 아키텍처 및 데이터 플로우 ✅
-├── GUI_DOCUMENTATION.md    # UI/UX 및 화면 구성 문서 ✅
-├── DEVELOPER_GUIDE.md      # 개발자 시작 가이드
-├── PROJECT_SUMMARY.md      # 프로젝트 전체 요약
-├── WORK_LOG.md            # 작업 일지 (자동 생성됨) ✅
-└── DOCUMENTATION_CHECKLIST.md # 문서화 체크리스트
+├── PROJECT_STRUCTURE.md         # 프로젝트 구조 및 디렉토리 설명 ✅
+├── API_ARCHITECTURE.md          # API 설계 및 엔드포인트 명세 ✅
+├── SYSTEM_ARCHITECTURE.md       # 시스템 아키텍처 및 데이터 플로우 ✅
+├── GUI_DOCUMENTATION.md         # UI/UX 및 화면 구성 문서 ✅
+├── DEVELOPER_GUIDE.md           # 개발자 시작 가이드
+├── PROJECT_SUMMARY.md           # 프로젝트 전체 요약
+├── WORK_LOG.md                 # 작업 일지 (자동 생성됨) ✅
+├── CUSTOMER_APP_GUIDE.md        # 고객용 앱 사용 가이드 ✅
+├── SETUP_CUSTOMER_APP.md        # 고객용 앱 설정 가이드 ✅
+├── ENVIRONMENT_TROUBLESHOOTING.md # 환경 변수 문제 해결 가이드 ⭐ **NEW**
+└── DOCUMENTATION_CHECKLIST.md   # 문서화 체크리스트
 ```
 
 ## 🔴 필수 작업 프로세스
@@ -318,6 +329,7 @@ USE_SUPABASE_CONSULTATION=true
 ### AI/ML
 - **Face Recognition**: TensorFlow.js
 - **OCR**: Google Gemini Vision
+- **Food Analysis**: Google Gemini Vision (멀티모달) ⭐ **NEW**
 - **NLP**: Claude, OpenAI
 
 ### ❌ 제거된 기술 스택
@@ -353,10 +365,18 @@ USE_SUPABASE_CONSULTATION=true
    - 관리자/약국장 승인 워크플로우
    - 통계 및 리포트
 
-5. **AI 자동화**
+5. **고객용 모바일 앱** ⭐ **NEW**
+   - 6자리 PIN 기반 간편 로그인
+   - 상담 기록 조회 및 처방전 확인
+   - AI 음식 분석 (Gemini Vision API)
+   - 생활 기록 (수면, 운동, 복약)
+   - 약사를 위한 고객 라이프스타일 데이터 제공
+
+6. **AI 자동화**
    - 영수증 자동 인식
    - 약품 정보 추출
    - 고객 얼굴 인식
+   - 음식 자동 분석 (칼로리, 영양성분 추정)
 
 ## 🚀 시스템 성능 개선사항
 
@@ -402,6 +422,12 @@ USE_SUPABASE_CONSULTATION=true
 - [ ] 빌드 테스트
 - [ ] 데이터베이스 마이그레이션 확인
 - [ ] 배포 체크리스트 완료
+
+### 환경 변수 문제 발생 시
+- [ ] [환경 변수 문제 해결 가이드](docs/ENVIRONMENT_TROUBLESHOOTING.md) 참조
+- [ ] `.env.local` 파일 위치 및 인코딩 확인
+- [ ] 필수 환경 변수 누락 여부 확인
+- [ ] 임시 환경 변수 설정으로 테스트
 
 ## 🔧 개발 도구 및 스크립트
 

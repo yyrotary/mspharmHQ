@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 // Gemini API 키
 const GEMINI_API_KEY = 'AIzaSyCNyZ7ZuQR0RNjXhky9GKD1FApRDEOeV14';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 // API 키 테스트를 위한 간단한 핸들러
 export async function GET() {

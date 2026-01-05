@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 // Gemini API 키 (기존 extract-invoice API와 동일한 키 사용)
 const GEMINI_API_KEY = 'AIzaSyCNyZ7ZuQR0RNjXhky9GKD1FApRDEOeV14';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 // 약품 인식 API 엔드포인트
 export async function POST(request: Request) {

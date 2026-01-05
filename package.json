@@ -45,6 +45,7 @@
     "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.5.48",
     "next": "15.2.4",
+    "node-fetch": "^3.3.2",
     "openai": "^4.91.1",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
