@@ -180,6 +180,75 @@ export default function EmployeePurchaseDashboard() {
             </Link>
           </div>
 
+          {/* 관리자 전용 - HR 관리 시스템 */}
+          {['manager', 'owner'].includes(user?.role || '') && (
+            <div className="mt-8">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">⚙️ HR 관리 시스템 (관리자)</h2>
+              <Link
+                href="/employee-hr/admin/dashboard"
+                className="block p-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl hover:shadow-lg transition-all border-2 border-indigo-200"
+              >
+                <div className="flex items-center">
+                  <div className="text-6xl mr-6">💼</div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-indigo-900 mb-2">HR 관리 대시보드</h3>
+                    <p className="text-indigo-700 text-lg">직원 근무 확인 · 월급 계산 · 명세서 발행 · 세무사 보고</p>
+                    <div className="flex gap-4 mt-3">
+                      <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium">
+                        📅 근무 현황
+                      </span>
+                      <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium">
+                        🧮 급여 계산
+                      </span>
+                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
+                        📄 명세서 발행
+                      </span>
+                      <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-lg text-sm font-medium">
+                        📊 세무사 보고
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          )}
+
+          {/* HR 시스템 섹션 */}
+          <div className="mt-8">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">💼 근무 관리</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 근무 캘린더 */}
+              <Link
+                href="/employee-hr/work-calendar"
+                className="block p-8 bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl hover:shadow-lg transition-all border border-teal-200"
+              >
+                <div className="flex items-center">
+                  <div className="text-5xl mr-4">📅</div>
+                  <div>
+                    <h3 className="text-xl font-bold text-teal-900">근무 기록</h3>
+                    <p className="text-teal-700 mt-2">근무 시간 입력 및 관리</p>
+                    <p className="text-sm text-teal-600 mt-1">예상 급여 실시간 확인</p>
+                  </div>
+                </div>
+              </Link>
+
+              {/* 급여 명세 */}
+              <Link
+                href="/employee-hr/payroll"
+                className="block p-8 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl hover:shadow-lg transition-all border border-purple-200"
+              >
+                <div className="flex items-center">
+                  <div className="text-5xl mr-4">💰</div>
+                  <div>
+                    <h3 className="text-xl font-bold text-purple-900">급여 명세서</h3>
+                    <p className="text-purple-700 mt-2">월별 급여 내역 조회</p>
+                    <p className="text-sm text-purple-600 mt-1">지급·공제 내역 확인</p>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </div>
+
           <div className="mt-8 p-4 bg-blue-50 rounded-lg">
             <h3 className="text-sm font-medium text-blue-800 mb-2">사용 안내</h3>
             <div className="text-xs text-blue-600 space-y-1">

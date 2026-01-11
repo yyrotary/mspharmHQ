@@ -49,7 +49,7 @@ export default function CustomerDashboard() {
 
     const parsedSession = JSON.parse(sessionData);
     setSession(parsedSession);
-    
+
     // 시간대별 인사말
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('좋은 아침이에요');
@@ -67,7 +67,7 @@ export default function CustomerDashboard() {
         `/api/customer/food/records?customerId=${customerId}&date=${today}`
       );
       const foodData = await foodResponse.json();
-      
+
       if (foodData.success && foodData.records) {
         setRecentFoods(foodData.records.slice(0, 3));
         
@@ -113,7 +113,7 @@ export default function CustomerDashboard() {
     if (percentage <= 110) return 'from-green-400 to-emerald-400';
     return 'from-red-400 to-rose-400';
   };
-
+      
   const getHealthScoreEmoji = (score: number) => {
     if (score >= 80) return '😄';
     if (score >= 60) return '🙂';
@@ -140,7 +140,7 @@ export default function CustomerDashboard() {
           <p className="text-sm text-gray-500">{greeting} 👋</p>
           <h1 className="text-2xl font-bold text-gray-900">{session?.customerName}님</h1>
         </div>
-        <Link 
+        <Link
           href="/customer/profile"
           className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg"
         >
@@ -182,11 +182,11 @@ export default function CustomerDashboard() {
               </div>
               <p className="text-xs text-indigo-100 mt-1">{item.label}</p>
               <p className="text-sm font-medium">{item.value}g</p>
-            </div>
+          </div>
           ))}
-        </div>
-      </div>
-
+                            </div>
+                        </div>
+                        
       {/* 오늘의 목표 */}
       <section>
         <h2 className="text-lg font-bold text-gray-900 mb-4">오늘의 목표</h2>
@@ -220,7 +220,7 @@ export default function CustomerDashboard() {
                 <span className="text-gray-400 font-normal">/{todayGoal.calories.target}</span>
               </p>
             </div>
-          </div>
+                              </div>
 
           {/* 식사 */}
           <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -244,14 +244,14 @@ export default function CustomerDashboard() {
                   </defs>
                 </svg>
                 <span className="absolute inset-0 flex items-center justify-center text-lg">🍽️</span>
-              </div>
+                          </div>
               <p className="text-xs text-gray-500 mt-2">식사</p>
               <p className="text-sm font-bold text-gray-900">
                 {todayGoal.meals.current}
                 <span className="text-gray-400 font-normal">/{todayGoal.meals.target}끼</span>
               </p>
-            </div>
-          </div>
+                          </div>
+                      </div>
 
           {/* 물 */}
           <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -263,8 +263,8 @@ export default function CustomerDashboard() {
                     cx="32" cy="32" r="28" 
                     stroke="url(#waterGradient)" 
                     strokeWidth="6" 
-                    fill="none"
-                    strokeLinecap="round"
+                        fill="none" 
+                          strokeLinecap="round" 
                     strokeDasharray={`${(todayGoal.water.current / todayGoal.water.target) * 176} 176`}
                   />
                   <defs>
@@ -273,7 +273,7 @@ export default function CustomerDashboard() {
                       <stop offset="100%" stopColor="#6366f1" />
                     </linearGradient>
                   </defs>
-                </svg>
+                      </svg>
                 <span className="absolute inset-0 flex items-center justify-center text-lg">💧</span>
               </div>
               <p className="text-xs text-gray-500 mt-2">물</p>
@@ -281,7 +281,7 @@ export default function CustomerDashboard() {
                 {todayGoal.water.current}
                 <span className="text-gray-400 font-normal">/{todayGoal.water.target}잔</span>
               </p>
-            </div>
+                    </div>
           </div>
         </div>
       </section>
@@ -296,7 +296,7 @@ export default function CustomerDashboard() {
             { href: '/customer/lifestyle?tab=exercise', icon: '🏃', label: '운동', color: 'from-orange-400 to-red-500' },
             { href: '/customer/lifestyle?tab=medication', icon: '💊', label: '복약', color: 'from-pink-400 to-rose-500' },
           ].map((item, idx) => (
-            <Link
+            <Link 
               key={idx}
               href={item.href}
               className={`bg-gradient-to-br ${item.color} rounded-2xl p-4 text-center text-white shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95`}
@@ -305,7 +305,7 @@ export default function CustomerDashboard() {
               <span className="text-xs font-medium mt-1 block">{item.label}</span>
             </Link>
           ))}
-        </div>
+          </div>
       </section>
 
       {/* 오늘 먹은 음식 */}
@@ -316,17 +316,17 @@ export default function CustomerDashboard() {
             전체보기 →
           </Link>
         </div>
-
+        
         {recentFoods.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
             <span className="text-4xl block mb-3">🍽️</span>
             <p className="text-gray-500 mb-4">아직 오늘 기록된 음식이 없어요</p>
-            <Link
+          <Link
               href="/customer/food-diary/camera"
               className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-sm font-medium shadow-md"
-            >
+          >
               📷 첫 음식 기록하기
-            </Link>
+          </Link>
           </div>
         ) : (
           <div className="space-y-3">
@@ -372,7 +372,7 @@ export default function CustomerDashboard() {
                 ? '칼로리 섭취가 부족해요. 균형 잡힌 식사를 챙겨드세요!'
                 : '오늘도 건강한 식습관을 유지하고 계시네요! 좋아요 👍'}
             </p>
-            <Link 
+            <Link
               href="/customer/health-report"
               className="text-amber-600 text-sm font-medium mt-2 inline-block"
             >

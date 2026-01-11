@@ -167,7 +167,7 @@ function LifestyleContent() {
       {/* 탭 */}
       <div className="flex gap-2 overflow-x-auto pb-2">
         {tabs.map(tab => (
-          <button
+        <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as TabType)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
@@ -178,14 +178,14 @@ function LifestyleContent() {
           >
             <span>{tab.icon}</span>
             <span className="text-sm font-medium">{tab.label}</span>
-          </button>
+        </button>
         ))}
       </div>
 
       {/* 오늘의 요약 (전체 탭) */}
       {activeTab === 'overview' && (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
             <div className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl p-5 text-white">
               <span className="text-3xl">😴</span>
               <p className="text-sm text-indigo-100 mt-2">수면</p>
@@ -205,8 +205,8 @@ function LifestyleContent() {
               <span className="text-3xl">💊</span>
               <p className="text-sm text-pink-100 mt-2">복약</p>
               <p className="text-2xl font-bold">{todayStats.medications_taken}회</p>
-            </div>
           </div>
+        </div>
 
           {/* 빠른 기록 */}
           <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -230,7 +230,7 @@ function LifestyleContent() {
                 onClick={() => setActiveTab('exercise')}
                 className="flex flex-col items-center p-3 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors"
               >
-                <span className="text-2xl">🏃</span>
+              <span className="text-2xl">🏃</span>
                 <span className="text-xs text-gray-600 mt-1">운동</span>
               </button>
               <button
@@ -263,15 +263,15 @@ function LifestyleContent() {
               <div className="flex-1 text-center">
                 <span className="text-4xl font-bold text-indigo-600">{sleepHours}</span>
                 <span className="text-lg text-gray-500 ml-1">시간</span>
-              </div>
+            </div>
               <button
                 onClick={() => setSleepHours(Math.min(24, sleepHours + 0.5))}
                 className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-2xl"
               >
                 +
               </button>
-            </div>
           </div>
+        </div>
 
           {/* 수면 품질 */}
           <div className="mb-6">
@@ -329,8 +329,8 @@ function LifestyleContent() {
                   {type}
                 </button>
               ))}
-            </div>
-          </div>
+        </div>
+      </div>
 
           {/* 운동 시간 */}
           <div className="mb-6">
@@ -345,7 +345,7 @@ function LifestyleContent() {
               <div className="flex-1 text-center">
                 <span className="text-4xl font-bold text-orange-500">{exerciseMinutes}</span>
                 <span className="text-lg text-gray-500 ml-1">분</span>
-              </div>
+      </div>
               <button
                 onClick={() => setExerciseMinutes(exerciseMinutes + 10)}
                 className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-2xl"
@@ -354,7 +354,7 @@ function LifestyleContent() {
               </button>
             </div>
           </div>
-
+          
           <button
             onClick={() => saveRecord('exercise', { type: exerciseType, minutes: exerciseMinutes })}
             disabled={!exerciseType}
@@ -408,14 +408,14 @@ function LifestyleContent() {
               </button>
             </div>
           </div>
-
+          
           <button
             onClick={() => saveRecord('medication', { name: medicationName, taken: medicationTaken })}
             disabled={!medicationName}
             className="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl text-white font-medium disabled:opacity-50"
           >
             저장하기
-          </button>
+              </button>
         </div>
       )}
 
@@ -446,10 +446,10 @@ function LifestyleContent() {
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-3xl font-bold text-blue-600">{todayStats.water_glasses}</span>
                 <span className="text-sm text-gray-500">/8잔</span>
-              </div>
             </div>
           </div>
-
+        </div>
+        
           <p className="text-center text-gray-600 mb-6">
             오늘 {todayStats.water_glasses}잔 마셨어요!<br />
             {todayStats.water_glasses < 8 

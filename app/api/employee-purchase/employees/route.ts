@@ -17,20 +17,46 @@ export async function GET(request: NextRequest) {
 
     const supabase = getEmployeePurchaseSupabase();
 
-    // 모든 Family 조회 (비밀번호 제외)
+    // 모든 Family 조회 (비밀번호 제외, HR 정보 포함)
     const { data: employees, error } = await supabase
       .from('employees')
-      .select('id, name, role, created_at, updated_at')
+      .select(`
+        id, name, role, created_at, updated_at,
+        email, phone, position, department, employment_type,
+        hire_date, birth_date, is_active, resignation_date
+      `)
+      .order('is_active', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: true });
-
+    
     if (error) {
       console.error('Error fetching employees:', error);
       return NextResponse.json({ error: 'Failed to fetch employees' }, { status: 500 });
     }
 
+    // 각 직원의 현재 급여 정보 조회
+    const employeesWithSalary = await Promise.all(
+      (employees || []).map(async (emp) => {
+        const { data: salary } = await supabase
+          .from('salaries')
+          .select('base_salary, hourly_rate, fixed_overtime_pay')
+          .eq('employee_id', emp.id)
+          .is('effective_to', null)
+          .order('effective_from', { ascending: false })
+          .limit(1)
+          .single();
+        
+        return {
+          ...emp,
+          base_salary: salary?.base_salary || null,
+          hourly_rate: salary?.hourly_rate || null,
+          fixed_overtime_pay: salary?.fixed_overtime_pay || null,
+        };
+      })
+    );
+
     return NextResponse.json({ 
       success: true,
-      employees: employees || []
+      employees: employeesWithSalary
     });
 
   } catch (error) {
@@ -52,9 +78,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Owner access required' }, { status: 403 });
     }
 
-    const { name, role, password } = await request.json();
+    const body = await request.json();
+    const {
+      name,
+      role,
+      password,
+      // HR 정보 (선택사항)
+      email,
+      phone,
+      position,
+      department,
+      employment_type,
+      hire_date,
+      birth_date,
+      address,
+    } = body;
 
-    // 입력값 검증
+    // 필수 입력값 검증
     if (!name || !role || !password) {
       return NextResponse.json({ 
         error: '이름, 권한, 비밀번호를 모두 입력해주세요' 
@@ -100,17 +140,29 @@ export async function POST(request: NextRequest) {
     // 비밀번호 해시화
     const hashedPassword = await hashPassword(password);
 
-    // 새 Family 추가
+    // 새 Family 추가 (HR 정보 포함)
+    const employeeData: any = {
+      name: name.trim(),
+      role,
+      password_hash: hashedPassword,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // HR 정보 추가 (값이 있는 경우만)
+    if (email) employeeData.email = email;
+    if (phone) employeeData.phone = phone;
+    if (position) employeeData.position = position;
+    if (department) employeeData.department = department;
+    if (employment_type) employeeData.employment_type = employment_type;
+    if (hire_date) employeeData.hire_date = hire_date;
+    if (birth_date) employeeData.birth_date = birth_date;
+    if (address) employeeData.address = address;
+
     const { data: newEmployee, error: insertError } = await supabase
       .from('employees')
-      .insert({
-        name: name.trim(),
-        role,
-        password_hash: hashedPassword,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select('id, name, role, created_at')
+      .insert(employeeData)
+      .select('id, name, role, created_at, email, phone, position, hire_date')
       .single();
 
     if (insertError) {

@@ -37,7 +37,7 @@ export default function FoodCameraPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  
   const [session, setSession] = useState<any>(null);
   const [step, setStep] = useState<Step>('camera');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -109,7 +109,7 @@ export default function FoodCameraPage() {
     const canvas = canvasRef.current;
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
+
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(video, 0, 0);
@@ -136,10 +136,10 @@ export default function FoodCameraPage() {
     if (!capturedImage || !session) return;
 
     setStep('analyzing');
-    
+
     try {
       const base64Data = capturedImage.split(',')[1];
-      
+
       const response = await fetch('/api/customer/food/analyze-with-questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -260,7 +260,7 @@ export default function FoodCameraPage() {
         {step === 'camera' && (
           <div className="flex gap-2">
             {['아침', '점심', '저녁', '간식'].map(type => (
-              <button
+        <button
                 key={type}
                 onClick={() => setMealType(type)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
@@ -268,9 +268,9 @@ export default function FoodCameraPage() {
                     ? 'bg-green-500 text-white'
                     : 'bg-white/20 text-white/80 backdrop-blur-sm'
                 }`}
-              >
+        >
                 {type}
-              </button>
+        </button>
             ))}
           </div>
         )}
@@ -302,16 +302,16 @@ export default function FoodCameraPage() {
           {/* 가이드 프레임 */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-72 h-72 border-2 border-white/50 rounded-3xl"></div>
-          </div>
-
-          {/* 촬영 버튼 */}
+            </div>
+            
+            {/* 촬영 버튼 */}
           <div className="absolute bottom-8 left-0 right-0 flex items-center justify-center gap-6">
-            <button
+              <button
               onClick={() => fileInputRef.current?.click()}
               className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
-            >
+              >
               <span className="text-2xl">🖼️</span>
-            </button>
+              </button>
             
             <button
               onClick={capturePhoto}
@@ -346,14 +346,14 @@ export default function FoodCameraPage() {
             >
               다시 찍기
             </button>
-            <button
+          <button
               onClick={analyzeImage}
               className="flex-1 py-4 bg-green-500 rounded-2xl text-white font-medium"
-            >
+          >
               분석하기
-            </button>
-          </div>
+          </button>
         </div>
+      </div>
       )}
 
       {/* 분석 중 */}
@@ -467,7 +467,7 @@ export default function FoodCameraPage() {
                   <p className="text-xs text-pink-600 font-medium">지방</p>
                   <p className="text-xl font-bold text-pink-700">{analysisResult.nutritional_info.fat}g</p>
                 </div>
-              </div>
+      </div>
 
               {/* 식사 유형 선택 */}
               <div className="mb-6">
@@ -489,7 +489,7 @@ export default function FoodCameraPage() {
                 </div>
               </div>
             </div>
-          </div>
+      </div>
 
           {/* 저장 버튼 */}
           <div className="p-6 bg-white border-t border-gray-100">
