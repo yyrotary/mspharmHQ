@@ -66,11 +66,11 @@ const CACHE_DURATION = 60 * 1000;
 export async function getDailyIncome(date: string) {
   const cacheKey = `daily-income-${date}`;
   const cachedData = cache.get(cacheKey);
-  
+
   if (cachedData && (Date.now() - cachedData.timestamp < CACHE_DURATION)) {
     return cachedData.data;
   }
-  
+
   try {
     const response = await notion.databases.query({
       database_id: databaseId,
@@ -81,7 +81,7 @@ export async function getDailyIncome(date: string) {
         },
       },
     });
-    
+
     const result = response.results[0] || null;
     cache.set(cacheKey, { data: result, timestamp: Date.now() });
     return result;
@@ -111,7 +111,7 @@ export async function saveDailyIncome(date: string, data: any) {
   try {
     // 해당 날짜의 데이터가 있는지 확인
     const existingData = await getDailyIncome(date);
-    
+
     if (existingData) {
       // 데이터 업데이트
       return await notion.pages.update({
@@ -151,28 +151,28 @@ export async function saveDailyIncome(date: string, data: any) {
 export async function getMonthlyIncome(yearMonth: string) {
   const cacheKey = `monthly-income-${yearMonth}`;
   const cachedData = cache.get(cacheKey);
-  
+
   if (cachedData && (Date.now() - cachedData.timestamp < CACHE_DURATION)) {
     return cachedData.data;
   }
-  
+
   try {
     // YYYY-MM 형식에서 년도와 월 추출
     const [year, month] = yearMonth.split('-');
-    
+
     // 해당 월의 시작일과 종료일 계산
     const startDate = `${year}-${month}-01`;
-    
+
     // 월의 마지막 날짜 계산 (다음 달 1일에서 하루를 빼면 현재 달의 마지막 날)
     const nextMonth = parseInt(month) === 12 ? 1 : parseInt(month) + 1;
     const nextYear = parseInt(month) === 12 ? parseInt(year) + 1 : parseInt(year);
-    
+
     // 다음 달 1일에서 하루를 빼면 현재 달의 마지막 날
     const lastDay = new Date(nextYear, nextMonth - 1, 0).getDate();
     const endDate = `${year}-${month}-${lastDay}`;
-    
+
     console.log(`월별 데이터 조회: ${startDate}부터 ${endDate}까지`);
-    
+
     // 해당 월의 모든 데이터 조회
     const response = await notion.databases.query({
       database_id: databaseId,
@@ -199,20 +199,20 @@ export async function getMonthlyIncome(yearMonth: string) {
         }
       ]
     });
-    
+
     const result = response.results;
-    
+
     // 추가 검증: 결과에서 날짜 범위 외의 데이터 필터링
     const filteredResults = result.filter((item: any) => {
       const itemDate = item.properties['날짜']?.date?.start;
       if (!itemDate) return false;
-      
+
       // 날짜가 범위 내에 있는지 확인
       return itemDate >= startDate && itemDate <= endDate;
     });
-    
+
     console.log(`조회된 데이터 수: ${filteredResults.length}개 (전체 ${result.length}개)`);
-    
+
     cache.set(cacheKey, { data: filteredResults, timestamp: Date.now() });
     return filteredResults;
   } catch (error) {
@@ -225,11 +225,11 @@ export async function getMonthlyIncome(yearMonth: string) {
 export async function getPeriodIncome(startDate: string, endDate: string) {
   const cacheKey = `period-income-${startDate}-${endDate}`;
   const cachedData = cache.get(cacheKey);
-  
+
   if (cachedData && (Date.now() - cachedData.timestamp < CACHE_DURATION)) {
     return cachedData.data;
   }
-  
+
   try {
     const response = await notion.databases.query({
       database_id: databaseId,
@@ -247,7 +247,7 @@ export async function getPeriodIncome(startDate: string, endDate: string) {
         }
       ]
     });
-    
+
     const result = response.results;
     cache.set(cacheKey, { data: result, timestamp: Date.now() });
     return result;
@@ -261,12 +261,12 @@ export async function getPeriodIncome(startDate: string, endDate: string) {
 export async function getRecentDaysIncome(days: number = 31) {
   const today = new Date();
   const endDate = today.toISOString().split('T')[0]; // YYYY-MM-DD
-  
+
   // 시작일 계산 (오늘로부터 days일 전)
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - (days - 1));
   const startDateStr = startDate.toISOString().split('T')[0]; // YYYY-MM-DD
-  
+
   return getPeriodIncome(startDateStr, endDate);
 }
 
@@ -274,11 +274,11 @@ export async function getRecentDaysIncome(days: number = 31) {
 export async function getAllIncome() {
   const cacheKey = 'all-income';
   const cachedData = cache.get(cacheKey);
-  
+
   if (cachedData && (Date.now() - cachedData.timestamp < CACHE_DURATION)) {
     return cachedData.data;
   }
-  
+
   try {
     const response = await notion.databases.query({
       database_id: databaseId,
@@ -289,7 +289,7 @@ export async function getAllIncome() {
         }
       ]
     });
-    
+
     const result = response.results;
     cache.set(cacheKey, { data: result, timestamp: Date.now() });
     return result;
@@ -306,16 +306,19 @@ export async function getAllIncome() {
  * @param {Array<Object>} data - 노션에서 조회한 데이터 배열
  * @returns {Promise<Object>} 계산된 통계 정보
  * @returns {number} returns.totalDays - 총 일수
- * @returns {number} returns.totalIncome - 총 수입
- * @returns {number} returns.totalExpense - 총 지출
- * @returns {number} returns.totalNet - 총 순이익
- * @returns {number} returns.avgIncome - 평균 일일 수입
- * @returns {number} returns.avgExpense - 평균 일일 지출
- * @returns {number} returns.avgNet - 평균 일일 순이익
- * @returns {Object} returns.maxIncome - 최대 수입 정보 {date, amount}
- * @returns {Object} returns.minIncome - 최소 수입 정보 {date, amount}
+ * @returns {number} returns.totalIncome - 총 일반 매출
+ * @returns {number} returns.totalExpense - 총 본부/조제 차감액
+ * @returns {number} returns.totalNet - 총 정산 합계
+ * @returns {number} returns.totalPos - 총 POS 매출
+ * @returns {number} returns.totalDiff - 총 차액 (정산 합계 - POS 매출)
+ * @returns {number} returns.avgIncome - 평균 일일 일반 매출
+ * @returns {number} returns.avgExpense - 평균 일일 차감액
+ * @returns {number} returns.avgNet - 평균 일일 정산 합계
+ * @returns {Object} returns.maxIncome - 최대 매출 정보 {date, amount}
+ * @returns {Object} returns.minIncome - 최소 매출 정보 {date, amount}
  * @returns {Array} returns.dailyData - 일별 상세 데이터
  */
+// ...
 export async function calculateStats(data: any[]) {
   // 초기 통계 객체
   const stats = {
@@ -323,6 +326,8 @@ export async function calculateStats(data: any[]) {
     totalIncome: 0,
     totalExpense: 0,
     totalNet: 0,
+    totalPos: 0,
+    totalDiff: 0,
     avgIncome: 0,
     avgExpense: 0,
     avgNet: 0,
@@ -330,73 +335,100 @@ export async function calculateStats(data: any[]) {
     minIncome: { date: '', amount: Number.MAX_SAFE_INTEGER },
     dailyData: [] as any[]
   };
-  
+
   if (data.length === 0) {
     return stats;
   }
-  
+
+  // 날짜별 데이터 합산을 위한 Map
+  const dailyMap = new Map<string, any>();
+
   // 각 일별 데이터 처리
   data.forEach((dayData: any) => {
     const properties = dayData.properties;
     const date = properties['날짜']?.date?.start || '';
-    
+
     if (!date) return;
-    
-    // 수입 계산 (cas5, cas1, gif, car1, car2 합계)
-    const income = 
+
+    // 수입 계산 (cas5, cas1, gif, car1, car2 합계) -> 일반 매출
+    const income =
       (properties['cas5']?.number || 0) +
       (properties['cas1']?.number || 0) +
       (properties['gif']?.number || 0) +
       (properties['car1']?.number || 0) +
       (properties['car2']?.number || 0);
-    
-    // 지출 (person)
+
+    // 지출 (person) -> 본부/조제(차감)
     const expense = properties['person']?.number || 0;
-    
-    // 순이익 (수입 - 지출)
-    const net = income - expense;
-    
+
     // POS 데이터
     const pos = properties['Pos']?.number || 0;
-    
-    // 일별 데이터 저장
-    const dailyInfo = {
-      date,
-      income,
-      expense,
-      net,
-      pos,
-      diff: net - pos
-    };
-    
-    stats.dailyData.push(dailyInfo);
-    
-    // 누적 합계 업데이트
-    stats.totalIncome += income;
-    stats.totalExpense += expense;
-    stats.totalNet += net;
-    
-    // 최대/최소 수입 업데이트
-    if (income > stats.maxIncome.amount) {
-      stats.maxIncome = { date, amount: income };
-    }
-    
-    if (income < stats.minIncome.amount && income > 0) {
-      stats.minIncome = { date, amount: income };
+
+    if (dailyMap.has(date)) {
+      // 이미 해당 날짜의 데이터가 있으면 합산
+      const existing = dailyMap.get(date);
+      existing.income += income;
+      existing.expense += expense;
+      existing.pos += pos;
+    } else {
+      // 새로운 날짜 데이터
+      dailyMap.set(date, {
+        date,
+        income,
+        expense,
+        pos
+      });
     }
   });
-  
+
+  // Map 데이터를 배열로 변환하고 파생 데이터 계산
+  const sortedDates = Array.from(dailyMap.keys()).sort();
+
+  sortedDates.forEach(date => {
+    const dayData = dailyMap.get(date);
+
+    // 순이익 (수입 - 지출) -> 정산 합계
+    const net = dayData.income - dayData.expense;
+
+    // 차액 (정산 합계 - POS)
+    const diff = net - dayData.pos;
+
+    const dailyInfo = {
+      ...dayData,
+      net,
+      diff
+    };
+
+    stats.dailyData.push(dailyInfo);
+
+    // 누적 합계 업데이트
+    stats.totalIncome += dailyInfo.income;
+    stats.totalExpense += dailyInfo.expense;
+    stats.totalNet += dailyInfo.net;
+    stats.totalPos += dailyInfo.pos;
+    stats.totalDiff += dailyInfo.diff;
+
+    // 최대/최소 수입 업데이트
+    if (dailyInfo.income > stats.maxIncome.amount) {
+      stats.maxIncome = { date, amount: dailyInfo.income };
+    }
+
+    if (dailyInfo.income < stats.minIncome.amount && dailyInfo.income > 0) {
+      stats.minIncome = { date, amount: dailyInfo.income };
+    }
+  });
+
   // 총 일수 및 평균 계산
   stats.totalDays = stats.dailyData.length;
   stats.avgIncome = stats.totalDays > 0 ? stats.totalIncome / stats.totalDays : 0;
   stats.avgExpense = stats.totalDays > 0 ? stats.totalExpense / stats.totalDays : 0;
   stats.avgNet = stats.totalDays > 0 ? stats.totalNet / stats.totalDays : 0;
-  
+
   // 최소 수입이 설정되지 않은 경우 (모든 일의 수입이 0인 경우)
   if (stats.minIncome.amount === Number.MAX_SAFE_INTEGER) {
     stats.minIncome = { date: '', amount: 0 };
   }
-  
+
   return stats;
 }
 

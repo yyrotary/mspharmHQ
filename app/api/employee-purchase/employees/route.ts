@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       `)
       .order('is_active', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: true });
-    
+
     if (error) {
       console.error('Error fetching employees:', error);
       return NextResponse.json({ error: 'Failed to fetch employees' }, { status: 500 });
@@ -38,23 +38,26 @@ export async function GET(request: NextRequest) {
       (employees || []).map(async (emp) => {
         const { data: salary } = await supabase
           .from('salaries')
-          .select('base_salary, hourly_rate, fixed_overtime_pay')
+          .select('base_salary, hourly_rate, fixed_overtime_pay, overtime_rate, night_shift_rate, holiday_rate')
           .eq('employee_id', emp.id)
           .is('effective_to', null)
           .order('effective_from', { ascending: false })
           .limit(1)
           .single();
-        
+
         return {
           ...emp,
           base_salary: salary?.base_salary || null,
           hourly_rate: salary?.hourly_rate || null,
           fixed_overtime_pay: salary?.fixed_overtime_pay || null,
+          overtime_rate: salary?.overtime_rate || null,
+          night_shift_rate: salary?.night_shift_rate || null,
+          holiday_rate: salary?.holiday_rate || null,
         };
       })
     );
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       employees: employeesWithSalary
     });
@@ -96,29 +99,29 @@ export async function POST(request: NextRequest) {
 
     // 필수 입력값 검증
     if (!name || !role || !password) {
-      return NextResponse.json({ 
-        error: '이름, 권한, 비밀번호를 모두 입력해주세요' 
+      return NextResponse.json({
+        error: '이름, 권한, 비밀번호를 모두 입력해주세요'
       }, { status: 400 });
     }
 
     // 이름 중복 확인
     if (!name.trim()) {
-      return NextResponse.json({ 
-        error: '이름을 입력해주세요' 
+      return NextResponse.json({
+        error: '이름을 입력해주세요'
       }, { status: 400 });
     }
 
     // 권한 유효성 확인
     if (!['staff', 'manager', 'owner'].includes(role)) {
-      return NextResponse.json({ 
-        error: '올바른 권한을 선택해주세요' 
+      return NextResponse.json({
+        error: '올바른 권한을 선택해주세요'
       }, { status: 400 });
     }
 
     // 비밀번호가 4자리 숫자인지 확인
     if (!/^\d{4}$/.test(password)) {
-      return NextResponse.json({ 
-        error: '비밀번호는 4자리 숫자여야 합니다' 
+      return NextResponse.json({
+        error: '비밀번호는 4자리 숫자여야 합니다'
       }, { status: 400 });
     }
 
@@ -132,8 +135,8 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingEmployee) {
-      return NextResponse.json({ 
-        error: '이미 존재하는 이름입니다' 
+      return NextResponse.json({
+        error: '이미 존재하는 이름입니다'
       }, { status: 400 });
     }
 
@@ -170,7 +173,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Family 추가에 실패했습니다' }, { status: 500 });
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: '새 Family가 성공적으로 추가되었습니다',
       employee: newEmployee

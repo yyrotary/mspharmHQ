@@ -32,6 +32,10 @@ export async function PATCH(
       base_salary,
       hourly_rate,
       fixed_overtime_pay,
+      overtime_rate,
+      night_shift_rate,
+      holiday_rate,
+      effective_from, // New: Optional effective date
     } = body;
 
     const supabase = getEmployeePurchaseSupabase();
@@ -51,7 +55,7 @@ export async function PATCH(
     // 업데이트할 내용이 있으면 업데이트 실행
     if (Object.keys(employeeUpdates).length > 0) {
       employeeUpdates.updated_at = new Date().toISOString();
-      
+
       const { error: updateError } = await supabase
         .from('employees')
         .update(employeeUpdates)
@@ -66,13 +70,14 @@ export async function PATCH(
       }
     }
 
-    // 급여 정보 업데이트 (base_salary, hourly_rate, fixed_overtime_pay 중 하나라도 있으면)
-    if (base_salary !== undefined || hourly_rate !== undefined || fixed_overtime_pay !== undefined) {
+    // 급여 정보 업데이트 (base_salary, hourly_rate, fixed_overtime_pay, rates 중 하나라도 있으면)
+    if (base_salary !== undefined || hourly_rate !== undefined || fixed_overtime_pay !== undefined ||
+      overtime_rate !== undefined || night_shift_rate !== undefined || holiday_rate !== undefined) {
       // 다음달 1일을 계산 (급여 인상은 다음달부터 적용)
       const today = new Date();
       const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
       const nextMonthFirstDay = nextMonth.toISOString().split('T')[0];
-      
+
       // 이번달 마지막날
       const thisMonthLastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
 
@@ -103,22 +108,37 @@ export async function PATCH(
       };
 
       // 새로 입력된 값으로 업데이트
-      // 파트타임 여부 확인
-      const isPartTime = employment_type === 'part_time';
-      
+      // 새로 입력된 값으로 업데이트
+      // 파트타임 여부 확인: 요청 바디에 없으면 DB에서 조회해야 함
+      let isPartTime = false;
+      if (employment_type !== undefined) {
+        isPartTime = employment_type === 'part_time';
+      } else {
+        // DB에서 현재 employment_type 조회
+        const { data: currentEmp } = await supabase
+          .from('employees')
+          .select('employment_type')
+          .eq('id', id)
+          .single();
+        isPartTime = currentEmp?.employment_type === 'part_time';
+      }
+
       if (base_salary !== undefined) {
         const baseSalaryValue = parseFloat(base_salary) || 0;
         salaryData.base_salary = baseSalaryValue;
         // 파트타임이 아닌 경우에만 기본급에서 시급 자동 계산
         if (!isPartTime && baseSalaryValue > 0) {
-          salaryData.hourly_rate = baseSalaryValue / 209;
+          salaryData.hourly_rate = Math.round(baseSalaryValue / 209);
         }
-      } else if (hourly_rate !== undefined) {
+      }
+
+      if (hourly_rate !== undefined) {
         const hourlyRateValue = parseFloat(hourly_rate) || 0;
         salaryData.hourly_rate = hourlyRateValue;
         // 파트타임이 아닌 경우에만 시급에서 기본급 자동 계산
-        if (!isPartTime && hourlyRateValue > 0) {
-          salaryData.base_salary = hourlyRateValue * 209;
+        if (!isPartTime && hourlyRateValue > 0 && (base_salary === undefined)) {
+          // base_salary가 명시적으로 제공되지 않았을 때만 자동 계산
+          salaryData.base_salary = Math.round(hourlyRateValue * 209);
         } else if (isPartTime) {
           // 파트타임인 경우 기본급은 0
           salaryData.base_salary = 0;
@@ -129,14 +149,46 @@ export async function PATCH(
         salaryData.fixed_overtime_pay = parseFloat(fixed_overtime_pay) || 0;
       }
 
-      // 다음달부터 시작하는 미래의 급여 레코드가 이미 있는지 확인
+      if (overtime_rate !== undefined) salaryData.overtime_rate = parseFloat(overtime_rate) || 1.5;
+      if (night_shift_rate !== undefined) salaryData.night_shift_rate = parseFloat(night_shift_rate) || 1.5;
+      if (holiday_rate !== undefined) salaryData.holiday_rate = parseFloat(holiday_rate) || 2.0;
+
+      // 3. 유효 시작일 결정 (기본: 다음달 1일)
+      let effectiveDate = '';
+
+      if (effective_from) {
+        // 사용자가 직접 지정한 날짜 사용
+        effectiveDate = effective_from;
+      } else {
+        // 자동 계산 로직
+        const year = today.getFullYear();
+        const month = today.getMonth();
+        effectiveDate = new Date(year, month + 1, 1).toISOString().split('T')[0];
+
+        // 예외: 파트타임 직원의 시급이 0이거나 없을 때 수정하는 경우, '이번 달 1일'부터 적용 (즉시 적용)
+        // 또는 기본급이 0인 경우 수정 시
+        const currentRate = currentSalaries?.hourly_rate || 0;
+        const currentBase = currentSalaries?.base_salary || 0;
+
+        const isFixingRate = isPartTime && currentRate === 0 && (parseFloat(hourly_rate) || 0) > 0;
+        const isFixingBase = !isPartTime && currentBase === 0 && (parseFloat(base_salary) || 0) > 0;
+
+        if (isFixingRate || isFixingBase) {
+          effectiveDate = new Date(year, month, 1).toISOString().split('T')[0];
+        }
+      }
+
+      // 4. 다음달(또는 이번달)부터 시작하는 미래의 급여 레코드가 이미 있는지 확인
       const { data: futureSalary } = await supabase
         .from('salaries')
         .select('id')
         .eq('employee_id', id)
-        .eq('effective_from', nextMonthFirstDay)
+        .eq('effective_from', effectiveDate)
         .is('effective_to', null)
         .single();
+
+      // 새 급여 정보 준비
+      salaryData.effective_from = effectiveDate;
 
       if (futureSalary) {
         // 다음달부터 시작하는 레코드가 이미 있으면 업데이트 (같은 날 여러 번 수정한 경우)
@@ -150,12 +202,20 @@ export async function PATCH(
           console.warn('급여 정보 업데이트 실패, 직원 정보는 업데이트됨');
         }
       } else {
-        // 다음달부터 시작하는 레코드가 없으면 새로 생성
-        // 현재 유효한 레코드의 effective_to를 이번달 마지막날로 설정
-        if (currentSalaries) {
+        // 다음달(또는 이번달)부터 시작하는 레코드가 없으면 새로 생성
+        // 현재 유효한 레코드의 effective_to를 effectiveDate - 1일로 설정
+
+        let closingDateStr = '';
+        if (effectiveDate) {
+          const eff = new Date(effectiveDate);
+          eff.setDate(eff.getDate() - 1);
+          closingDateStr = eff.toISOString().split('T')[0];
+        }
+
+        if (currentSalaries && closingDateStr) {
           await supabase
             .from('salaries')
-            .update({ effective_to: thisMonthLastDay })
+            .update({ effective_to: closingDateStr })
             .eq('employee_id', id)
             .is('effective_to', null);
         }

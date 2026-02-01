@@ -82,9 +82,9 @@ export default function AdminDashboard() {
     );
   }
 
-  const currentMonth = new Date().toLocaleDateString('ko-KR', { 
-    year: 'numeric', 
-    month: 'long' 
+  const currentMonth = new Date().toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long'
   });
 
   return (
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
               <p className="text-sm opacity-90">관리자 | {user?.name}님</p>
               <h1 className="text-3xl font-bold mt-1">💼 HR 관리 시스템</h1>
             </div>
-            <Link 
+            <Link
               href="/employee-purchase"
               className="px-4 py-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 text-sm font-medium"
             >
@@ -197,6 +197,26 @@ export default function AdminDashboard() {
               <div className="text-4xl mb-3">📅</div>
               <h3 className="text-lg font-bold text-teal-900 mb-2">직원 근무 현황</h3>
               <p className="text-sm text-teal-700">전체 직원의 근무 기록 확인</p>
+            </Link>
+
+            {/* 직원 관리 */}
+            <Link
+              href="/employee-purchase/manage-employees"
+              className="block bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 hover:shadow-lg transition-all border border-indigo-200"
+            >
+              <div className="text-4xl mb-3">👥</div>
+              <h3 className="text-lg font-bold text-indigo-900 mb-2">직원 관리</h3>
+              <p className="text-sm text-indigo-700">직원 등록, 수정 및 권한 관리</p>
+            </Link>
+
+            {/* 근로 계약 관리 */}
+            <Link
+              href="/employee-hr/admin/contracts"
+              className="block bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl p-6 hover:shadow-lg transition-all border border-rose-200"
+            >
+              <div className="text-4xl mb-3">📝</div>
+              <h3 className="text-lg font-bold text-rose-900 mb-2">근로 계약 관리</h3>
+              <p className="text-sm text-rose-700">근로 계약서 작성 및 관리</p>
             </Link>
 
             {/* 월 급여 정산 (신규 - 메인) */}

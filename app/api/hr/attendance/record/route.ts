@@ -11,9 +11,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { date, check_in_time, check_out_time, notes } = body;
+    const { employee_id, work_date, check_in_time, check_out_time, notes } = body;
 
-    if (!date || !check_in_time || !check_out_time) {
+    // 관리자인 경우 요청받은 employee_id 사용, 아니면 본인 id 사용
+    let targetEmployeeId = user.id;
+    if (['owner', 'manager'].includes(user.role) && employee_id) {
+      targetEmployeeId = employee_id;
+    }
+
+    if (!work_date || !check_in_time || !check_out_time) {
       return NextResponse.json(
         { error: '날짜, 출근시간, 퇴근시간은 필수입니다' },
         { status: 400 }
@@ -44,15 +50,15 @@ export async function POST(request: NextRequest) {
     const nightHours = calculateNightHours(checkIn, checkOut);
 
     // 휴일 체크 (주말)
-    const workDate = new Date(date);
-    const isHoliday = workDate.getDay() === 0 || workDate.getDay() === 6;
+    const recordDate = new Date(work_date);
+    const isHoliday = recordDate.getDay() === 0 || recordDate.getDay() === 6;
 
     // 기존 기록 확인
     const { data: existing } = await supabase
       .from('attendance')
       .select('*')
-      .eq('employee_id', user.id)
-      .eq('work_date', date)
+      .eq('employee_id', targetEmployeeId)
+      .eq('work_date', work_date)
       .single();
 
     let result;
@@ -92,8 +98,8 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabase
         .from('attendance')
         .insert({
-          employee_id: user.id,
-          work_date: date,
+          employee_id: targetEmployeeId,
+          work_date: work_date,
           check_in_time: check_in_time,
           check_out_time: check_out_time,
           work_hours: roundedWorkHours,
@@ -147,14 +153,14 @@ export async function POST(request: NextRequest) {
 function calculateNightHours(checkIn: Date, checkOut: Date): number {
   let nightHours = 0;
   const current = new Date(checkIn);
-  
+
   while (current < checkOut) {
     const hour = current.getHours();
     if (hour >= 22 || hour < 6) {
       // 1시간 단위가 아닌 실제 분 단위로 계산
       const nextHour = new Date(current);
       nextHour.setHours(current.getHours() + 1);
-      
+
       if (nextHour > checkOut) {
         const minutes = (checkOut.getTime() - current.getTime()) / (1000 * 60);
         nightHours += minutes / 60;
@@ -164,6 +170,6 @@ function calculateNightHours(checkIn: Date, checkOut: Date): number {
     }
     current.setHours(current.getHours() + 1);
   }
-  
+
   return Math.round(nightHours * 100) / 100;
 }

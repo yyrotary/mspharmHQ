@@ -114,6 +114,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, consultations: consultationsWithCustomerInfo });
   } catch (error) {
     console.error('상담 내역 조회 오류:', error);
-    return NextResponse.json({ error: '상담 내역 조회 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ error: `상담 내역 조회 중 오류가 발생했습니다: ${error instanceof Error ? error.message : String(error)}` }, { status: 500 });
   }
 } 

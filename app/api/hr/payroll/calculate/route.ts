@@ -41,6 +41,13 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .single();
 
+    // 1-1. 직원 고용 형태 조회
+    const { data: employeeData, error: empError } = await supabase
+      .from('employees')
+      .select('employment_type')
+      .eq('id', employee_id)
+      .single();
+
     if (salaryError || !salary) {
       return NextResponse.json(
         { error: '직원의 급여 정보를 찾을 수 없습니다' },
@@ -74,15 +81,33 @@ export async function POST(request: NextRequest) {
       .reduce((sum, a) => sum + (parseFloat(a.work_hours) || 0), 0);
 
     // 4. 급여 계산
-    const baseSalary = parseFloat(salary.base_salary);
-    const hourlyRate = salary.hourly_rate 
+    let baseSalary = parseFloat(salary.base_salary);
+    const hourlyRate = salary.hourly_rate
       ? parseFloat(salary.hourly_rate)
       : baseSalary / 209; // 월 209시간 기준
 
-    // 수당 계산
-    const overtimePay = totalOvertimeHours * hourlyRate * (parseFloat(salary.overtime_rate) || 1.5);
-    const nightShiftPay = totalNightHours * hourlyRate * (parseFloat(salary.night_shift_rate) || 1.5);
-    const holidayPay = holidayWorkHours * hourlyRate * (parseFloat(salary.holiday_rate) || 2.0);
+    // 고용 형태가 파트타임이거나 기본급이 0인 경우: 시급 * 근무시간을 기본급으로 사용
+    const isPartTime = employeeData?.employment_type === 'part_time';
+
+    if (isPartTime || baseSalary === 0) {
+      // 기본급이 0이면 (또는 파트타임이면) 시급 계산
+      baseSalary = Math.round((hourlyRate || 0) * totalWorkHours);
+    }
+
+    // 수당 계산 함수
+    const calculateAllowance = (hours: number, rateValue: any, defaultMultiplier: number) => {
+      const rate = parseFloat(rateValue) || defaultMultiplier;
+      // 10보다 크면 고정 금액으로 간주 (예: 13500)
+      if (rate > 10) {
+        return hours * rate;
+      }
+      // 10 이하이면 배율로 간주 (예: 1.5)
+      return hours * hourlyRate * rate;
+    };
+
+    const overtimePay = calculateAllowance(totalOvertimeHours, salary.overtime_rate, 1.5);
+    const nightShiftPay = calculateAllowance(totalNightHours, salary.night_shift_rate, 1.5);
+    const holidayPay = calculateAllowance(holidayWorkHours, salary.holiday_rate, 2.0);
 
     // 총 지급액 (세전)
     const grossPay = baseSalary + overtimePay + nightShiftPay + holidayPay;
@@ -98,8 +123,8 @@ export async function POST(request: NextRequest) {
     const residentTax = Math.round(incomeTax * 0.1); // 주민세 10%
 
     // 총 공제액
-    const totalDeductions = nationalPension + healthInsurance + longTermCare + 
-                           employmentInsurance + incomeTax + residentTax;
+    const totalDeductions = nationalPension + healthInsurance + longTermCare +
+      employmentInsurance + incomeTax + residentTax;
 
     // 실수령액
     const netPay = grossPay - totalDeductions;

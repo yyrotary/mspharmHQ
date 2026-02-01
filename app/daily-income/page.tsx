@@ -52,7 +52,7 @@ export default function DailyIncomePage() {
     const timer = setInterval(() => {
       const remaining = getRemainingTime();
       setRemainingTime(remaining);
-      
+
       if (remaining <= 0) {
         logout();
         router.push('/master-login');
@@ -72,35 +72,34 @@ export default function DailyIncomePage() {
   // 데이터 조회 함수
   const fetchData = async () => {
     if (!date) return;
-    
+
     try {
       setLoading(true);
       setMessage('');
-      
+
       const response = await fetch(`/api/daily-income?date=${date}`);
-      
+
       if (!response.ok) {
         // HTTP 오류 처리
         const errorData = await response.json().catch(() => ({ error: '응답을 파싱할 수 없습니다' }));
         throw new Error(errorData.error || `HTTP 오류: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.data) {
-        // 노션 API 응답 형식에 따라 데이터 추출
-        const pageData = result.data.properties;
-        
-        // 데이터를 가져올 때 바로 포맷팅 적용
+        // Supabase API 응답 형식 (Flat JSON)
+        const dbData = result.data;
+
         setFormData({
           날짜: date,
-          cas5: formatKRW(pageData['cas5']?.number || 0),
-          cas1: formatKRW(pageData['cas1']?.number || 0),
-          gif: formatKRW(pageData['gif']?.number || 0),
-          car1: formatKRW(pageData['car1']?.number || 0),
-          car2: formatKRW(pageData['car2']?.number || 0),
-          person: formatKRW(pageData['person']?.number || 0),
-          Pos: formatKRW(pageData['Pos']?.number || 0),
+          cas5: formatKRW(dbData.cas5 || 0),
+          cas1: formatKRW(dbData.cas1 || 0),
+          gif: formatKRW(dbData.gif || 0),
+          car1: formatKRW(dbData.car1 || 0),
+          car2: formatKRW(dbData.car2 || 0),
+          person: formatKRW(dbData.person || 0),
+          Pos: formatKRW(dbData.pos || 0), // DB is 'pos', State is 'Pos'
         });
       } else {
         // 새 데이터 입력을 위해 폼 초기화
@@ -126,69 +125,50 @@ export default function DailyIncomePage() {
   // 데이터 저장 함수
   const saveData = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!date) {
       setMessage('날짜를 선택해주세요.');
       return;
     }
-    
+
     try {
       setLoading(true);
       setMessage('');
-      
+
       // 폼 데이터에서 쉼표를 제거하고 숫자로 변환
       const cleanedData = {
-        cas5: removeCommas(formData.cas5),
-        cas1: removeCommas(formData.cas1),
-        gif: removeCommas(formData.gif),
-        car1: removeCommas(formData.car1),
-        car2: removeCommas(formData.car2),
-        person: removeCommas(formData.person),
-        Pos: removeCommas(formData.Pos),
+        cas5: parseFloat(removeCommas(formData.cas5)) || 0,
+        cas1: parseFloat(removeCommas(formData.cas1)) || 0,
+        gif: parseFloat(removeCommas(formData.gif)) || 0,
+        car1: parseFloat(removeCommas(formData.car1)) || 0,
+        car2: parseFloat(removeCommas(formData.car2)) || 0,
+        person: parseFloat(removeCommas(formData.person)) || 0,
+        Pos: parseFloat(removeCommas(formData.Pos)) || 0,
       };
-      
-      // 노션 API 형식에 맞게 데이터 변환
-      const notionData = {
+
+      // Supabase 형식 (Flat Data)
+      const submitData = {
         date,
-        'cas5': {
-          number: parseFloat(cleanedData.cas5) || 0,
-        },
-        'cas1': {
-          number: parseFloat(cleanedData.cas1) || 0,
-        },
-        'gif': {
-          number: parseFloat(cleanedData.gif) || 0,
-        },
-        'car1': {
-          number: parseFloat(cleanedData.car1) || 0,
-        },
-        'car2': {
-          number: parseFloat(cleanedData.car2) || 0,
-        },
-        'person': {
-          number: parseFloat(cleanedData.person) || 0,
-        },
-        'Pos': {
-          number: parseFloat(cleanedData.Pos) || 0,
-        },
+        ...cleanedData
       };
-      
+
       const response = await fetch('/api/daily-income', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(notionData),
+        body: JSON.stringify(submitData),
       });
-      
+
       if (!response.ok) {
         // HTTP 오류 처리
         const errorData = await response.json().catch(() => ({ error: '응답을 파싱할 수 없습니다' }));
         throw new Error(errorData.error || `HTTP 오류: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
+
       if (result.success) {
         setMessage('데이터가 성공적으로 저장되었습니다.');
       } else {
@@ -205,13 +185,13 @@ export default function DailyIncomePage() {
   // 입력 변경 처리
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     // 숫자와 쉼표만 허용
     const numericValue = value.replace(/[^\d,]/g, '');
-    
+
     // 쉼표 제거 후 숫자 변환
     const plainNumber = removeCommas(numericValue);
-    
+
     // 유효한 숫자인 경우에만 처리
     if (plainNumber === '' || !isNaN(Number(plainNumber))) {
       // 원화 포맷으로 변환하여 저장
@@ -250,26 +230,26 @@ export default function DailyIncomePage() {
       formData.car1,
       formData.car2
     ];
-    
+
     const income = values.reduce((acc, curr) => {
       const numValue = parseFloat(removeCommas(curr) || '0');
       return acc + numValue;
     }, 0);
-    
+
     // person 비용 계산
     const personCost = parseFloat(removeCommas(formData.person) || '0');
-    
+
     // 최종 계산 (수입 - 지출)
     return income - personCost;
   };
-  
+
   const total = calculateTotal();
-  
+
   // POS와 비교하여 적정성 판단
   const compareWithPos = () => {
     const posValue = parseFloat(removeCommas(formData.Pos) || '0');
     const diff = total - posValue;
-    
+
     if (Math.abs(diff) < 0.01) {
       return { status: '일치', diff: 0 };
     } else if (diff > 0) {
@@ -278,7 +258,7 @@ export default function DailyIncomePage() {
       return { status: '부적정 (부족)', diff };
     }
   };
-  
+
   const comparison = compareWithPos();
 
   const formatTime = (milliseconds: number) => {
@@ -293,9 +273,9 @@ export default function DailyIncomePage() {
   };
 
   return (
-    <div style={{ 
-      maxWidth: '800px', 
-      margin: '0 auto', 
+    <div style={{
+      maxWidth: '800px',
+      margin: '0 auto',
       padding: '1rem',
       fontFamily: 'sans-serif'
     }}>
@@ -318,7 +298,7 @@ export default function DailyIncomePage() {
             마스터 전용 시스템
           </p>
         </div>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {/* 세션 타이머 */}
           <div style={{
@@ -331,8 +311,8 @@ export default function DailyIncomePage() {
           }}>
             ⏱️ {formatTime(remainingTime)}
           </div>
-          
-          <Link 
+
+          <Link
             href="/master-dashboard"
             style={{
               backgroundColor: '#8b5cf6',
@@ -346,7 +326,7 @@ export default function DailyIncomePage() {
           >
             대시보드
           </Link>
-          
+
           <button
             onClick={handleLogout}
             style={{
@@ -364,17 +344,17 @@ export default function DailyIncomePage() {
           </button>
         </div>
       </div>
-      
-      <div style={{ 
+
+      <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: '0.5rem',
         marginBottom: '1.5rem'
       }}>
-        <button 
+        <button
           onClick={goToPreviousDay}
-          style={{ 
+          style={{
             backgroundColor: '#e0e7ff',
             border: 'none',
             borderRadius: '0.375rem',
@@ -384,21 +364,21 @@ export default function DailyIncomePage() {
         >
           ◀
         </button>
-        
+
         <input
           type="date"
           value={date}
           onChange={handleDateChange}
-          style={{ 
+          style={{
             padding: '0.5rem',
             border: '1px solid #d1d5db',
             borderRadius: '0.375rem'
           }}
         />
-        
-        <button 
+
+        <button
           onClick={goToNextDay}
-          style={{ 
+          style={{
             backgroundColor: '#e0e7ff',
             border: 'none',
             borderRadius: '0.375rem',
@@ -409,9 +389,9 @@ export default function DailyIncomePage() {
           ▶
         </button>
       </div>
-      
+
       {message && (
-        <div style={{ 
+        <div style={{
           backgroundColor: message.includes('오류') ? '#fee2e2' : '#dcfce7',
           color: message.includes('오류') ? '#b91c1c' : '#166534',
           padding: '0.75rem',
@@ -422,9 +402,9 @@ export default function DailyIncomePage() {
           {message}
         </div>
       )}
-      
+
       <form onSubmit={saveData}>
-        <div style={{ 
+        <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
           gap: '1rem',
@@ -432,8 +412,8 @@ export default function DailyIncomePage() {
         }}>
           {/* 현금5% */}
           <div>
-            <label style={{ 
-              display: 'block', 
+            <label style={{
+              display: 'block',
               marginBottom: '0.25rem',
               fontSize: '0.875rem',
               fontWeight: 'bold',
@@ -447,7 +427,7 @@ export default function DailyIncomePage() {
               value={formData.cas5}
               onChange={handleChange}
               placeholder="0"
-              style={{ 
+              style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #d1d5db',
@@ -456,11 +436,11 @@ export default function DailyIncomePage() {
               }}
             />
           </div>
-          
+
           {/* 현금1% */}
           <div>
-            <label style={{ 
-              display: 'block', 
+            <label style={{
+              display: 'block',
               marginBottom: '0.25rem',
               fontSize: '0.875rem',
               fontWeight: 'bold',
@@ -474,7 +454,7 @@ export default function DailyIncomePage() {
               value={formData.cas1}
               onChange={handleChange}
               placeholder="0"
-              style={{ 
+              style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #d1d5db',
@@ -483,11 +463,11 @@ export default function DailyIncomePage() {
               }}
             />
           </div>
-          
+
           {/* 상품권 */}
           <div>
-            <label style={{ 
-              display: 'block', 
+            <label style={{
+              display: 'block',
               marginBottom: '0.25rem',
               fontSize: '0.875rem',
               fontWeight: 'bold',
@@ -501,7 +481,7 @@ export default function DailyIncomePage() {
               value={formData.gif}
               onChange={handleChange}
               placeholder="0"
-              style={{ 
+              style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #d1d5db',
@@ -510,11 +490,11 @@ export default function DailyIncomePage() {
               }}
             />
           </div>
-          
+
           {/* 카드1 */}
           <div>
-            <label style={{ 
-              display: 'block', 
+            <label style={{
+              display: 'block',
               marginBottom: '0.25rem',
               fontSize: '0.875rem',
               fontWeight: 'bold',
@@ -528,7 +508,7 @@ export default function DailyIncomePage() {
               value={formData.car1}
               onChange={handleChange}
               placeholder="0"
-              style={{ 
+              style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #d1d5db',
@@ -537,11 +517,11 @@ export default function DailyIncomePage() {
               }}
             />
           </div>
-          
+
           {/* 카드2 */}
           <div>
-            <label style={{ 
-              display: 'block', 
+            <label style={{
+              display: 'block',
               marginBottom: '0.25rem',
               fontSize: '0.875rem',
               fontWeight: 'bold',
@@ -555,7 +535,7 @@ export default function DailyIncomePage() {
               value={formData.car2}
               onChange={handleChange}
               placeholder="0"
-              style={{ 
+              style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #d1d5db',
@@ -564,11 +544,11 @@ export default function DailyIncomePage() {
               }}
             />
           </div>
-          
+
           {/* 개인입금 */}
           <div>
-            <label style={{ 
-              display: 'block', 
+            <label style={{
+              display: 'block',
               marginBottom: '0.25rem',
               fontSize: '0.875rem',
               fontWeight: 'bold',
@@ -582,7 +562,7 @@ export default function DailyIncomePage() {
               value={formData.person}
               onChange={handleChange}
               placeholder="0"
-              style={{ 
+              style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #d1d5db',
@@ -591,11 +571,11 @@ export default function DailyIncomePage() {
               }}
             />
           </div>
-          
+
           {/* 포스 */}
           <div>
-            <label style={{ 
-              display: 'block', 
+            <label style={{
+              display: 'block',
               marginBottom: '0.25rem',
               fontSize: '0.875rem',
               fontWeight: 'bold',
@@ -609,7 +589,7 @@ export default function DailyIncomePage() {
               value={formData.Pos}
               onChange={handleChange}
               placeholder="0"
-              style={{ 
+              style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #d1d5db',
@@ -618,11 +598,11 @@ export default function DailyIncomePage() {
               }}
             />
           </div>
-          
+
           {/* 합계 */}
           <div>
-            <label style={{ 
-              display: 'block', 
+            <label style={{
+              display: 'block',
               marginBottom: '0.25rem',
               fontSize: '0.875rem',
               fontWeight: 'bold',
@@ -630,7 +610,7 @@ export default function DailyIncomePage() {
             }}>
               합계
             </label>
-            <div style={{ 
+            <div style={{
               width: '100%',
               padding: '0.75rem',
               backgroundColor: '#e0e7ff',
@@ -643,7 +623,7 @@ export default function DailyIncomePage() {
             </div>
           </div>
         </div>
-        
+
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -661,7 +641,7 @@ export default function DailyIncomePage() {
             <span style={{ fontWeight: 'bold' }}>계산된 합계 (수입-지출):</span>
             <span style={{ fontWeight: 'bold' }}>{formatKRW(total)}</span>
           </div>
-          
+
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -670,27 +650,27 @@ export default function DailyIncomePage() {
             <span>POS 합계:</span>
             <span>{formData.Pos}</span>
           </div>
-          
+
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             padding: '0.5rem',
-            backgroundColor: comparison.status.includes('부적정') ? '#fee2e2' : 
-                             comparison.status.includes('적정') ? '#dcfce7' : '#f3f4f6',
+            backgroundColor: comparison.status.includes('부적정') ? '#fee2e2' :
+              comparison.status.includes('적정') ? '#dcfce7' : '#f3f4f6',
             borderRadius: '0.25rem',
-            color: comparison.status.includes('부적정') ? '#b91c1c' : 
-                   comparison.status.includes('적정') ? '#166534' : '#4b5563'
+            color: comparison.status.includes('부적정') ? '#b91c1c' :
+              comparison.status.includes('적정') ? '#166534' : '#4b5563'
           }}>
             <span>상태:</span>
             <span>{comparison.status} {Math.abs(comparison.diff) > 0 ? `(${formatKRW(Math.abs(comparison.diff))})` : ''}</span>
           </div>
         </div>
-        
+
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <button
             type="submit"
             disabled={loading}
-            style={{ 
+            style={{
               backgroundColor: '#8b5cf6',
               color: 'white',
               fontWeight: 'bold',

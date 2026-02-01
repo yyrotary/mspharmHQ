@@ -29,6 +29,9 @@ interface Employee {
   fixed_overtime_pay?: number;
   is_active?: boolean;
   resignation_date?: string;
+  overtime_rate?: number;
+  night_shift_rate?: number;
+  holiday_rate?: number;
 }
 
 export default function ManageEmployeesPage() {
@@ -108,7 +111,7 @@ export default function ManageEmployeesPage() {
 
   const handleAddEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newEmployee.name.trim()) {
       toast.error('이름을 입력해주세요');
       return;
@@ -246,7 +249,7 @@ export default function ManageEmployeesPage() {
       const response = await fetch(`/api/employee-purchase/employees/${employeeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           is_active: false,
           resignation_date: new Date().toISOString().split('T')[0]
         }),
@@ -387,31 +390,28 @@ export default function ManageEmployeesPage() {
             <span className="text-sm font-medium text-gray-700">상태 필터:</span>
             <button
               onClick={() => setStatusFilter('active')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                statusFilter === 'active'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'active'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
             >
               ✓ 재직 ({employees.filter(e => e.is_active !== false).length})
             </button>
             <button
               onClick={() => setStatusFilter('resigned')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                statusFilter === 'resigned'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'resigned'
+                ? 'bg-red-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
             >
               ✕ 퇴사 ({employees.filter(e => e.is_active === false).length})
             </button>
             <button
               onClick={() => setStatusFilter('all')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                statusFilter === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'all'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
             >
               전체 ({employees.length})
             </button>
@@ -812,13 +812,13 @@ export default function ManageEmployeesPage() {
 }
 
 // 편집 모달 컴포넌트
-function EditEmployeeModal({ 
-  employee, 
-  onClose, 
-  onUpdate 
-}: { 
-  employee: Employee; 
-  onClose: () => void; 
+function EditEmployeeModal({
+  employee,
+  onClose,
+  onUpdate
+}: {
+  employee: Employee;
+  onClose: () => void;
   onUpdate: (updates: any) => void;
 }) {
   const [formData, setFormData] = useState({
@@ -834,12 +834,16 @@ function EditEmployeeModal({
     fixed_overtime_pay: '',
     is_active: employee.is_active !== false,
     resignation_date: employee.resignation_date || '',
+    overtime_rate: employee.overtime_rate?.toString() || '',
+    night_shift_rate: employee.night_shift_rate?.toString() || '',
+    holiday_rate: employee.holiday_rate?.toString() || '',
+    effective_date: '', // Default empty (will use API default if not set)
   });
   const [showCalculator, setShowCalculator] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const updates: any = {};
     if (formData.name !== employee.name) updates.name = formData.name;
     if (formData.role !== employee.role) updates.role = formData.role;
@@ -848,15 +852,21 @@ function EditEmployeeModal({
     if (formData.position !== employee.position) updates.position = formData.position;
     if (formData.employment_type !== employee.employment_type) updates.employment_type = formData.employment_type;
     if (formData.hire_date !== employee.hire_date) updates.hire_date = formData.hire_date || null;
-    
+
     // 재직 상태
     if (formData.is_active !== (employee.is_active !== false)) updates.is_active = formData.is_active;
     if (formData.resignation_date !== employee.resignation_date) updates.resignation_date = formData.resignation_date || null;
-    
+
     // 급여 정보 (변경 시)
     if (formData.base_salary) updates.base_salary = formData.base_salary;
     if (formData.hourly_rate) updates.hourly_rate = formData.hourly_rate;
     if (formData.fixed_overtime_pay) updates.fixed_overtime_pay = formData.fixed_overtime_pay;
+    if (formData.overtime_rate !== undefined) updates.overtime_rate = formData.overtime_rate;
+    if (formData.night_shift_rate !== undefined) updates.night_shift_rate = formData.night_shift_rate;
+    if (formData.holiday_rate !== undefined) updates.holiday_rate = formData.holiday_rate;
+
+    // 유효 시작일 (값이 있을 때만 전송)
+    if (formData.effective_date) updates.effective_from = formData.effective_date;
 
     onUpdate(updates);
   };
@@ -1003,8 +1013,8 @@ function EditEmployeeModal({
                     value={formData.is_active ? 'active' : 'resigned'}
                     onChange={(e) => {
                       const isActive = e.target.value === 'active';
-                      setFormData({ 
-                        ...formData, 
+                      setFormData({
+                        ...formData,
                         is_active: isActive,
                         resignation_date: isActive ? '' : (formData.resignation_date || new Date().toISOString().split('T')[0])
                       });
@@ -1045,9 +1055,60 @@ function EditEmployeeModal({
                   🧮 세후→세전 계산기
                 </button>
               </div>
-              <p className="text-sm text-gray-600 mb-3">
-                값을 입력하면 오늘부터 새로운 급여가 적용됩니다
-              </p>
+
+
+              {/* 적용 시작일 설정 */}
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <label className="block text-sm font-medium text-yellow-800 mb-2">
+                  급여 변경 적용 시작일 (선택사항)
+                </label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="date"
+                    value={formData.effective_date}
+                    onChange={(e) => setFormData({ ...formData, effective_date: e.target.value })}
+                    className="flex-1 px-3 py-2 border border-yellow-300 rounded-md focus:ring-2 focus:ring-yellow-500 bg-white"
+                  />
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date();
+                        const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                        setFormData({ ...formData, effective_date: thisMonth.toISOString().split('T')[0] });
+                      }}
+                      className="px-2 py-1 text-xs bg-white border border-yellow-300 rounded hover:bg-yellow-100"
+                    >
+                      이번달 1일
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date();
+                        const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+                        setFormData({ ...formData, effective_date: nextMonth.toISOString().split('T')[0] });
+                      }}
+                      className="px-2 py-1 text-xs bg-white border border-yellow-300 rounded hover:bg-yellow-100"
+                    >
+                      다음달 1일
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date();
+                        setFormData({ ...formData, effective_date: today.toISOString().split('T')[0] });
+                      }}
+                      className="px-2 py-1 text-xs bg-white border border-yellow-300 rounded hover:bg-yellow-100"
+                    >
+                      오늘부터
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-yellow-700 mt-1">
+                  * 비워둘 경우 시스템이 자동으로 결정합니다 (기본: 다음달 1일, 예외: 오류 수정 시 이번달 1일)
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1089,6 +1150,58 @@ function EditEmployeeModal({
                   <p className="text-xs text-gray-500 mt-1">포괄임금제 OT</p>
                 </div>
               </div>
+
+              {/* 추가 수당 비율/금액 설정 */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-800 mb-3">수당 비율/금액 설정</h4>
+                <p className="text-xs text-blue-600 mb-3 bg-blue-50 p-2 rounded">
+                  💡 10 이하 입력 시 <b>배율</b>로 적용 (예: 1.5배), 10 초과 입력 시 <b>고정 시급</b>으로 적용 (예: 13,500원)
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      연장 수당
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={formData.overtime_rate}
+                      onChange={(e) => setFormData({ ...formData, overtime_rate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      placeholder="1.5"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">기본: 1.5배</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      야간 수당
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={formData.night_shift_rate}
+                      onChange={(e) => setFormData({ ...formData, night_shift_rate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      placeholder="1.5"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">기본: 1.5배</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      휴일 수당
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={formData.holiday_rate}
+                      onChange={(e) => setFormData({ ...formData, holiday_rate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      placeholder="2.0"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">기본: 2.0배</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* 버튼 */}
@@ -1111,16 +1224,18 @@ function EditEmployeeModal({
         </div>
 
         {/* 계산기 모달 */}
-        {showCalculator && (
-          <NetToGrossCalculator
-            onClose={() => setShowCalculator(false)}
-            onApply={(grossPay) => {
-              setFormData({ ...formData, base_salary: grossPay.toString() });
-              toast.success(`기본급이 ${grossPay.toLocaleString()}원으로 설정되었습니다`);
-            }}
-          />
-        )}
-      </div>
-    </div>
+        {
+          showCalculator && (
+            <NetToGrossCalculator
+              onClose={() => setShowCalculator(false)}
+              onApply={(grossPay) => {
+                setFormData({ ...formData, base_salary: grossPay.toString() });
+                toast.success(`기본급이 ${grossPay.toLocaleString()}원으로 설정되었습니다`);
+              }}
+            />
+          )
+        }
+      </div >
+    </div >
   );
 } 

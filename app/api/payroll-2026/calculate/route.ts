@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // 2. 급여 정보 조회
     let salary = null;
-    
+
     // 먼저 해당 기간에 유효한 급여 정보를 찾기
     const { data: salaryData, error: salaryError } = await supabase
       .from('salaries')
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         .eq('employee_id', employee_id)
         .order('effective_from', { ascending: false })
         .limit(1);
-      
+
       if (latestSalary && latestSalary.length > 0) {
         salary = latestSalary[0];
         console.log(`가장 최근 급여 정보 사용: effective_from=${salary.effective_from}`);
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
         .select('base_salary, hourly_rate, salary_type')
         .eq('id', employee_id)
         .single();
-      
+
       if (empSalaryInfo && (empSalaryInfo.base_salary || empSalaryInfo.hourly_rate)) {
         // employees 테이블의 정보로 임시 salary 객체 생성
         salary = {
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
           base_salary: empSalaryInfo.base_salary || (empSalaryInfo.hourly_rate * 209),
           hourly_rate: empSalaryInfo.hourly_rate || (empSalaryInfo.base_salary / 209),
           meal_allowance: 200000, // 기본값
-          car_allowance: 0,
+          car_allowance: 200000,  // 기본값 (자가운전보조금)
           childcare_allowance: 0,
           overtime_rate: 1.5,
           night_shift_rate: 1.5,
@@ -163,10 +163,10 @@ export async function POST(request: NextRequest) {
 
     // 6. 기본급 및 수당 계산
     const baseSalary = parseFloat(salary.base_salary) || 0;
-    const hourlyRate = salary.hourly_rate 
+    const hourlyRate = salary.hourly_rate
       ? parseFloat(salary.hourly_rate)
       : (baseSalary > 0 ? baseSalary / 209 : 0); // 월 209시간 기준
-    
+
     // 파트타임 여부 판정: base_salary가 0이고 hourly_rate가 있으면 파트타임
     const isPartTime = baseSalary === 0 && hourlyRate > 0;
 
@@ -185,24 +185,24 @@ export async function POST(request: NextRequest) {
     const overtimePay = totalOvertimeHours * hourlyRate * (parseFloat(salary.overtime_rate) || 1.5);
     const nightShiftPay = totalNightHours * hourlyRate * (parseFloat(salary.night_shift_rate) || 1.5);
     const holidayPay = holidayWorkHours * hourlyRate * (parseFloat(salary.holiday_rate) || 2.0);
-    
+
     // 주휴 수당 계산 (파트타임 직원만 해당)
     // 주 15시간 이상 근무 시 주휴 수당 지급
     let weeklyHolidayPay = 0;
     if (isPartTime) {
       const weeksInPeriod = attendance?.length > 0 ? Math.ceil(attendance.length / 7) : 0;
       const avgWeeklyHours = weeksInPeriod > 0 ? totalWorkHours / weeksInPeriod : 0;
-      
+
       if (avgWeeklyHours >= 15) {
         // 주휴 수당 = (1주 총 근무시간 / 근무일수) * 1일 * 주수
         const avgDailyHours = totalWorkDays > 0 ? totalWorkHours / totalWorkDays : 0;
         weeklyHolidayPay = avgDailyHours * hourlyRate * weeksInPeriod;
       }
     }
-    
+
     // 고정 OT: special_allowance(입력값)가 있으면 사용, 없으면 DB 저장값 사용
     const finalFixedOvertimePay = parseFloat(special_allowance) || parseFloat(salary.fixed_overtime_pay) || 0;
-    
+
     console.log('급여 계산:', {
       isPartTime,
       baseSalary,
@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
       // Net 계약: 세후 실수령액 고정 → 세전 역산
       // 파트타임은 Net 계약을 사용하지 않음 (근무시간에 따라 변동)
       netTarget = actualBasePay; // Net 계약의 경우 실제 급여가 실수령액
-      
+
       // Net-to-Gross 역산 함수 호출
       const { data: grossResult, error: grossError } = await supabase
         .rpc('calculate_gross_from_net_2026', {
@@ -248,7 +248,7 @@ export async function POST(request: NextRequest) {
       grossCalculated = grossResult;
       // 식대는 기본급에 포함, 차량/자녀수당만 별도 지급
       grossPay = grossCalculated + separateNonTaxable + overtimePay + nightShiftPay + holidayPay + weeklyHolidayPay + bonus + finalFixedOvertimePay;
-      
+
     } else {
       // Gross 계약: 세전 금액 직접 계산
       // 파트타임: 근무시간 × 시급 + 주휴수당 + 기타수당
@@ -279,13 +279,13 @@ export async function POST(request: NextRequest) {
     // 9. 4대보험 계산 (Supabase 함수 호출)
     const { data: nationalPension } = await supabase
       .rpc('calculate_national_pension_2026', { p_taxable_income: taxableIncome });
-    
+
     const { data: healthInsurance } = await supabase
       .rpc('calculate_health_insurance_2026', { p_taxable_income: taxableIncome });
-    
+
     const { data: longTermCare } = await supabase
       .rpc('calculate_long_term_care_2026', { p_health_insurance: healthInsurance });
-    
+
     const { data: employmentInsurance } = await supabase
       .rpc('calculate_employment_insurance_2026', { p_taxable_income: taxableIncome });
 
@@ -299,8 +299,8 @@ export async function POST(request: NextRequest) {
     const residentTax = Math.round((incomeTax || 0) * 0.1);
 
     // 11. 총 공제액 및 실수령액
-    const totalDeductions = (nationalPension || 0) + (healthInsurance || 0) + (longTermCare || 0) + 
-                           (employmentInsurance || 0) + (incomeTax || 0) + residentTax;
+    const totalDeductions = (nationalPension || 0) + (healthInsurance || 0) + (longTermCare || 0) +
+      (employmentInsurance || 0) + (incomeTax || 0) + residentTax;
     const netPay = grossPay - totalDeductions;
 
     // 12. 최저임금 체크
@@ -318,7 +318,7 @@ export async function POST(request: NextRequest) {
         pay_period_start,
         pay_period_end,
         payment_date: payment_date || new Date(pay_period_end).toISOString().split('T')[0],
-        
+
         // 급여 구성
         base_salary: actualBasePay, // 파트타임: 근무시간×시급, 정규직: 고정 기본급
         overtime_pay: overtimePay,
@@ -327,22 +327,22 @@ export async function POST(request: NextRequest) {
         bonus: bonus,
         allowances: finalFixedOvertimePay, // 고정 OT (입력값 우선, 없으면 DB 저장값)
         weekly_holiday_pay: weeklyHolidayPay, // 주휴수당 (파트타임만)
-        
+
         // 비과세
         meal_allowance: mealAllowance,
         car_allowance: carAllowance,
         childcare_allowance: childcareAllowance,
         total_non_taxable: totalNonTaxable,
-        
+
         // 세전/과세소득
         gross_pay: grossPay,
         taxable_income: taxableIncome,
-        
+
         // Net 계약 정보
         salary_type: employee.salary_type,
         net_target: employee.salary_type === 'net' ? netTarget : null,
         gross_calculated: employee.salary_type === 'net' ? grossCalculated : null,
-        
+
         // 공제 항목
         income_tax: incomeTax || 0,
         resident_tax: residentTax,
@@ -351,22 +351,22 @@ export async function POST(request: NextRequest) {
         long_term_care: longTermCare || 0,
         employment_insurance: employmentInsurance || 0,
         other_deductions: 0,
-        
+
         // 총 공제액 및 실수령액
         total_deductions: totalDeductions,
         net_pay: netPay,
-        
+
         // 근무 시간
         total_work_days: totalWorkDays,
         total_work_hours: totalWorkHours,
         total_overtime_hours: totalOvertimeHours,
-        
+
         // 최저임금 체크
         minimum_wage_check: minimumWageCheck || false,
         minimum_wage_month: 2156880,
-        
+
         status: status,
-        notes: weeklyHolidayPay > 0 
+        notes: weeklyHolidayPay > 0
           ? `${notes ? notes + '\n' : ''}주휴 수당: ${Math.round(weeklyHolidayPay).toLocaleString()}원`
           : notes,
         calculated_by: user.id,
