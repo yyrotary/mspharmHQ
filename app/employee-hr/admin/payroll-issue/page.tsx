@@ -1,7 +1,53 @@
-// ... imports
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import toast from 'react-hot-toast';
 import PayslipPreview from '@/app/components/hr/PayslipPreview';
 
-// ... interfaces (keep Payroll interface)
+interface User {
+  id: string;
+  name: string;
+  role: string;
+}
+
+interface Employee {
+  id: string;
+  name: string;
+  role: string;
+  position: string;
+}
+
+interface Payroll {
+  id: string;
+  employee_id: string;
+  employee: Employee;
+  pay_period_start: string;
+  pay_period_end: string;
+  payment_date: string;
+  base_salary: number;
+  overtime_pay: number;
+  night_shift_pay: number;
+  holiday_pay: number;
+  bonus: number;
+  allowances: number;
+  meal_allowance: number;
+  gross_pay: number;
+  national_pension: number;
+  health_insurance: number;
+  long_term_care: number;
+  employment_insurance: number;
+  income_tax: number;
+  resident_tax: number;
+  net_pay: number;
+  status: string;
+  notes: string;
+  salary_type?: string;
+  net_target?: number;
+  gross_calculated?: number;
+  minimum_wage_check?: boolean;
+}
 
 export default function PayrollIssuePage() {
   const router = useRouter();
