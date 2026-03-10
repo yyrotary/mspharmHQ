@@ -282,6 +282,11 @@ function ConsultationContent() {
   // 사진 캡처 처리
   const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      if (newConsultation.images.length >= 5) {
+        alert('이미지는 최대 5장까지만 업로드할 수 있습니다.');
+        return;
+      }
+
       const file = e.target.files[0];
       const reader = new FileReader();
 
@@ -296,20 +301,9 @@ function ConsultationContent() {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          // 이미지 해상도 및 용량 대폭 줄임 (Vercel 4.5MB 제한 대비)
-          let maxWidth = img.width;
-          let maxHeight = img.height;
-          const MAX_DIMENSION = 800; // 최대 길이 800px로 제한
-
-          if (maxWidth > MAX_DIMENSION || maxHeight > MAX_DIMENSION) {
-            if (maxWidth > maxHeight) {
-              maxHeight = Math.floor(maxHeight * (MAX_DIMENSION / maxWidth));
-              maxWidth = MAX_DIMENSION;
-            } else {
-              maxWidth = Math.floor(maxWidth * (MAX_DIMENSION / maxHeight));
-              maxHeight = MAX_DIMENSION;
-            }
-          }
+          // 이미지 해상도를 2/3로 줄임
+          const maxWidth = Math.floor(img.width * 0.67);
+          const maxHeight = Math.floor(img.height * 0.67);
 
           canvas.width = maxWidth;
           canvas.height = maxHeight;
@@ -317,7 +311,7 @@ function ConsultationContent() {
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-            const reducedImageData = canvas.toDataURL('image/jpeg', 0.65);
+            const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
 
             // 이미지 데이터와 파일 이름 저장
             setNewConsultation(prev => ({
@@ -339,6 +333,11 @@ function ConsultationContent() {
   // 파일 업로드 처리
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      if (newConsultation.images.length + e.target.files.length > 5) {
+        alert('이미지는 최대 5장까지만 업로드할 수 있습니다.');
+        return;
+      }
+
       for (let i = 0; i < e.target.files.length; i++) {
         const file = e.target.files[i];
         const reader = new FileReader();
@@ -354,20 +353,9 @@ function ConsultationContent() {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            // 이미지 해상도 및 용량 대폭 줄임 (Vercel 4.5MB 제한 대비)
-            let maxWidth = img.width;
-            let maxHeight = img.height;
-            const MAX_DIMENSION = 800; // 최대 길이 800px로 제한
-
-            if (maxWidth > MAX_DIMENSION || maxHeight > MAX_DIMENSION) {
-              if (maxWidth > maxHeight) {
-                maxHeight = Math.floor(maxHeight * (MAX_DIMENSION / maxWidth));
-                maxWidth = MAX_DIMENSION;
-              } else {
-                maxWidth = Math.floor(maxWidth * (MAX_DIMENSION / maxHeight));
-                maxHeight = MAX_DIMENSION;
-              }
-            }
+            // 이미지 해상도를 2/3로 줄임
+            const maxWidth = Math.floor(img.width * 0.67);
+            const maxHeight = Math.floor(img.height * 0.67);
 
             canvas.width = maxWidth;
             canvas.height = maxHeight;
@@ -375,7 +363,7 @@ function ConsultationContent() {
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-              const reducedImageData = canvas.toDataURL('image/jpeg', 0.65);
+              const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
 
               // 이미지 데이터와 파일 이름 저장
               setNewConsultation(prev => ({
@@ -1604,6 +1592,15 @@ function ConsultationContent() {
   // 수정 폼 이미지 캡처 처리
   const handleEditCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      const totalImages = (editingConsultation?.symptomImages?.length || 0)
+        - editFormData.removedImages.length
+        + editFormData.images.length;
+
+      if (totalImages >= 5) {
+        alert('이미지는 기존 이미지 포함 최대 5장까지만 업로드할 수 있습니다.');
+        return;
+      }
+
       const file = e.target.files[0];
       const reader = new FileReader();
 
@@ -1618,20 +1615,9 @@ function ConsultationContent() {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          // 이미지 해상도 및 용량 대폭 줄임 (Vercel 4.5MB 제한 대비)
-          let maxWidth = img.width;
-          let maxHeight = img.height;
-          const MAX_DIMENSION = 800; // 최대 길이 800px로 제한
-
-          if (maxWidth > MAX_DIMENSION || maxHeight > MAX_DIMENSION) {
-            if (maxWidth > maxHeight) {
-              maxHeight = Math.floor(maxHeight * (MAX_DIMENSION / maxWidth));
-              maxWidth = MAX_DIMENSION;
-            } else {
-              maxWidth = Math.floor(maxWidth * (MAX_DIMENSION / maxHeight));
-              maxHeight = MAX_DIMENSION;
-            }
-          }
+          // 이미지 해상도를 2/3로 줄임
+          const maxWidth = Math.floor(img.width * 0.67);
+          const maxHeight = Math.floor(img.height * 0.67);
 
           canvas.width = maxWidth;
           canvas.height = maxHeight;
@@ -1639,7 +1625,7 @@ function ConsultationContent() {
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-            const reducedImageData = canvas.toDataURL('image/jpeg', 0.65);
+            const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
 
             // 이미지 데이터와 파일 이름 저장
             setEditFormData({
@@ -1661,6 +1647,15 @@ function ConsultationContent() {
   // 수정 폼 파일 업로드 처리
   const handleEditFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      const totalImages = (editingConsultation?.symptomImages?.length || 0)
+        - editFormData.removedImages.length
+        + editFormData.images.length;
+
+      if (totalImages + e.target.files.length > 5) {
+        alert('이미지는 기존 이미지 포함 최대 5장까지만 업로드할 수 있습니다.');
+        return;
+      }
+
       for (let i = 0; i < e.target.files.length; i++) {
         const file = e.target.files[i];
         const reader = new FileReader();
@@ -1676,20 +1671,9 @@ function ConsultationContent() {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            // 이미지 해상도 및 용량 대폭 줄임 (Vercel 4.5MB 제한 대비)
-            let maxWidth = img.width;
-            let maxHeight = img.height;
-            const MAX_DIMENSION = 800; // 최대 길이 800px로 제한
-
-            if (maxWidth > MAX_DIMENSION || maxHeight > MAX_DIMENSION) {
-              if (maxWidth > maxHeight) {
-                maxHeight = Math.floor(maxHeight * (MAX_DIMENSION / maxWidth));
-                maxWidth = MAX_DIMENSION;
-              } else {
-                maxWidth = Math.floor(maxWidth * (MAX_DIMENSION / maxHeight));
-                maxHeight = MAX_DIMENSION;
-              }
-            }
+            // 이미지 해상도를 2/3로 줄임
+            const maxWidth = Math.floor(img.width * 0.67);
+            const maxHeight = Math.floor(img.height * 0.67);
 
             canvas.width = maxWidth;
             canvas.height = maxHeight;
@@ -1697,7 +1681,7 @@ function ConsultationContent() {
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-              const reducedImageData = canvas.toDataURL('image/jpeg', 0.65);
+              const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
 
               // 이미지 데이터와 파일 이름 저장
               setEditFormData(prev => ({
