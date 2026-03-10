@@ -282,11 +282,6 @@ function ConsultationContent() {
   // 사진 캡처 처리
   const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      if (newConsultation.images.length >= 5) {
-        alert('이미지는 최대 5장까지만 업로드할 수 있습니다.');
-        return;
-      }
-
       const file = e.target.files[0];
       const reader = new FileReader();
 
@@ -313,14 +308,24 @@ function ConsultationContent() {
             ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
             const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
 
-            // 이미지 데이터와 파일 이름 저장
-            setNewConsultation(prev => ({
-              ...prev,
-              images: [...prev.images, {
-                data: reducedImageData,
-                fileName
-              }]
-            }));
+            // 이미지 데이터와 파일 이름 저장 (용량 제한 체크)
+            setNewConsultation(prev => {
+              const currentTotalSize = prev.images.reduce((sum, img) => sum + Math.round((img.data.length * 3) / 4), 0);
+              const newSize = Math.round((reducedImageData.length * 3) / 4);
+
+              if (currentTotalSize + newSize > 4 * 1024 * 1024) { // 4MB 제한
+                setTimeout(() => alert('업로드할 이미지들의 총 용량(약 4MB)을 초과했습니다.\n더 이상 이미지를 추가할 수 없습니다.'), 0);
+                return prev;
+              }
+
+              return {
+                ...prev,
+                images: [...prev.images, {
+                  data: reducedImageData,
+                  fileName
+                }]
+              };
+            });
           }
         };
         img.src = reader.result as string;
@@ -333,11 +338,6 @@ function ConsultationContent() {
   // 파일 업로드 처리
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      if (newConsultation.images.length + e.target.files.length > 5) {
-        alert('이미지는 최대 5장까지만 업로드할 수 있습니다.');
-        return;
-      }
-
       for (let i = 0; i < e.target.files.length; i++) {
         const file = e.target.files[i];
         const reader = new FileReader();
@@ -365,14 +365,24 @@ function ConsultationContent() {
               ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
               const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
 
-              // 이미지 데이터와 파일 이름 저장
-              setNewConsultation(prev => ({
-                ...prev,
-                images: [...prev.images, {
-                  data: reducedImageData,
-                  fileName
-                }]
-              }));
+              // 이미지 데이터와 파일 이름 저장 (용량 제한 체크)
+              setNewConsultation(prev => {
+                const currentTotalSize = prev.images.reduce((sum, img) => sum + Math.round((img.data.length * 3) / 4), 0);
+                const newSize = Math.round((reducedImageData.length * 3) / 4);
+
+                if (currentTotalSize + newSize > 4 * 1024 * 1024) { // 4MB 제한
+                  setTimeout(() => alert('업로드할 이미지들의 총 용량(약 4MB)을 초과했습니다.\n더 이상 이미지를 추가할 수 없습니다.'), 0);
+                  return prev;
+                }
+
+                return {
+                  ...prev,
+                  images: [...prev.images, {
+                    data: reducedImageData,
+                    fileName
+                  }]
+                };
+              });
             }
           };
           img.src = reader.result as string;
@@ -1592,14 +1602,6 @@ function ConsultationContent() {
   // 수정 폼 이미지 캡처 처리
   const handleEditCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // 한 번의 수정에 새로 추가하는 이미지만 5장으로 제한 (기존 이미지 갯수 무시)
-      const newImagesCount = editFormData.images.length;
-
-      if (newImagesCount >= 5) {
-        alert('한 번의 수정에 새로 추가하는 이미지는 최대 5장까지만 가능합니다.\n더 추가하시려면 우선 "상담일지 저장"을 누른 후 다시 수정해주세요.');
-        return;
-      }
-
       const file = e.target.files[0];
       const reader = new FileReader();
 
@@ -1626,13 +1628,23 @@ function ConsultationContent() {
             ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
             const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
 
-            // 이미지 데이터와 파일 이름 저장
-            setEditFormData({
-              ...editFormData,
-              images: [...editFormData.images, {
-                data: reducedImageData,
-                fileName
-              }]
+            // 이미지 데이터와 파일 이름 저장 (용량 제한 체크)
+            setEditFormData(prev => {
+              const currentTotalSize = prev.images.reduce((sum, img) => sum + Math.round((img.data.length * 3) / 4), 0);
+              const newSize = Math.round((reducedImageData.length * 3) / 4);
+
+              if (currentTotalSize + newSize > 4 * 1024 * 1024) { // 4MB 제한
+                setTimeout(() => alert('한 번의 수정에 추가할 수 있는 최대 용량(약 4MB)을 초과했습니다.\n더 추가하시려면 우선 "상담일지 저장"을 누른 후 다시 수정해주세요.'), 0);
+                return prev;
+              }
+
+              return {
+                ...prev,
+                images: [...prev.images, {
+                  data: reducedImageData,
+                  fileName
+                }]
+              };
             });
           }
         };
@@ -1646,14 +1658,6 @@ function ConsultationContent() {
   // 수정 폼 파일 업로드 처리
   const handleEditFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // 한 번의 수정에 새로 추가하는 이미지만 5장으로 제한 (기존 이미지 갯수 무시)
-      const newImagesCount = editFormData.images.length;
-
-      if (newImagesCount + e.target.files.length > 5) {
-        alert('한 번의 수정에 새로 추가하는 이미지는 최대 5장까지만 가능합니다.\n더 추가하시려면 우선 "상담일지 저장"을 누른 후 다시 수정해주세요.');
-        return;
-      }
-
       for (let i = 0; i < e.target.files.length; i++) {
         const file = e.target.files[i];
         const reader = new FileReader();
@@ -1681,14 +1685,24 @@ function ConsultationContent() {
               ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
               const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
 
-              // 이미지 데이터와 파일 이름 저장
-              setEditFormData(prev => ({
-                ...prev,
-                images: [...prev.images, {
-                  data: reducedImageData,
-                  fileName
-                }]
-              }));
+              // 이미지 데이터와 파일 이름 저장 (용량 제한 체크)
+              setEditFormData(prev => {
+                const currentTotalSize = prev.images.reduce((sum, img) => sum + Math.round((img.data.length * 3) / 4), 0);
+                const newSize = Math.round((reducedImageData.length * 3) / 4);
+
+                if (currentTotalSize + newSize > 4 * 1024 * 1024) { // 4MB 제한
+                  setTimeout(() => alert('한 번의 수정에 추가할 수 있는 최대 용량(약 4MB)을 초과했습니다.\n더 추가하시려면 우선 "상담일지 저장"을 누른 후 다시 수정해주세요.'), 0);
+                  return prev;
+                }
+
+                return {
+                  ...prev,
+                  images: [...prev.images, {
+                    data: reducedImageData,
+                    fileName
+                  }]
+                };
+              });
             }
           };
           img.src = reader.result as string;
