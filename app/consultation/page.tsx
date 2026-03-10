@@ -296,9 +296,20 @@ function ConsultationContent() {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          // 이미지 해상도를 2/3로 줄임
-          const maxWidth = Math.floor(img.width * 0.67);
-          const maxHeight = Math.floor(img.height * 0.67);
+          // 이미지 해상도 및 용량 대폭 줄임 (Vercel 4.5MB 제한 대비)
+          let maxWidth = img.width;
+          let maxHeight = img.height;
+          const MAX_DIMENSION = 800; // 최대 길이 800px로 제한
+
+          if (maxWidth > MAX_DIMENSION || maxHeight > MAX_DIMENSION) {
+            if (maxWidth > maxHeight) {
+              maxHeight = Math.floor(maxHeight * (MAX_DIMENSION / maxWidth));
+              maxWidth = MAX_DIMENSION;
+            } else {
+              maxWidth = Math.floor(maxWidth * (MAX_DIMENSION / maxHeight));
+              maxHeight = MAX_DIMENSION;
+            }
+          }
 
           canvas.width = maxWidth;
           canvas.height = maxHeight;
@@ -306,7 +317,7 @@ function ConsultationContent() {
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-            const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
+            const reducedImageData = canvas.toDataURL('image/jpeg', 0.65);
 
             // 이미지 데이터와 파일 이름 저장
             setNewConsultation(prev => ({
@@ -343,9 +354,20 @@ function ConsultationContent() {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            // 이미지 해상도를 2/3로 줄임
-            const maxWidth = Math.floor(img.width * 0.67);
-            const maxHeight = Math.floor(img.height * 0.67);
+            // 이미지 해상도 및 용량 대폭 줄임 (Vercel 4.5MB 제한 대비)
+            let maxWidth = img.width;
+            let maxHeight = img.height;
+            const MAX_DIMENSION = 800; // 최대 길이 800px로 제한
+
+            if (maxWidth > MAX_DIMENSION || maxHeight > MAX_DIMENSION) {
+              if (maxWidth > maxHeight) {
+                maxHeight = Math.floor(maxHeight * (MAX_DIMENSION / maxWidth));
+                maxWidth = MAX_DIMENSION;
+              } else {
+                maxWidth = Math.floor(maxWidth * (MAX_DIMENSION / maxHeight));
+                maxHeight = MAX_DIMENSION;
+              }
+            }
 
             canvas.width = maxWidth;
             canvas.height = maxHeight;
@@ -353,7 +375,7 @@ function ConsultationContent() {
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-              const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
+              const reducedImageData = canvas.toDataURL('image/jpeg', 0.65);
 
               // 이미지 데이터와 파일 이름 저장
               setNewConsultation(prev => ({
@@ -1596,9 +1618,20 @@ function ConsultationContent() {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          // 이미지 해상도를 2/3로 줄임
-          const maxWidth = Math.floor(img.width * 0.67);
-          const maxHeight = Math.floor(img.height * 0.67);
+          // 이미지 해상도 및 용량 대폭 줄임 (Vercel 4.5MB 제한 대비)
+          let maxWidth = img.width;
+          let maxHeight = img.height;
+          const MAX_DIMENSION = 800; // 최대 길이 800px로 제한
+
+          if (maxWidth > MAX_DIMENSION || maxHeight > MAX_DIMENSION) {
+            if (maxWidth > maxHeight) {
+              maxHeight = Math.floor(maxHeight * (MAX_DIMENSION / maxWidth));
+              maxWidth = MAX_DIMENSION;
+            } else {
+              maxWidth = Math.floor(maxWidth * (MAX_DIMENSION / maxHeight));
+              maxHeight = MAX_DIMENSION;
+            }
+          }
 
           canvas.width = maxWidth;
           canvas.height = maxHeight;
@@ -1606,7 +1639,7 @@ function ConsultationContent() {
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-            const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
+            const reducedImageData = canvas.toDataURL('image/jpeg', 0.65);
 
             // 이미지 데이터와 파일 이름 저장
             setEditFormData({
@@ -1643,9 +1676,20 @@ function ConsultationContent() {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            // 이미지 해상도를 2/3로 줄임
-            const maxWidth = Math.floor(img.width * 0.67);
-            const maxHeight = Math.floor(img.height * 0.67);
+            // 이미지 해상도 및 용량 대폭 줄임 (Vercel 4.5MB 제한 대비)
+            let maxWidth = img.width;
+            let maxHeight = img.height;
+            const MAX_DIMENSION = 800; // 최대 길이 800px로 제한
+
+            if (maxWidth > MAX_DIMENSION || maxHeight > MAX_DIMENSION) {
+              if (maxWidth > maxHeight) {
+                maxHeight = Math.floor(maxHeight * (MAX_DIMENSION / maxWidth));
+                maxWidth = MAX_DIMENSION;
+              } else {
+                maxWidth = Math.floor(maxWidth * (MAX_DIMENSION / maxHeight));
+                maxHeight = MAX_DIMENSION;
+              }
+            }
 
             canvas.width = maxWidth;
             canvas.height = maxHeight;
@@ -1653,7 +1697,7 @@ function ConsultationContent() {
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-              const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
+              const reducedImageData = canvas.toDataURL('image/jpeg', 0.65);
 
               // 이미지 데이터와 파일 이름 저장
               setEditFormData(prev => ({
