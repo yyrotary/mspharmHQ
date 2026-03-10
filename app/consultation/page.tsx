@@ -1592,12 +1592,11 @@ function ConsultationContent() {
   // 수정 폼 이미지 캡처 처리
   const handleEditCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const totalImages = (editingConsultation?.symptomImages?.length || 0)
-        - editFormData.removedImages.length
-        + editFormData.images.length;
+      // 한 번의 수정에 새로 추가하는 이미지만 5장으로 제한 (기존 이미지 갯수 무시)
+      const newImagesCount = editFormData.images.length;
 
-      if (totalImages >= 5) {
-        alert('이미지는 기존 이미지 포함 최대 5장까지만 업로드할 수 있습니다.');
+      if (newImagesCount >= 5) {
+        alert('한 번의 수정에 새로 추가하는 이미지는 최대 5장까지만 가능합니다.\n더 추가하시려면 우선 "상담일지 저장"을 누른 후 다시 수정해주세요.');
         return;
       }
 
@@ -1647,12 +1646,11 @@ function ConsultationContent() {
   // 수정 폼 파일 업로드 처리
   const handleEditFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const totalImages = (editingConsultation?.symptomImages?.length || 0)
-        - editFormData.removedImages.length
-        + editFormData.images.length;
+      // 한 번의 수정에 새로 추가하는 이미지만 5장으로 제한 (기존 이미지 갯수 무시)
+      const newImagesCount = editFormData.images.length;
 
-      if (totalImages + e.target.files.length > 5) {
-        alert('이미지는 기존 이미지 포함 최대 5장까지만 업로드할 수 있습니다.');
+      if (newImagesCount + e.target.files.length > 5) {
+        alert('한 번의 수정에 새로 추가하는 이미지는 최대 5장까지만 가능합니다.\n더 추가하시려면 우선 "상담일지 저장"을 누른 후 다시 수정해주세요.');
         return;
       }
 
