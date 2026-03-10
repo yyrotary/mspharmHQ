@@ -8,10 +8,10 @@ const supabase = createClient(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const recordId = params.id;
+    const { id: recordId } = await params;
 
     if (!recordId) {
       return NextResponse.json(
@@ -50,10 +50,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const recordId = params.id;
+    const { id: recordId } = await params;
     const { notes } = await request.json();
 
     if (!recordId) {
@@ -65,7 +65,7 @@ export async function PATCH(
 
     const { data: record, error } = await supabase
       .from('food_records')
-      .update({ 
+      .update({
         notes,
         updated_at: new Date().toISOString()
       })

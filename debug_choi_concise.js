@@ -22,7 +22,8 @@ async function main() {
     const { data: employees } = await supabase.from('employees').select('id, name').eq('name', name).single();
     if (!employees) { console.log('No employee found'); return; }
 
-    console.log(`Employee: ${employees.name} (${employees.id})`);
+    console.log(`Employee: ${employees.name}`);
+    console.log(`FULL_ID: >>>${employees.id}<<<`);
 
     const { data: salaries } = await supabase
         .from('salaries')

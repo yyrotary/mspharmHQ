@@ -8,25 +8,25 @@ import { validateDateRange, normalizeDate } from '@/app/lib/date-utils';
 function createSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
+
   // 배포 환경에서 디버깅을 위한 로그
   console.log('환경 변수 상태 체크:');
   console.log('- NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '설정됨' : '누락됨');
   console.log('- SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? '설정됨' : '누락됨');
   console.log('- NODE_ENV:', process.env.NODE_ENV);
-  
+
   if (!supabaseUrl) {
     const error = new Error('NEXT_PUBLIC_SUPABASE_URL 환경 변수가 설정되지 않았습니다.');
     console.error('Supabase URL 누락:', error);
     throw error;
   }
-  
+
   if (!supabaseServiceKey) {
     const error = new Error('SUPABASE_SERVICE_ROLE_KEY 환경 변수가 설정되지 않았습니다.');
     console.error('Supabase Service Key 누락:', error);
     throw error;
   }
-  
+
   console.log('Supabase 클라이언트 생성 성공');
   return createClient(supabaseUrl, supabaseServiceKey);
 }
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
     }
 
     if (search) {
-      query = query.or(`symptoms.ilike.%${search}%,prescription.ilike.%${search}%`);
+      query = query.or(`symptoms.ilike.%${search}%,prescription.ilike.%${search}%,tongue_analysis.ilike.%${search}%,patient_condition.ilike.%${search}%,special_notes.ilike.%${search}%,result.ilike.%${search}%`);
     }
 
     // 날짜 필터링 (순수한 날짜만, 타임존 영향 없음)
@@ -192,6 +192,12 @@ export async function PUT(request: Request) {
     // 기존 이미지 URL 보존
     let imageUrls: string[] = existingConsultation?.image_urls || [];
 
+    // 기존 이미지에서 삭제된 이미지 제거
+    if (updateData.removedImages && Array.isArray(updateData.removedImages) && updateData.removedImages.length > 0) {
+      imageUrls = imageUrls.filter(url => !updateData.removedImages.includes(url));
+      console.log(`이미지 ${updateData.removedImages.length}개 삭제 완료. 남은 기존 이미지: ${imageUrls.length}개`);
+    }
+
     // 새 이미지 업로드 처리 (기존 이미지에 추가)
     if (updateData.imageDataArray && Array.isArray(updateData.imageDataArray) && updateData.imageDataArray.length > 0) {
       if (existingConsultation && existingConsultation.customers && existingConsultation.customers.customer_code) {
@@ -202,10 +208,10 @@ export async function PUT(request: Request) {
             updateData.imageDataArray,
             imageUrls.length // 기존 이미지 개수 전달
           );
-          
+
           // 새 이미지 URL을 기존 이미지 URL에 추가
           imageUrls = [...imageUrls, ...newImageUrls];
-          console.log(`기존 이미지 ${existingConsultation.image_urls?.length || 0}개 + 새 이미지 ${newImageUrls.length}개 = 총 ${imageUrls.length}개`);
+          console.log(`기존 이미지 ${imageUrls.length - newImageUrls.length}개 + 새 이미지 ${newImageUrls.length}개 = 총 ${imageUrls.length}개`);
         } catch (uploadError) {
           console.error('새 이미지 업로드 실패:', uploadError);
           // 이미지 업로드 실패해도 다른 필드 수정은 계속 진행
@@ -215,17 +221,17 @@ export async function PUT(request: Request) {
 
     // 업데이트할 데이터 준비 (created_at은 절대 변경하지 않음)
     const updateFields: any = {};
-    
+
     // 상담 날짜는 수정 가능하지만 순수한 DATE 형식만 허용 (타임존 영향 없음)
     if (updateData.consultDate !== undefined && updateData.consultDate !== null && updateData.consultDate !== '') {
       // 날짜 검증 (YYYY-MM-DD 형식)
       const validation = validateDateRange(updateData.consultDate, 1900, 2);
-      
+
       if (!validation.isValid) {
         console.error('날짜 검증 실패:', validation.error, '입력값:', updateData.consultDate);
         throw new Error(`날짜 오류: ${validation.error}`);
       }
-      
+
       // 순수한 날짜 형식으로 저장 (타임존 정보 없음)
       updateFields.consult_date = normalizeDate(updateData.consultDate);
       console.log('날짜 정규화 성공:', updateFields.consult_date);
@@ -248,10 +254,10 @@ export async function PUT(request: Request) {
     if (updateData.result !== undefined) {
       updateFields.result = updateData.result;
     }
-    
+
     // 이미지 URL은 항상 업데이트 (기존 + 새 이미지)
     updateFields.image_urls = imageUrls;
-    
+
     // updated_at만 현재 시간으로 갱신 (created_at은 절대 변경 안됨)
     updateFields.updated_at = new Date().toISOString();
 
@@ -280,12 +286,12 @@ export async function PUT(request: Request) {
 
   } catch (error) {
     console.error('상담 수정 오류:', error);
-    
+
     // 더 자세한 에러 정보 반환
     const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-    
+
     return NextResponse.json(
-      { 
+      {
         error: '상담 수정 중 오류가 발생했습니다.',
         details: errorMessage
       },

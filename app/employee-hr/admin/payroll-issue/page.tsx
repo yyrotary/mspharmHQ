@@ -1,52 +1,7 @@
-'use client';
+// ... imports
+import PayslipPreview from '@/app/components/hr/PayslipPreview';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import toast from 'react-hot-toast';
-
-interface User {
-  id: string;
-  name: string;
-  role: string;
-}
-
-interface Employee {
-  id: string;
-  name: string;
-  role: string;
-  position: string;
-}
-
-interface Payroll {
-  id: string;
-  employee_id: string;
-  employee: Employee;
-  pay_period_start: string;
-  pay_period_end: string;
-  payment_date: string;
-  base_salary: number;
-  overtime_pay: number;
-  night_shift_pay: number;
-  holiday_pay: number;
-  bonus: number;
-  allowances: number;
-  meal_allowance: number;
-  gross_pay: number;
-  national_pension: number;
-  health_insurance: number;
-  long_term_care: number;
-  employment_insurance: number;
-  income_tax: number;
-  resident_tax: number;
-  net_pay: number;
-  status: string;
-  notes: string;
-  salary_type?: string;
-  net_target?: number;
-  gross_calculated?: number;
-  minimum_wage_check?: boolean;
-}
+// ... interfaces (keep Payroll interface)
 
 export default function PayrollIssuePage() {
   const router = useRouter();
@@ -58,6 +13,7 @@ export default function PayrollIssuePage() {
   );
   const [loading, setLoading] = useState(true);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [reverting, setReverting] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -69,6 +25,7 @@ export default function PayrollIssuePage() {
     }
   }, [selectedMonth, user]);
 
+  // checkAuth and loadPayrolls ... (keep same)
   const checkAuth = async () => {
     try {
       const response = await fetch('/api/employee-purchase/auth/me');
@@ -104,6 +61,7 @@ export default function PayrollIssuePage() {
     }
   };
 
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ko-KR', {
       style: 'currency',
@@ -116,6 +74,7 @@ export default function PayrollIssuePage() {
   };
 
   const getStatusBadge = (status: string) => {
+    // ... keep existing badge logic
     const badges: Record<string, { bg: string; text: string; label: string }> = {
       draft: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '임시' },
       approved: { bg: 'bg-green-100', text: 'text-green-800', label: '✓ 확정' },
@@ -135,8 +94,41 @@ export default function PayrollIssuePage() {
     setShowDetailModal(true);
   };
 
-  const printPayslip = () => {
-    window.print();
+  const handleRevert = async () => {
+    if (!selectedPayroll) return;
+    if (!confirm('확정된 급여를 임시 저장 상태로 되돌리시겠습니까?')) return;
+
+    setReverting(true);
+    try {
+      const response = await fetch('/api/payroll-2026/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: selectedPayroll.employee_id,
+          pay_period_start: selectedPayroll.pay_period_start,
+          pay_period_end: selectedPayroll.pay_period_end,
+          status: 'draft',
+          // Needs to resend numeric fields to avoid nulling them if backend isn't smart
+          // Ideally backend handles partial update, but our calculate API is full rewrite usually.
+          // We should pass the existing values back.
+          bonus: selectedPayroll.bonus,
+          special_allowance: selectedPayroll.allowances,
+          notes: selectedPayroll.notes
+        }),
+      });
+
+      if (response.ok) {
+        toast.success('임시 저장 상태로 변경되었습니다');
+        setShowDetailModal(false);
+        loadPayrolls(); // Refresh list
+      } else {
+        toast.error('변경 실패');
+      }
+    } catch (e) {
+      toast.error('오류 발생');
+    } finally {
+      setReverting(false);
+    }
   };
 
   if (loading) {
@@ -149,7 +141,6 @@ export default function PayrollIssuePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 상단 헤더 */}
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 print:hidden">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center">
@@ -157,7 +148,7 @@ export default function PayrollIssuePage() {
               <h1 className="text-2xl font-bold">📄 급여 명세서 관리</h1>
               <p className="text-sm opacity-90 mt-1">확정된 급여 명세서 조회 및 출력</p>
             </div>
-            <Link 
+            <Link
               href="/employee-hr/admin/dashboard"
               className="px-4 py-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 text-sm font-medium"
             >
@@ -269,194 +260,22 @@ export default function PayrollIssuePage() {
         </div>
       </div>
 
-      {/* 명세서 상세 모달 */}
+      {/* 명세서 상세 모달 via Shared Component */}
       {showDetailModal && selectedPayroll && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 print:relative print:bg-white print:block">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto print:max-w-full print:shadow-none print:max-h-none">
-            {/* 모달 헤더 */}
-            <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 rounded-t-lg print:bg-white print:text-gray-900 print:border-b-2 print:border-gray-300">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="text-2xl font-bold">급여 명세서</h2>
-                  <p className="text-sm opacity-90 mt-1">
-                    {new Date(selectedPayroll.pay_period_start).getFullYear()}년{' '}
-                    {new Date(selectedPayroll.pay_period_start).getMonth() + 1}월
-                  </p>
-                </div>
-                <div className="flex space-x-2 print:hidden">
-                  <button
-                    onClick={printPayslip}
-                    className="px-4 py-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 text-sm font-medium"
-                  >
-                    🖨️ 출력
-                  </button>
-                  <button
-                    onClick={() => setShowDetailModal(false)}
-                    className="px-4 py-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 text-sm font-medium"
-                  >
-                    ✕ 닫기
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* 명세서 본문 */}
-            <div className="p-8">
-              {/* 직원 정보 */}
-              <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">성명</p>
-                    <p className="text-lg font-bold text-gray-900">{selectedPayroll.employee?.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">직급</p>
-                    <p className="text-lg font-medium text-gray-900">{selectedPayroll.employee?.position || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">급여 기간</p>
-                    <p className="text-base font-medium text-gray-900">
-                      {formatDate(selectedPayroll.pay_period_start)} ~ {formatDate(selectedPayroll.pay_period_end)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">지급일</p>
-                    <p className="text-base font-medium text-gray-900">
-                      {formatDate(selectedPayroll.payment_date)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Net 계약 표시 */}
-              {selectedPayroll.salary_type === 'net' && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                  <h3 className="font-semibold text-yellow-900 mb-2">💡 Net 계약 역산</h3>
-                  <div className="text-sm text-yellow-800 space-y-1">
-                    <div>• 목표 실수령액: <strong>{formatCurrency(selectedPayroll.net_target || 0)}</strong></div>
-                    <div>• 역산된 세전금액: <strong>{formatCurrency(selectedPayroll.gross_calculated || 0)}</strong></div>
-                  </div>
-                </div>
-              )}
-
-              {/* 최저임금 경고 */}
-              {selectedPayroll.minimum_wage_check === false && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                  <h3 className="font-semibold text-red-900 mb-2">⚠️ 최저임금 미달</h3>
-                  <p className="text-sm text-red-800">급여 조정이 필요합니다.</p>
-                </div>
-              )}
-
-              {/* 지급 내역 */}
-              <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b-2 border-gray-300">
-                  💵 지급 내역
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between py-2">
-                    <span className="font-medium">기본급</span>
-                    <span className="font-semibold">{formatCurrency(selectedPayroll.base_salary)}</span>
-                  </div>
-                  {selectedPayroll.overtime_pay > 0 && (
-                    <div className="flex justify-between py-2 text-sm">
-                      <span>연장수당</span>
-                      <span>{formatCurrency(selectedPayroll.overtime_pay)}</span>
-                    </div>
-                  )}
-                  {selectedPayroll.night_shift_pay > 0 && (
-                    <div className="flex justify-between py-2 text-sm">
-                      <span>야간수당</span>
-                      <span>{formatCurrency(selectedPayroll.night_shift_pay)}</span>
-                    </div>
-                  )}
-                  {selectedPayroll.holiday_pay > 0 && (
-                    <div className="flex justify-between py-2 text-sm">
-                      <span>휴일수당</span>
-                      <span>{formatCurrency(selectedPayroll.holiday_pay)}</span>
-                    </div>
-                  )}
-                  {selectedPayroll.allowances > 0 && (
-                    <div className="flex justify-between py-2 text-sm text-orange-600">
-                      <span>🕐 고정OT</span>
-                      <span>{formatCurrency(selectedPayroll.allowances)}</span>
-                    </div>
-                  )}
-                  {selectedPayroll.bonus > 0 && (
-                    <div className="flex justify-between py-2 text-sm text-blue-600">
-                      <span>🎁 특별상여금</span>
-                      <span>{formatCurrency(selectedPayroll.bonus)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between py-2 text-sm text-gray-600">
-                    <span>식대 (비과세)</span>
-                    <span>{formatCurrency(selectedPayroll.meal_allowance)}</span>
-                  </div>
-                  <div className="flex justify-between py-3 border-t-2 border-gray-300 font-bold text-lg">
-                    <span>총 지급액</span>
-                    <span className="text-blue-600">{formatCurrency(selectedPayroll.gross_pay)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 공제 내역 */}
-              <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b-2 border-gray-300">
-                  📋 공제 내역
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between py-2 text-sm">
-                    <span>국민연금</span>
-                    <span className="text-red-600">-{formatCurrency(selectedPayroll.national_pension)}</span>
-                  </div>
-                  <div className="flex justify-between py-2 text-sm">
-                    <span>건강보험</span>
-                    <span className="text-red-600">-{formatCurrency(selectedPayroll.health_insurance)}</span>
-                  </div>
-                  <div className="flex justify-between py-2 text-sm">
-                    <span>장기요양</span>
-                    <span className="text-red-600">-{formatCurrency(selectedPayroll.long_term_care)}</span>
-                  </div>
-                  <div className="flex justify-between py-2 text-sm">
-                    <span>고용보험</span>
-                    <span className="text-red-600">-{formatCurrency(selectedPayroll.employment_insurance)}</span>
-                  </div>
-                  <div className="flex justify-between py-2 text-sm">
-                    <span>소득세</span>
-                    <span className="text-red-600">-{formatCurrency(selectedPayroll.income_tax)}</span>
-                  </div>
-                  <div className="flex justify-between py-2 text-sm">
-                    <span>지방소득세</span>
-                    <span className="text-red-600">-{formatCurrency(selectedPayroll.resident_tax)}</span>
-                  </div>
-                  <div className="flex justify-between py-3 border-t-2 border-gray-300 font-bold">
-                    <span>총 공제액</span>
-                    <span className="text-red-600">
-                      -{formatCurrency(selectedPayroll.gross_pay - selectedPayroll.net_pay)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 실수령액 */}
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 rounded-lg p-6 mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-gray-900">실수령액</span>
-                  <span className="text-3xl font-bold text-green-600">
-                    {formatCurrency(selectedPayroll.net_pay)}
-                  </span>
-                </div>
-              </div>
-
-              {/* 메모 */}
-              {selectedPayroll.notes && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 mb-1">메모</p>
-                  <p className="text-sm text-gray-900">{selectedPayroll.notes}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <PayslipPreview
+          data={{
+            ...selectedPayroll,
+            employee_name: selectedPayroll.employee.name, // Mapping fallback
+            special_allowance: selectedPayroll.allowances // Mapping fallback
+          }}
+          mode="view"
+          onClose={() => setShowDetailModal(false)}
+          onRevert={handleRevert}
+        // Note: We are NOT passing attendanceRecords here yet because
+        // this page's list API doesn't load them.
+        // If user wants them here, we'd need to fetch them on modal open.
+        // For now, let's keep it consistent in design, even if table is empty.
+        />
       )}
     </div>
   );

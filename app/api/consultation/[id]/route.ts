@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import { CONSULTATION_SCHEMA, NOTION_ENV_VARS } from '@/app/lib/notion-schema';
-import { 
-  getConsultationById, 
-  updateConsultation, 
+import {
+  getConsultationById,
+  updateConsultation,
   deleteConsultation,
-  type UpdateConsultationData 
+  type UpdateConsultationData
 } from '@/app/lib/supabase-consultation';
 import { getCustomerById } from '@/app/lib/supabase-customer';
 
@@ -17,30 +17,30 @@ const notion = new Client({
 // 상담일지 조회
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const id = context.params.id;
-  
+  const { id } = await context.params;
+
   if (!id) {
     return NextResponse.json({ success: false, error: '상담일지 ID가 필요합니다.' }, { status: 400 });
   }
-  
+
   try {
     console.log(`상담일지 조회: ${id}`);
-    
+
     // 노션 페이지 조회
     const response = await notion.pages.retrieve({ page_id: id });
     console.log('상담일지 조회 결과:', JSON.stringify(response).substring(0, 500) + '...');
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       consultation: response
     });
   } catch (error) {
     console.error('상담일지 조회 오류:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: '상담일지 조회 중 오류가 발생했습니다.' 
+    return NextResponse.json({
+      success: false,
+      error: '상담일지 조회 중 오류가 발생했습니다.'
     }, { status: 500 });
   }
 }
@@ -48,11 +48,11 @@ export async function GET(
 // 상담일지 수정
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const data = await request.json();
-    const consultationId = params.id;
+    const { id: consultationId } = await params;
 
     // 상담일지 존재 확인
     const existingConsultation = await getConsultationById(consultationId);
@@ -144,10 +144,10 @@ export async function PUT(
 // 상담일지 삭제
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const consultationId = params.id;
+    const { id: consultationId } = await params;
 
     // 상담일지 존재 확인
     const existingConsultation = await getConsultationById(consultationId);

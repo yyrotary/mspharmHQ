@@ -4,12 +4,13 @@ import { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Loading from '@/app/components/Loading';
-import { 
-  normalizeDate, 
-  formatKoreaDate, 
+import {
+  normalizeDate,
+  formatKoreaDate,
   getDateInputRange,
-  getCurrentKoreaDate 
+  getCurrentKoreaDate
 } from '@/app/lib/date-utils';
+import moment from 'moment-timezone';
 
 // Supabase 고객 타입 정의
 interface Customer {
@@ -90,7 +91,7 @@ function ConsultationContent() {
     specialNote: '',
     estimatedAge: '' // 추정나이 필드 추가
   });
-  
+
   const [newConsultation, setNewConsultation] = useState<NewConsultation>({
     consultDate: getCurrentKoreaDate(), // 한국 날짜 기준 (YYYY-MM-DD)
     content: '',
@@ -101,44 +102,44 @@ function ConsultationContent() {
     specialNote: '',
     images: []
   });
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  
+
   // 카메라 접근 함수
   const openCamera = () => {
     if (cameraInputRef.current) {
       cameraInputRef.current.click();
     }
   };
-  
+
   // 모바일 카메라 최적화 설정
   useEffect(() => {
     // 모바일 환경 감지
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
+
     // 카메라 입력 요소 설정
     if (cameraInputRef.current && isMobile) {
       // 모바일에서 카메라 접근 시 해상도 조정
       cameraInputRef.current.setAttribute('capture', 'environment');
     }
   }, []);
-  
+
   // 고객 검색 함수
   const searchCustomer = async () => {
     if (!customerName.trim()) {
       setMessage('고객 이름을 입력해주세요.');
       return;
     }
-    
+
     try {
       setLoading(true);
       setMessage('');
-      
+
       // 고객 검색
       const response = await fetch(`/api/customer?name=${encodeURIComponent(customerName)}`);
       const data = await response.json();
-      
+
       if (data.success && data.customers && data.customers.length > 0) {
         // 여러 고객이 검색된 경우 모달로 선택
         if (data.customers.length > 1) {
@@ -165,29 +166,29 @@ function ConsultationContent() {
       setLoading(false);
     }
   };
-  
+
   // 고객 선택 및 상담일지 로드 함수 (공통 로직)
   const selectCustomerAndLoadConsultations = async (foundCustomer: Customer) => {
     try {
       setCustomer(foundCustomer);
-      
+
       // Supabase 형식으로 고객 정보 추출
       const customerInfo = {
         name: foundCustomer.name || '',
         phone: foundCustomer.phone || '',
         consultationCount: foundCustomer.consultation_count || 0
       };
-      
+
       // 상담일지 조회 (consultation-v2 API 사용)
       const consultationsResponse = await fetch(`/api/consultation-v2?customerId=${foundCustomer.id}`);
       const consultationsData = await consultationsResponse.json();
-      
+
       if (consultationsData.success) {
         // Supabase 데이터를 기존 형식으로 변환
         const formattedConsultations = consultationsData.consultations.map((consultation: any) => {
           // consult_date를 직접 사용 (DATE 타입으로 순수한 날짜만 포함)
           let consultationDateTime = consultation.consult_date || '';
-          
+
           return {
             id: consultation.id,
             customerName: customerInfo.name,
@@ -202,7 +203,7 @@ function ConsultationContent() {
             symptomImages: consultation.image_urls || []
           };
         });
-        
+
         setConsultations(formattedConsultations);
         setMessage('');
       } else {
@@ -213,19 +214,19 @@ function ConsultationContent() {
       setMessage('상담일지 조회 중 오류가 발생했습니다.');
     }
   };
-  
+
   // 새 고객 등록 함수
   const registerNewCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newCustomer.name) {
       setMessage('고객 이름은 필수 입력 항목입니다.');
       return;
     }
-    
+
     try {
       setLoading(true);
-      
+
       const response = await fetch('/api/customer', {
         method: 'POST',
         headers: {
@@ -241,16 +242,16 @@ function ConsultationContent() {
           estimatedAge: newCustomer.estimatedAge // 추정나이 필드 추가
         }),
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         setMessage('새 고객이 등록되었습니다.');
         setShowCustomerForm(false);
-        
+
         // 등록된 고객 정보 설정
         setCustomer(result.customer);
-        
+
         // 고객 등록 폼 초기화
         setNewCustomer({
           name: '',
@@ -261,10 +262,10 @@ function ConsultationContent() {
           specialNote: '',
           estimatedAge: undefined
         });
-        
+
         // 새 상담일지 폼 열기
         setShowNewForm(true);
-        
+
         // 성공 메시지 업데이트
         setMessage(`${result.customer.name} 고객이 등록되었습니다. 새 상담일지를 작성해주세요.`);
       } else {
@@ -277,20 +278,20 @@ function ConsultationContent() {
       setLoading(false);
     }
   };
-  
+
   // 사진 캡처 처리
   const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const reader = new FileReader();
-      
+
       reader.onloadend = () => {
         // 현재 날짜와 시간을 파일 이름에 포함
         const now = new Date();
         const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
         const customerName = customer?.name || 'unknown';
         const fileName = `${customerName}_${dateString}.jpg`;
-        
+
         // 이미지 해상도 줄이기
         const img = new Image();
         img.onload = () => {
@@ -298,46 +299,46 @@ function ConsultationContent() {
           // 이미지 해상도를 2/3로 줄임
           const maxWidth = Math.floor(img.width * 0.67);
           const maxHeight = Math.floor(img.height * 0.67);
-          
+
           canvas.width = maxWidth;
           canvas.height = maxHeight;
-          
+
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
             const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
-            
+
             // 이미지 데이터와 파일 이름 저장
-            setNewConsultation({
-              ...newConsultation,
-              images: [...newConsultation.images, {
+            setNewConsultation(prev => ({
+              ...prev,
+              images: [...prev.images, {
                 data: reducedImageData,
                 fileName
               }]
-            });
+            }));
           }
         };
         img.src = reader.result as string;
       };
-      
+
       reader.readAsDataURL(file);
     }
   };
-  
+
   // 파일 업로드 처리
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       for (let i = 0; i < e.target.files.length; i++) {
         const file = e.target.files[i];
         const reader = new FileReader();
-        
+
         reader.onloadend = () => {
           // 현재 날짜와 시간을 파일 이름에 포함
           const now = new Date();
           const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
           const customerName = customer?.name || 'unknown';
-          const fileName = `${customerName}_${dateString}_${i+1}.jpg`;
-          
+          const fileName = `${customerName}_${dateString}_${i + 1}.jpg`;
+
           // 이미지 해상도 줄이기
           const img = new Image();
           img.onload = () => {
@@ -345,33 +346,33 @@ function ConsultationContent() {
             // 이미지 해상도를 2/3로 줄임
             const maxWidth = Math.floor(img.width * 0.67);
             const maxHeight = Math.floor(img.height * 0.67);
-            
+
             canvas.width = maxWidth;
             canvas.height = maxHeight;
-            
+
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
               const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
-              
+
               // 이미지 데이터와 파일 이름 저장
-              setNewConsultation({
-                ...newConsultation,
-                images: [...newConsultation.images, {
+              setNewConsultation(prev => ({
+                ...prev,
+                images: [...prev.images, {
                   data: reducedImageData,
                   fileName
                 }]
-              });
+              }));
             }
           };
           img.src = reader.result as string;
         };
-        
+
         reader.readAsDataURL(file);
       }
     }
   };
-  
+
   // 이미지 삭제
   const removeImage = (index: number) => {
     setNewConsultation(prev => ({
@@ -379,16 +380,16 @@ function ConsultationContent() {
       images: prev.images.filter((_, i) => i !== index)
     }));
   };
-  
+
   // 이미지 업로드 함수
   const uploadImages = async (customerFolderId: string | null) => {
     if (newConsultation.images.length === 0) return [];
-    
+
     try {
       const uploadedUrls: string[] = [];
       let failedUploads = 0;
       let errorMessages: string[] = [];
-      
+
       // 각 이미지를 업로드하기 전에 리사이징
       const processedImages = await Promise.all(
         newConsultation.images.map(async (image, i) => {
@@ -397,7 +398,7 @@ function ConsultationContent() {
           const timestamp = moment().tz('Asia/Seoul').format('YYMMDDHHmmss');
           const fileNamePrefix = `${customerId}_${timestamp}`;
           const fileName = `${fileNamePrefix}.jpg`;
-          
+
           return {
             index: i,
             data: image.data,
@@ -405,21 +406,21 @@ function ConsultationContent() {
           };
         })
       );
-      
+
       // 병렬 처리를 위한 배치 크기 (한 번에 처리할 이미지 수)
       const batchSize = 2;
-      
+
       // 배치 단위로 처리
       for (let i = 0; i < processedImages.length; i += batchSize) {
         const batch = processedImages.slice(i, i + batchSize);
-        setMessage(`이미지 업로드 중 (${i+1}-${Math.min(i+batchSize, processedImages.length)}/${processedImages.length})...`);
-        
+        setMessage(`이미지 업로드 중 (${i + 1}-${Math.min(i + batchSize, processedImages.length)}/${processedImages.length})...`);
+
         // 배치 내의 이미지 병렬 업로드
         const batchResults = await Promise.all(
           batch.map(async (img) => {
             try {
-              console.log(`이미지 ${img.index+1} 업로드 시작: ${img.fileName}`);
-              
+              console.log(`이미지 ${img.index + 1} 업로드 시작: ${img.fileName}`);
+
               const response = await fetch('/api/google-drive', {
                 method: 'POST',
                 headers: {
@@ -431,17 +432,17 @@ function ConsultationContent() {
                   customerFolderId: customerFolderId  // 고객 폴더 ID 전달
                 }),
               });
-              
+
               const result = await response.json();
-              
+
               if (response.ok && result.success) {
                 // 구글 드라이브 링크 사용
-                const fileUrl = result.file?.link || result.fileId 
+                const fileUrl = result.file?.link || result.fileId
                   ? `https://drive.google.com/file/d/${result.fileId || result.file?.id}/view`
                   : null;
-                
+
                 if (fileUrl) {
-                  console.log(`이미지 ${img.index+1} 업로드 성공: ${fileUrl.substring(0, 60)}...`);
+                  console.log(`이미지 ${img.index + 1} 업로드 성공: ${fileUrl.substring(0, 60)}...`);
                   return { success: true, url: fileUrl, index: img.index };
                 } else {
                   throw new Error('유효한 파일 URL이 반환되지 않음');
@@ -450,16 +451,16 @@ function ConsultationContent() {
                 throw new Error(result.error || '알 수 없는 오류');
               }
             } catch (error) {
-              console.error(`이미지 ${img.index+1} 업로드 중 예외 발생:`, error);
-              return { 
-                success: false, 
-                index: img.index, 
-                error: error instanceof Error ? error.message : '네트워크 오류' 
+              console.error(`이미지 ${img.index + 1} 업로드 중 예외 발생:`, error);
+              return {
+                success: false,
+                index: img.index,
+                error: error instanceof Error ? error.message : '네트워크 오류'
               };
             }
           })
         );
-        
+
         // 결과 처리
         batchResults.forEach(result => {
           if (result.success && 'url' in result) {
@@ -472,24 +473,24 @@ function ConsultationContent() {
           }
         });
       }
-      
+
       // 업로드 결과 요약
       if (failedUploads > 0) {
         const totalImages = newConsultation.images.length;
         const successCount = totalImages - failedUploads;
-        
-        let errorSummary = errorMessages.length > 0 
+
+        let errorSummary = errorMessages.length > 0
           ? ` 오류: ${errorMessages[0]}${errorMessages.length > 1 ? ` 외 ${errorMessages.length - 1}건` : ''}`
           : '';
-          
+
         setMessage(`이미지 ${successCount}/${totalImages}개 업로드 성공.${errorSummary}`);
-        
-        // 모든 이미지 업로드 실패 시 
+
+        // 모든 이미지 업로드 실패 시
         if (successCount === 0) {
           throw new Error(`모든 이미지 업로드 실패. ${errorMessages[0]}`);
         }
       }
-      
+
       return uploadedUrls;
     } catch (error) {
       console.error('이미지 업로드 오류:', error);
@@ -497,16 +498,16 @@ function ConsultationContent() {
       return [];
     }
   };
-  
+
   // 수정 폼용 이미지 업로드 함수
   const uploadEditImages = async (customerFolderId: string | null) => {
     if (editFormData.images.length === 0) return [];
-    
+
     try {
       const uploadedUrls: string[] = [];
       let failedUploads = 0;
       let errorMessages: string[] = [];
-      
+
       // 각 이미지를 업로드하기 전에 리사이징
       const processedImages = await Promise.all(
         editFormData.images.map(async (image, i) => {
@@ -516,7 +517,7 @@ function ConsultationContent() {
           const timestamp = moment().tz('Asia/Seoul').format('YYMMDDHHmmss');
           const fileNamePrefix = `${customerId}_${timestamp}`;
           const fileName = `${fileNamePrefix}.jpg`;
-          
+
           return {
             index: i,
             data: image.data,
@@ -524,21 +525,21 @@ function ConsultationContent() {
           };
         })
       );
-      
+
       // 병렬 처리를 위한 배치 크기 (한 번에 처리할 이미지 수)
       const batchSize = 2;
-      
+
       // 배치 단위로 처리
       for (let i = 0; i < processedImages.length; i += batchSize) {
         const batch = processedImages.slice(i, i + batchSize);
-        setMessage(`이미지 업로드 중 (${i+1}-${Math.min(i+batchSize, processedImages.length)}/${processedImages.length})...`);
-        
+        setMessage(`이미지 업로드 중 (${i + 1}-${Math.min(i + batchSize, processedImages.length)}/${processedImages.length})...`);
+
         // 배치 내의 이미지 병렬 업로드
         const batchResults = await Promise.all(
           batch.map(async (img) => {
             try {
-              console.log(`이미지 ${img.index+1} 업로드 시작: ${img.fileName}`);
-              
+              console.log(`이미지 ${img.index + 1} 업로드 시작: ${img.fileName}`);
+
               const response = await fetch('/api/google-drive', {
                 method: 'POST',
                 headers: {
@@ -550,17 +551,17 @@ function ConsultationContent() {
                   customerFolderId: customerFolderId  // 고객 폴더 ID 전달
                 }),
               });
-              
+
               const result = await response.json();
-              
+
               if (response.ok && result.success) {
                 // 구글 드라이브 링크 사용
-                const fileUrl = result.file?.link || result.fileId 
+                const fileUrl = result.file?.link || result.fileId
                   ? `https://drive.google.com/file/d/${result.fileId || result.file?.id}/view`
                   : null;
-                
+
                 if (fileUrl) {
-                  console.log(`이미지 ${img.index+1} 업로드 성공: ${fileUrl.substring(0, 60)}...`);
+                  console.log(`이미지 ${img.index + 1} 업로드 성공: ${fileUrl.substring(0, 60)}...`);
                   return { success: true, url: fileUrl, index: img.index };
                 } else {
                   throw new Error('유효한 파일 URL이 반환되지 않음');
@@ -569,16 +570,16 @@ function ConsultationContent() {
                 throw new Error(result.error || '알 수 없는 오류');
               }
             } catch (error) {
-              console.error(`이미지 ${img.index+1} 업로드 중 예외 발생:`, error);
-              return { 
-                success: false, 
-                index: img.index, 
-                error: error instanceof Error ? error.message : '네트워크 오류' 
+              console.error(`이미지 ${img.index + 1} 업로드 중 예외 발생:`, error);
+              return {
+                success: false,
+                index: img.index,
+                error: error instanceof Error ? error.message : '네트워크 오류'
               };
             }
           })
         );
-        
+
         // 결과 처리
         batchResults.forEach(result => {
           if (result.success && 'url' in result) {
@@ -591,24 +592,24 @@ function ConsultationContent() {
           }
         });
       }
-      
+
       // 업로드 결과 요약
       if (failedUploads > 0) {
         const totalImages = editFormData.images.length;
         const successCount = totalImages - failedUploads;
-        
-        let errorSummary = errorMessages.length > 0 
+
+        let errorSummary = errorMessages.length > 0
           ? ` 오류: ${errorMessages[0]}${errorMessages.length > 1 ? ` 외 ${errorMessages.length - 1}건` : ''}`
           : '';
-          
+
         setMessage(`이미지 ${successCount}/${totalImages}개 업로드 성공.${errorSummary}`);
-        
-        // 모든 이미지 업로드 실패 시 
+
+        // 모든 이미지 업로드 실패 시
         if (successCount === 0) {
           throw new Error(`모든 이미지 업로드 실패. ${errorMessages[0]}`);
         }
       }
-      
+
       return uploadedUrls;
     } catch (error) {
       console.error('이미지 업로드 오류:', error);
@@ -616,9 +617,9 @@ function ConsultationContent() {
       return [];
     }
   };
-  
+
   // 1. 추가: 시스템 상태 진단 기능
-  const [systemStatus, setSystemStatus] = useState<{ 
+  const [systemStatus, setSystemStatus] = useState<{
     googleDrive: 'unknown' | 'checking' | 'ok' | 'error',
     googleDriveMessage: string
   }>({
@@ -631,54 +632,54 @@ function ConsultationContent() {
     // 구글 드라이브 연결 상태 확인
     try {
       setSystemStatus(prev => ({ ...prev, googleDrive: 'checking', googleDriveMessage: '구글 드라이브 연결 확인 중...' }));
-      
+
       const response = await fetch('/api/google-drive/status', {
         method: 'GET'
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          setSystemStatus(prev => ({ 
-            ...prev, 
-            googleDrive: 'ok', 
+          setSystemStatus(prev => ({
+            ...prev,
+            googleDrive: 'ok',
             googleDriveMessage: '구글 드라이브 연결 정상'
           }));
         } else {
-          setSystemStatus(prev => ({ 
-            ...prev, 
-            googleDrive: 'error', 
+          setSystemStatus(prev => ({
+            ...prev,
+            googleDrive: 'error',
             googleDriveMessage: `구글 드라이브 연결 오류: ${result.error || '알 수 없는 오류'}`
           }));
         }
       } else {
-        setSystemStatus(prev => ({ 
-          ...prev, 
-          googleDrive: 'error', 
+        setSystemStatus(prev => ({
+          ...prev,
+          googleDrive: 'error',
           googleDriveMessage: '구글 드라이브 상태 확인 API 연결 실패'
         }));
       }
     } catch (error) {
-      setSystemStatus(prev => ({ 
-        ...prev, 
-        googleDrive: 'error', 
+      setSystemStatus(prev => ({
+        ...prev,
+        googleDrive: 'error',
         googleDriveMessage: `구글 드라이브 연결 확인 중 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
       }));
     }
   };
-  
+
   // 이미지 업로드 문제 발생 시 재시도 및 진단 기능
   const troubleshootImageUpload = async () => {
     setLoading(true);
     setMessage('이미지 업로드 시스템 진단 중...');
-    
+
     try {
       // 시스템 상태 확인
       await checkSystemStatus();
-      
+
       // 간단한 테스트 이미지 업로드 시도
       const testImageData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFeAJ3jyYOzAAAAABJRU5ErkJggg=='; // 1x1 투명 픽셀
-      
+
       const response = await fetch('/api/google-drive', {
         method: 'POST',
         headers: {
@@ -689,9 +690,9 @@ function ConsultationContent() {
           fileName: 'test_image.png'
         }),
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         setMessage('테스트 이미지 업로드 성공. 이제 다시 시도해보세요.');
       } else {
@@ -703,25 +704,25 @@ function ConsultationContent() {
       setLoading(false);
     }
   };
-  
+
   // 2. 호소증상상 저장 부분 수정
   const saveConsultation = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!customer) {
       setMessage('고객 정보가 필요합니다.');
       return;
     }
-    
+
     if (!newConsultation.content) {
       setMessage('호소증상은 필수 입력 항목입니다.');
       return;
     }
-    
+
     try {
       setLoading(true);
       setMessage('상담일지 저장 중...');
-      
+
       // 상담일지 API 호출 데이터 준비 (Supabase 기반)
       const apiData = {
         customer_id: customer.id,
@@ -734,9 +735,9 @@ function ConsultationContent() {
         specialNote: newConsultation.specialNote,  // specialNotes → specialNote
         imageDataArray: newConsultation.images.map(img => img.data) // Base64 이미지 데이터 배열
       };
-      
+
       setMessage('상담일지 저장 요청 전송 중...');
-      
+
       // 상담일지 저장 API 호출
       const response = await fetch('/api/consultation-v2', {
         method: 'POST',
@@ -745,12 +746,12 @@ function ConsultationContent() {
         },
         body: JSON.stringify(apiData),
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         setMessage('상담일지가 저장되었습니다.');
-        
+
         // 상담일지 폼 초기화
         setNewConsultation({
           consultDate: getCurrentKoreaDate(), // 현재 한국 날짜 (YYYY-MM-DD)
@@ -762,14 +763,14 @@ function ConsultationContent() {
           specialNote: '',
           images: []
         });
-        
+
         setShowNewForm(false);
-        
+
         // 상담일지 목록 갱신
         setMessage('상담일지 목록 갱신 중...');
         const consultationsResponse = await fetch(`/api/consultation-v2?customerId=${customer.id}`);
         const consultationsData = await consultationsResponse.json();
-        
+
         if (consultationsData.success) {
           // Supabase 데이터를 기존 형식으로 변환
           const formattedConsultations = consultationsData.consultations.map((consultation: any) => {
@@ -787,10 +788,10 @@ function ConsultationContent() {
               symptomImages: consultation.image_urls || []
             };
           });
-          
+
           setConsultations(formattedConsultations);
         }
-        
+
         setMessage('');
       } else {
         throw new Error(result.error || '상담일지 저장 중 오류가 발생했습니다.');
@@ -814,12 +815,12 @@ function ConsultationContent() {
       // External 타입 처리 (일반적으로 외부 URL)
       if (imageObj.type === 'external' && imageObj.external && imageObj.external.url) {
         const url = imageObj.external.url.trim();
-        
+
         // 빈 문자열 체크
         if (!url) {
           return null;
         }
-        
+
         // Google Drive URL 변환
         if (url.includes('drive.google.com/file/d/')) {
           try {
@@ -831,19 +832,19 @@ function ConsultationContent() {
             return url;
           }
         }
-        
+
         return url;
       }
 
       // File 타입 처리 (Notion에 직접 업로드한 파일)
       if (imageObj.type === 'file' && imageObj.file && imageObj.file.url) {
         const url = imageObj.file.url.trim();
-        
+
         // 빈 문자열 체크
         if (!url) {
           return null;
         }
-        
+
         return url;
       }
 
@@ -854,7 +855,7 @@ function ConsultationContent() {
         if (!url) {
           return null;
         }
-        
+
         // Google Drive URL 변환
         if (url.includes('drive.google.com/file/d/')) {
           try {
@@ -866,7 +867,7 @@ function ConsultationContent() {
             return url;
           }
         }
-        
+
         return url;
       }
 
@@ -883,27 +884,27 @@ function ConsultationContent() {
             return url;
           }
         }
-        
+
         if (url && !url.startsWith('http')) {
           return null;
         }
-        
+
         return url;
       }
 
       // 이미지 객체 내 여러 필드에서 URL 찾기
       const possibleUrlFields = [
-        imageObj.url, 
-        imageObj.external?.url, 
+        imageObj.url,
+        imageObj.external?.url,
         imageObj.file?.url,
         imageObj.source,
         imageObj.src
       ];
-      
+
       for (const field of possibleUrlFields) {
         if (field && typeof field === 'string' && field.trim()) {
           const url = field.trim();
-          
+
           // Google Drive URL 변환
           if (url.includes('drive.google.com/file/d/')) {
             try {
@@ -915,7 +916,7 @@ function ConsultationContent() {
               return url;
             }
           }
-          
+
           return url;
         }
       }
@@ -959,25 +960,25 @@ function ConsultationContent() {
     // URL 변환 및 설정
     useEffect(() => {
       console.log('🔍 이미지 URL 처리 시작:', imageUrl);
-      
+
       // null, undefined, 빈 문자열 체크
       if (!imageUrl || imageUrl === "" || imageUrl === "undefined" || imageUrl === "null") {
         console.log('❌ 유효하지 않은 이미지 URL:', imageUrl);
         setError(true);
         return;
       }
-      
+
       // Supabase Storage URL인 경우 그대로 사용
       if (isSupabaseUrl(imageUrl)) {
         console.log('✅ Supabase URL 감지:', imageUrl);
         setProcessedUrl(imageUrl);
         return;
       }
-      
+
       // 구글 드라이브 URL 처리
       try {
         const fileId = extractFileId(imageUrl);
-        
+
         if (fileId) {
           // 구글 드라이브 API를 직접 사용하는 방식으로 변경
           // 이미지 직접 엑세스 URL 방식 (구글 API를 통한 인증 필요 없음)
@@ -999,14 +1000,14 @@ function ConsultationContent() {
     // 첫 번째 방식 실패 시 대체 URL로 재시도 (Google Drive만)
     const tryFallbackUrl = () => {
       if (fallbackTriggered || isSupabaseUrl(imageUrl)) return; // 이미 시도했거나 Supabase URL이면 다시 시도하지 않음
-      
+
       try {
         const fileId = extractFileId(imageUrl);
         if (!fileId) {
           setError(true);
           return;
         }
-        
+
         // 첫 번째 대체 URL 시도: uc?export=view&id 형식
         const fallbackUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
         setProcessedUrl(fallbackUrl);
@@ -1021,7 +1022,7 @@ function ConsultationContent() {
     // 이미지 로드 실패 시 처리 로직
     const handleImageError = () => {
       console.error('이미지 로드 실패:', processedUrl);
-      
+
       if (isSupabaseUrl(imageUrl)) {
         // Supabase URL이 실패하면 바로 에러 표시
         setError(true);
@@ -1036,8 +1037,8 @@ function ConsultationContent() {
 
     if (error) {
       return (
-        <div 
-          style={{ 
+        <div
+          style={{
             position: 'relative',
             flex: '0 0 auto',
             width: '120px',
@@ -1065,8 +1066,8 @@ function ConsultationContent() {
     }
 
     return (
-      <div 
-        style={{ 
+      <div
+        style={{
           position: 'relative',
           flex: '0 0 auto',
           width: '120px',
@@ -1090,7 +1091,7 @@ function ConsultationContent() {
           <img
             src={processedUrl}
             alt={`증상 이미지 ${index + 1}`}
-            style={{ 
+            style={{
               cursor: 'pointer',
               objectFit: 'cover',
               width: '100%',
@@ -1114,18 +1115,18 @@ function ConsultationContent() {
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  
+
   // 이미지 모달 열기 함수 개선
   const openImageModal = (imageUrl: string) => {
     if (!imageUrl || imageUrl === "" || imageUrl === "undefined" || imageUrl === "null") {
       return;
     }
-    
+
     // Supabase Storage URL 확인 함수
     const isSupabaseUrl = (url: string) => {
       return url.includes('supabase.co/storage/v1/object/public/');
     };
-    
+
     // Supabase URL인 경우 그대로 사용
     if (isSupabaseUrl(imageUrl)) {
       setSelectedImage(imageUrl);
@@ -1134,7 +1135,7 @@ function ConsultationContent() {
       setImagePosition({ x: 0, y: 0 });
       return;
     }
-    
+
     // 구글 드라이브 fileId 추출 함수 - ConsultationImage 컴포넌트와 동일한 로직
     const extractFileId = (url: string) => {
       try {
@@ -1151,10 +1152,10 @@ function ConsultationContent() {
         return null;
       }
     };
-    
+
     try {
       const fileId = extractFileId(imageUrl);
-      
+
       if (fileId) {
         // 구글 드라이브 API를 직접 사용하는 방식으로 변경
         const alternativeUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
@@ -1168,12 +1169,12 @@ function ConsultationContent() {
       console.warn('URL 변환 실패:', error);
       setSelectedImage(imageUrl);
     }
-    
+
     setShowImageModal(true);
     setImageScale(1);
     setImagePosition({ x: 0, y: 0 });
   };
-  
+
   // 이미지 모달 닫기 함수 - 상태 초기화 추가
   const closeImageModal = () => {
     setShowImageModal(false);
@@ -1182,7 +1183,7 @@ function ConsultationContent() {
     setImageScale(1);
     setImagePosition({ x: 0, y: 0 });
   };
-  
+
   // 확대/축소 처리
   const handleZoom = (zoomIn: boolean) => {
     if (zoomIn) {
@@ -1193,13 +1194,13 @@ function ConsultationContent() {
       setImageScale(prev => Math.max(prev - 0.5, 0.5));
     }
   };
-  
+
   // 드래그 시작 처리
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (imageScale <= 1) return; // 확대되지 않은 상태에서는 드래그 불필요
-    
+
     setIsDragging(true);
-    
+
     // 마우스 이벤트와 터치 이벤트 구분
     if ('clientX' in e) {
       setDragStart({ x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y });
@@ -1208,11 +1209,11 @@ function ConsultationContent() {
       setDragStart({ x: touch.clientX - imagePosition.x, y: touch.clientY - imagePosition.y });
     }
   };
-  
+
   // 드래그 중 처리
   const handleDrag = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDragging || imageScale <= 1) return;
-    
+
     // 마우스 이벤트와 터치 이벤트 구분
     if ('clientX' in e) {
       setImagePosition({
@@ -1227,7 +1228,7 @@ function ConsultationContent() {
       });
     }
   };
-  
+
   // 드래그 종료 처리
   const handleDragEnd = () => {
     setIsDragging(false);
@@ -1247,7 +1248,7 @@ function ConsultationContent() {
 
   // 고객 정보 수정 폼
   const [showEditCustomerForm, setShowEditCustomerForm] = useState<boolean>(false);
-  
+
   const [editCustomer, setEditCustomer] = useState({
     name: '',
     phone: '',
@@ -1257,17 +1258,17 @@ function ConsultationContent() {
     specialNote: '',
     estimatedAge: '' // 추정나이 필드 추가
   });
-  
+
   // 고객 정보 수정 폼 필드 ref 추가
   const editNameInputRef = useRef<HTMLInputElement>(null);
-  
+
   // 고객 정보 수정 폼이 표시될 때 이름 필드에 포커스
   useEffect(() => {
     if (showEditCustomerForm && editNameInputRef.current) {
       editNameInputRef.current.focus();
     }
   }, [showEditCustomerForm]);
-  
+
   // 고객 정보 수정 폼 초기화
   useEffect(() => {
     if (customer && showEditCustomerForm) {
@@ -1286,23 +1287,23 @@ function ConsultationContent() {
   // 고객 정보 수정 함수
   const updateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!customer) {
       setMessage('고객 정보가 필요합니다.');
       return;
     }
-    
+
     if (!editCustomer.name) {
       setMessage('고객 이름은 필수 입력 항목입니다.');
       return;
     }
-    
+
     try {
       setLoading(true);
-      
+
       // 고객 페이지 ID 저장 (업데이트 성공 후 다시 조회하기 위함)
       const customerPageId = customer.id;
-      
+
       // 업데이트 요청
       const response = await fetch(`/api/customer/${customerPageId}`, {
         method: 'PUT',
@@ -1319,15 +1320,15 @@ function ConsultationContent() {
           estimatedAge: editCustomer.estimatedAge
         }),
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         setMessage(result.message || '고객 정보가 업데이트되었습니다.');
-        
+
         // 수정 폼 닫기
         setShowEditCustomerForm(false);
-        
+
         // 고객 정보 다시 조회
         if (customerPageId) {
           try {
@@ -1337,7 +1338,7 @@ function ConsultationContent() {
               if (customerData.success && customerData.customers && customerData.customers.length > 0) {
                 setCustomer(customerData.customers[0]);
                 console.log('고객 정보 새로고침 완료');
-                
+
                 // 고객 검색 필드 업데이트
                 setCustomerName(customerData.customers[0].name);
               }
@@ -1378,30 +1379,31 @@ function ConsultationContent() {
     stateAnalysis: '',  // 환자상태 필드 추가
     tongueAnalysis: '', // 설진분석 필드 추가
     specialNote: '',    // 특이사항 필드 추가
-    images: [] as {data: string, fileName: string}[]
+    images: [] as { data: string, fileName: string }[],
+    removedImages: [] as string[] // 삭제할 기존 이미지 배열 추가
   });
-  
+
   // 상담일지 수정 폼이 표시될 때 호소증상 필드에 자동 포커스
   useEffect(() => {
     if (showEditForm && editContentTextareaRef.current) {
       editContentTextareaRef.current.focus();
     }
   }, [showEditForm]);
-  
+
   // 상담일지 삭제 함수
   const deleteConsultation = async (consultationId: string) => {
     if (!window.confirm('정말로 이 상담일지를 삭제하시겠습니까?')) {
       return;
     }
-    
+
     try {
       setLoading(true);
       setMessage('상담일지 삭제 중...');
-      
+
       const response = await fetch(`/api/consultation-v2?id=${consultationId}`, {
         method: 'DELETE',
       });
-      
+
       if (response.ok) {
         setMessage('상담일지가 삭제되었습니다.');
         // 상담일지 목록에서 삭제된 항목 제거
@@ -1417,14 +1419,14 @@ function ConsultationContent() {
       setLoading(false);
     }
   };
-  
+
   // 상담일지 수정 폼 초기화
   const initEditForm = (consultation: FormattedConsultation) => {
     setEditingConsultation(consultation);
-    
+
     // 날짜만 추출 (YYYY-MM-DD 형식)
     let consultDate = consultation.consultationDate;
-    
+
     try {
       if (consultDate && consultDate.trim() !== '') {
         // 순수한 날짜 형식으로 정규화 (YYYY-MM-DD)
@@ -1438,7 +1440,7 @@ function ConsultationContent() {
       // 오류 발생 시 현재 한국 날짜로 설정
       consultDate = getCurrentKoreaDate();
     }
-    
+
     setEditFormData({
       consultDate,
       content: consultation.consultationContent || '',
@@ -1447,35 +1449,36 @@ function ConsultationContent() {
       stateAnalysis: consultation.stateAnalysis || '',  // 환자상태 추가
       tongueAnalysis: consultation.tongueAnalysis || '', // 설진분석 추가
       specialNote: consultation.specialNote || '',       // 특이사항 추가
-      images: [] // 새 이미지만 추가, 기존 이미지는 symptomImages에서 참조
+      images: [], // 새 이미지만 추가, 기존 이미지는 symptomImages에서 참조
+      removedImages: [] // 수정 초기화시 삭제대기 목록도 비움
     });
-    
+
     setShowEditForm(true);
   };
-  
+
   // 상담일지 수정 제출
   const submitEditForm = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!editingConsultation) {
       setMessage('수정할 상담일지 정보가 없습니다.');
       return;
     }
-    
+
     if (!editFormData.content) {
       setMessage('호소증상은 필수 입력 항목입니다.');
       return;
     }
-    
+
     try {
       setLoading(true);
       setMessage('상담일지 수정 중...');
-      
+
       // 새 이미지가 있는 경우 업로드 메시지 표시
       if (editFormData.images.length > 0) {
         setMessage(`상담일지 수정 중... (새 이미지 ${editFormData.images.length}개 업로드)`);
       }
-      
+
       // 상담일지 업데이트 (consultation-v2 API에서 이미지 처리 포함)
       const response = await fetch(`/api/consultation-v2`, {
         method: 'PUT',
@@ -1491,19 +1494,20 @@ function ConsultationContent() {
           specialNote: editFormData.specialNote,
           medicine: editFormData.medicine,
           result: editFormData.result,
-          imageDataArray: editFormData.images.map(img => img.data) // 새 이미지만 전송
+          imageDataArray: editFormData.images.map(img => img.data), // 새 이미지만 전송
+          removedImages: editFormData.removedImages // 삭제된 기존 이미지 목록
         }),
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         setMessage(result.message || '상담일지가 업데이트되었습니다.');
-        
+
         // 상담일지 목록 갱신 (consultation-v2 API 사용)
         const consultationsResponse = await fetch(`/api/consultation-v2?customerId=${customer!.id}`);
         const consultationsData = await consultationsResponse.json();
-        
+
         if (consultationsData.success) {
           // Supabase 데이터를 기존 형식으로 변환
           const formattedConsultations = consultationsData.consultations.map((consultation: any) => {
@@ -1521,10 +1525,10 @@ function ConsultationContent() {
               symptomImages: consultation.image_urls || []
             };
           });
-          
+
           setConsultations(formattedConsultations);
         }
-        
+
         // 폼 초기화 및 닫기
         setShowEditForm(false);
         setEditingConsultation(null);
@@ -1536,9 +1540,10 @@ function ConsultationContent() {
           stateAnalysis: '',  // 환자상태 초기화
           tongueAnalysis: '', // 설진분석 초기화
           specialNote: '',    // 특이사항 초기화
-          images: []
+          images: [],
+          removedImages: []
         });
-        
+
         // 성공 메시지를 잠시 후 지우기
         setTimeout(() => setMessage(''), 3000);
       } else {
@@ -1547,8 +1552,6 @@ function ConsultationContent() {
       }
     } catch (error) {
       console.error('상담일지 업데이트 오류:', error);
-      console.error('응답 상태:', response?.status);
-      console.error('응답 데이터:', result);
       console.error('요청 URL:', `/api/consultation-v2`);
       console.error('요청 데이터:', {
         id: editingConsultation?.id,
@@ -1556,7 +1559,7 @@ function ConsultationContent() {
         symptoms: editFormData.content,
         hasImages: editFormData.images.length > 0
       });
-      
+
       // 배포 환경에서 헬스체크 API 호출
       if (typeof window !== 'undefined') {
         fetch('/api/health')
@@ -1568,27 +1571,27 @@ function ConsultationContent() {
             console.error('헬스체크 실패:', healthError);
           });
       }
-      
+
       const errorMessage = (error as Error).message || '상담일지 업데이트 중 오류가 발생했습니다.';
       setMessage(errorMessage);
     } finally {
       setLoading(false);
     }
   };
-  
+
   // 수정 폼 이미지 캡처 처리
   const handleEditCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const reader = new FileReader();
-      
+
       reader.onloadend = () => {
         // 현재 날짜와 시간을 파일 이름에 포함
         const now = new Date();
         const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
         const customerName = customer?.name || 'unknown';
         const fileName = `${customerName}_${dateString}_edit.jpg`;
-        
+
         // 이미지 해상도 줄이기
         const img = new Image();
         img.onload = () => {
@@ -1596,15 +1599,15 @@ function ConsultationContent() {
           // 이미지 해상도를 2/3로 줄임
           const maxWidth = Math.floor(img.width * 0.67);
           const maxHeight = Math.floor(img.height * 0.67);
-          
+
           canvas.width = maxWidth;
           canvas.height = maxHeight;
-          
+
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
             const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
-            
+
             // 이미지 데이터와 파일 이름 저장
             setEditFormData({
               ...editFormData,
@@ -1617,25 +1620,25 @@ function ConsultationContent() {
         };
         img.src = reader.result as string;
       };
-      
+
       reader.readAsDataURL(file);
     }
   };
-  
+
   // 수정 폼 파일 업로드 처리
   const handleEditFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       for (let i = 0; i < e.target.files.length; i++) {
         const file = e.target.files[i];
         const reader = new FileReader();
-        
+
         reader.onloadend = () => {
           // 현재 날짜와 시간을 파일 이름에 포함
           const now = new Date();
           const dateString = now.toISOString().replace(/[-:]/g, '').split('.')[0];
           const customerName = customer?.name || 'unknown';
-          const fileName = `${customerName}_${dateString}_edit_${i+1}.jpg`;
-          
+          const fileName = `${customerName}_${dateString}_edit_${i + 1}.jpg`;
+
           // 이미지 해상도 줄이기
           const img = new Image();
           img.onload = () => {
@@ -1643,45 +1646,53 @@ function ConsultationContent() {
             // 이미지 해상도를 2/3로 줄임
             const maxWidth = Math.floor(img.width * 0.67);
             const maxHeight = Math.floor(img.height * 0.67);
-            
+
             canvas.width = maxWidth;
             canvas.height = maxHeight;
-            
+
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
               const reducedImageData = canvas.toDataURL('image/jpeg', 0.9);
-              
+
               // 이미지 데이터와 파일 이름 저장
-              setEditFormData({
-                ...editFormData,
-                images: [...editFormData.images, {
+              setEditFormData(prev => ({
+                ...prev,
+                images: [...prev.images, {
                   data: reducedImageData,
                   fileName
                 }]
-              });
+              }));
             }
           };
           img.src = reader.result as string;
         };
-        
+
         reader.readAsDataURL(file);
       }
     }
   };
-  
-  // 수정 폼 이미지 삭제
+
+  // 수정 폼 새 이미지 삭제
   const removeEditImage = (index: number) => {
     setEditFormData({
       ...editFormData,
       images: editFormData.images.filter((_, i) => i !== index)
     });
   };
-  
+
+  // 수정 폼 기존 이미지 삭제
+  const removeExistingImage = (imageUrl: string) => {
+    setEditFormData({
+      ...editFormData,
+      removedImages: [...editFormData.removedImages, imageUrl]
+    });
+  };
+
   // 카메라 및 파일 입력 참조 (수정 폼용)
   const editFileInputRef = useRef<HTMLInputElement>(null);
   const editCameraInputRef = useRef<HTMLInputElement>(null);
-  
+
   // 수정 폼용 카메라 열기
   const openEditCamera = () => {
     if (editCameraInputRef.current) {
@@ -1711,10 +1722,10 @@ function ConsultationContent() {
     try {
       setBandLoading(true);
       setBandMessage('');
-      
+
       const response = await fetch('/api/bandapi/bands');
       const result = await response.json();
-      
+
       if (result.success && result.bands) {
         setBands(result.bands);
       } else {
@@ -1734,7 +1745,7 @@ function ConsultationContent() {
       setMessage('포스팅할 상담 내역이 없습니다.');
       return;
     }
-    
+
     await fetchBandList();
     setShowBandModal(true);
   };
@@ -1745,16 +1756,16 @@ function ConsultationContent() {
       setBandMessage('밴드를 선택해주세요.');
       return;
     }
-    
+
     try {
       setBandLoading(true);
       setBandMessage('');
-      
+
       // 고객 이름 확인 (Supabase 형식)
       const customerName = customer?.name || '고객';
-      
+
       // 밴드 포스팅 API 호출
-      const response = await fetch('/api/bandapi/post', {
+      const bandResponse = await fetch('/api/bandapi/post', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1765,17 +1776,17 @@ function ConsultationContent() {
           consultations: consultations
         })
       });
-      
-      const result = await response.json();
-      
-      if (result.success) {
+
+      const bandResult = await bandResponse.json();
+
+      if (bandResult.success) {
         setBandMessage('밴드에 상담 내역이 성공적으로 포스팅되었습니다.');
         setTimeout(() => {
           setShowBandModal(false);
           setMessage('밴드에 상담 내역이 성공적으로 포스팅되었습니다.');
         }, 1500);
       } else {
-        setBandMessage(result.error || '포스팅 중 오류가 발생했습니다.');
+        setBandMessage(bandResult.error || '포스팅 중 오류가 발생했습니다.');
       }
     } catch (error) {
       console.error('밴드 포스팅 오류:', error);
@@ -1790,7 +1801,7 @@ function ConsultationContent() {
     // 페이지 로드 시 상담일지 폼 초기화
     setNewConsultation(prev => ({
       ...prev,
-              consultDate: getCurrentKoreaDate() // 현재 한국 날짜 (YYYY-MM-DD)
+      consultDate: getCurrentKoreaDate() // 현재 한국 날짜 (YYYY-MM-DD)
     }));
   }, []);
 
@@ -1798,28 +1809,28 @@ function ConsultationContent() {
   useEffect(() => {
     const customerId = searchParams.get('customerId');
     const directView = searchParams.get('directView');
-    
+
     if (customerId && directView === 'true') {
       // 고객 ID로 직접 고객 정보 조회
       const fetchCustomerById = async () => {
         try {
           setLoading(true);
           setMessage('고객 정보를 불러오는 중입니다...');
-          
+
           // 고객 페이지 ID로 직접 조회
           const customerResponse = await fetch(`/api/customer?id=${customerId}`);
           const customerData = await customerResponse.json();
-          
+
           if (customerData.success && customerData.customers && customerData.customers.length > 0) {
             const foundCustomer = customerData.customers[0];
-            
+
             // 고객 정보 설정
             setCustomer(foundCustomer);
-            
+
             // 상담일지 목록 조회
             const consultationsResponse = await fetch(`/api/consultation-v2?customerId=${foundCustomer.id}`);
             const consultationsData = await consultationsResponse.json();
-            
+
             if (consultationsData.success) {
               // Supabase 데이터를 기존 형식으로 변환
               const formattedConsultations = consultationsData.consultations.map((consultation: any) => {
@@ -1837,7 +1848,7 @@ function ConsultationContent() {
                   symptomImages: consultation.image_urls || []
                 };
               });
-              
+
               setConsultations(formattedConsultations);
               setMessage('');
             } else {
@@ -1853,7 +1864,7 @@ function ConsultationContent() {
           setLoading(false);
         }
       };
-      
+
       fetchCustomerById();
     }
   }, [searchParams]);
@@ -1861,21 +1872,21 @@ function ConsultationContent() {
   // 특정 상담으로 스크롤하는 기능
   useEffect(() => {
     const consultationId = searchParams.get('consultationId');
-    
+
     if (consultationId && consultations.length > 0) {
       // 상담 목록이 로드된 후 특정 상담으로 스크롤
       setTimeout(() => {
         const targetElement = document.getElementById(`consultation-${consultationId}`);
         if (targetElement) {
-          targetElement.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
+          targetElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
           });
-          
+
           // 하이라이트 효과 추가
           targetElement.style.border = '3px solid #10b981';
           targetElement.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.3)';
-          
+
           // 3초 후 하이라이트 제거
           setTimeout(() => {
             targetElement.style.border = '2px solid #e5e7eb';
@@ -1889,10 +1900,10 @@ function ConsultationContent() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* 헤더 */}
-      <header 
-        style={{ 
-          background: 'linear-gradient(to right, #2563eb, #1e40af)', 
-          color: 'white', 
+      <header
+        style={{
+          background: 'linear-gradient(to right, #2563eb, #1e40af)',
+          color: 'white',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}
       >
@@ -1923,11 +1934,11 @@ function ConsultationContent() {
                 onChange={(e) => setCustomerName(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="고객 이름을 입력하세요"
-                style={{ 
-                  width: '100%', 
-                  padding: '1rem', 
-                  fontSize: '1.125rem', 
-                  border: '1px solid #d1d5db', 
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  fontSize: '1.125rem',
+                  border: '1px solid #d1d5db',
                   borderRadius: '0.5rem',
                   transition: 'all 0.2s'
                 }}
@@ -1936,13 +1947,13 @@ function ConsultationContent() {
               <button
                 onClick={searchCustomer}
                 disabled={loading}
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: '#2563eb', 
-                  color: 'white', 
+                style={{
+                  width: '100%',
+                  backgroundColor: '#2563eb',
+                  color: 'white',
                   padding: '1rem 1.5rem',
-                  fontSize: '1.125rem', 
-                  borderRadius: '0.5rem', 
+                  fontSize: '1.125rem',
+                  borderRadius: '0.5rem',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                   border: 'none',
                   cursor: 'pointer'
@@ -1965,13 +1976,13 @@ function ConsultationContent() {
                     estimatedAge: ''
                   });
                 }}
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: '#10b981', 
-                  color: 'white', 
+                style={{
+                  width: '100%',
+                  backgroundColor: '#10b981',
+                  color: 'white',
                   padding: '1rem 1.5rem',
-                  fontSize: '1.125rem', 
-                  borderRadius: '0.5rem', 
+                  fontSize: '1.125rem',
+                  borderRadius: '0.5rem',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                   border: 'none',
                   cursor: 'pointer',
@@ -1983,17 +1994,17 @@ function ConsultationContent() {
                 <span style={{ marginRight: '0.5rem', fontSize: '1.25rem' }}>+</span>
                 신규 고객 등록
               </button>
-              
-              
+
+
             </div>
             {message && (
-              <div style={{ 
-                marginTop: '1rem', 
-                padding: '1rem', 
-                backgroundColor: '#fefce8', 
-                color: '#854d0e', 
-                borderRadius: '0.5rem', 
-                borderLeft: '4px solid #facc15' 
+              <div style={{
+                marginTop: '1rem',
+                padding: '1rem',
+                backgroundColor: '#fefce8',
+                color: '#854d0e',
+                borderRadius: '0.5rem',
+                borderLeft: '4px solid #facc15'
               }}>
                 {message}
                 {message.includes('새 고객으로 등록') && !showCustomerForm && (
@@ -2012,37 +2023,37 @@ function ConsultationContent() {
                     시스템 진단하기
                   </button>
                 )}
-                
+
                 {/* 시스템 상태 표시 */}
                 {systemStatus.googleDrive !== 'unknown' && (
-                  <div style={{ 
+                  <div style={{
                     marginTop: '0.75rem',
-                    padding: '0.75rem', 
+                    padding: '0.75rem',
                     backgroundColor: systemStatus.googleDrive === 'ok' ? '#f0fdf4' : '#fef2f2',
                     borderRadius: '0.25rem',
                     fontSize: '0.875rem',
                     border: `1px solid ${systemStatus.googleDrive === 'ok' ? '#86efac' : '#fecaca'}`
                   }}>
-                    <div style={{ 
-                      display: 'flex', 
+                    <div style={{
+                      display: 'flex',
                       alignItems: 'center',
                       color: systemStatus.googleDrive === 'ok' ? '#166534' : '#b91c1c'
                     }}>
                       <span style={{ marginRight: '0.5rem' }}>
-                        {systemStatus.googleDrive === 'checking' ? '⏳' : 
-                         systemStatus.googleDrive === 'ok' ? '✅' : '❌'}
+                        {systemStatus.googleDrive === 'checking' ? '⏳' :
+                          systemStatus.googleDrive === 'ok' ? '✅' : '❌'}
                       </span>
-                      <strong>구글 드라이브 상태:</strong> 
+                      <strong>구글 드라이브 상태:</strong>
                       <span style={{ marginLeft: '0.5rem' }}>{systemStatus.googleDriveMessage}</span>
                     </div>
-                    
+
                     {systemStatus.googleDrive === 'error' && (
                       <div style={{ marginTop: '0.5rem', color: '#b91c1c' }}>
                         <p>문제 해결 방법:</p>
                         <ol style={{ paddingLeft: '1.5rem', marginTop: '0.25rem' }}>
                           <li>서비스 계정 키(JSON) 파일이 올바른 위치에 있는지 확인하세요.</li>
                           <li>환경 변수 GOOGLE_APPLICATION_CREDENTIALS가 올바르게
-                          설정되었는지 확인하세요.</li>
+                            설정되었는지 확인하세요.</li>
                           <li>서비스 계정에 Google Drive API 권한이 있는지 확인하세요.</li>
                           <li>서버를 재시작해 보세요.</li>
                         </ol>
@@ -2064,12 +2075,12 @@ function ConsultationContent() {
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button
                     onClick={() => router.push(`/consultation-history/image-gallery?customerId=${customer.id}&customerName=${encodeURIComponent(customer.name)}`)}
-                    style={{ 
-                      backgroundColor: '#10b981', 
-                      color: 'white', 
+                    style={{
+                      backgroundColor: '#10b981',
+                      color: 'white',
                       padding: '0.5rem 1rem',
-                      fontSize: '0.875rem', 
-                      borderRadius: '0.375rem', 
+                      fontSize: '0.875rem',
+                      borderRadius: '0.375rem',
                       boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                       border: 'none',
                       cursor: 'pointer',
@@ -2081,28 +2092,28 @@ function ConsultationContent() {
                     <span style={{ marginRight: '0.25rem' }}>📷</span>
                     이미지 모아보기
                   </button>
-                <button
-                  onClick={() => setShowEditCustomerForm(true)}
-                  style={{ 
-                    backgroundColor: '#3b82f6', 
-                    color: 'white', 
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.875rem', 
-                    borderRadius: '0.375rem', 
-                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <span style={{ marginRight: '0.25rem' }}>✏️</span>
-                  정보 수정
-                </button>
+                  <button
+                    onClick={() => setShowEditCustomerForm(true)}
+                    style={{
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      padding: '0.5rem 1rem',
+                      fontSize: '0.875rem',
+                      borderRadius: '0.375rem',
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <span style={{ marginRight: '0.25rem' }}>✏️</span>
+                    정보 수정
+                  </button>
                 </div>
               </div>
-              
+
               <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1rem', tableLayout: 'fixed' }}>
                 <colgroup>
                   <col style={{ width: '15%' }} />
@@ -2135,21 +2146,21 @@ function ConsultationContent() {
                   </tr>
                 </tbody>
               </table>
-              
+
               <div style={{ backgroundColor: '#f3f4f6', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem' }}>
                 <p style={{ fontWeight: '600', color: '#1e40af', marginBottom: '0.25rem', fontSize: '0.9rem' }}>특이사항</p>
                 <p style={{ whiteSpace: 'pre-line', fontSize: '0.9rem' }}>{customer.special_notes}</p>
               </div>
-              
+
               <button
                 onClick={() => setShowNewForm(true)}
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: '#10b981', 
-                  color: 'white', 
+                style={{
+                  width: '100%',
+                  backgroundColor: '#10b981',
+                  color: 'white',
                   padding: '1rem 1.5rem',
-                  fontSize: '1.125rem', 
-                  borderRadius: '0.5rem', 
+                  fontSize: '1.125rem',
+                  borderRadius: '0.5rem',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                   border: 'none',
                   cursor: 'pointer',
@@ -2166,54 +2177,54 @@ function ConsultationContent() {
 
           {/* 신규 고객 등록 폼 */}
           {showCustomerForm && (
-            <div style={{ 
-              backgroundColor: 'white', 
-              borderRadius: '0.75rem', 
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-              padding: '1.5rem', 
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              padding: '1.5rem',
               marginBottom: '1.5rem',
               border: '1px solid #e5e7eb'
             }}>
-              <h2 style={{ 
-                fontSize: '1.25rem', 
-                fontWeight: 'bold', 
-                marginBottom: '1rem', 
+              <h2 style={{
+                fontSize: '1.25rem',
+                fontWeight: 'bold',
+                marginBottom: '1rem',
                 color: '#1e40af',
                 display: 'flex',
                 alignItems: 'center'
               }}>
                 신규 고객 등록
               </h2>
-              <form onSubmit={registerNewCustomer} style={{ 
-                backgroundColor: '#eff6ff', 
-                padding: '1.25rem', 
-                borderRadius: '0.5rem', 
+              <form onSubmit={registerNewCustomer} style={{
+                backgroundColor: '#eff6ff',
+                padding: '1.25rem',
+                borderRadius: '0.5rem',
                 borderLeft: '4px solid #3b82f6'
               }}>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(1, 1fr)', 
-                  gap: '1rem', 
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(1, 1fr)',
+                  gap: '1rem',
                   marginBottom: '1rem'
                 }}>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       이름 *
                     </label>
                     <input
                       type="text"
                       value={newCustomer.name}
-                      onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
@@ -2221,45 +2232,45 @@ function ConsultationContent() {
                     />
                   </div>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       전화번호
                     </label>
                     <input
                       type="tel"
                       value={newCustomer.phone}
-                      onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
                     />
                   </div>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       성별
                     </label>
                     <select
                       value={newCustomer.gender}
-                      onChange={(e) => setNewCustomer({...newCustomer, gender: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewCustomer({ ...newCustomer, gender: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
@@ -2270,39 +2281,39 @@ function ConsultationContent() {
                     </select>
                   </div>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       생년월일
                     </label>
                     <input
                       type="date"
                       value={newCustomer.birth}
-                      onChange={(e) => setNewCustomer({...newCustomer, birth: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewCustomer({ ...newCustomer, birth: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
                     />
                   </div>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       추정나이
-                      <span style={{ 
-                        fontSize: '0.75rem', 
-                        marginLeft: '0.5rem', 
+                      <span style={{
+                        fontSize: '0.75rem',
+                        marginLeft: '0.5rem',
                         color: '#6b7280',
                         fontWeight: 'normal'
                       }}>
@@ -2314,58 +2325,58 @@ function ConsultationContent() {
                       min="0"
                       max="150"
                       value={newCustomer.estimatedAge}
-                      onChange={(e) => setNewCustomer({...newCustomer, estimatedAge: e.target.value})}
+                      onChange={(e) => setNewCustomer({ ...newCustomer, estimatedAge: e.target.value })}
                       placeholder="대략적인 나이"
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
                     />
                   </div>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       주소
                     </label>
                     <input
                       type="text"
                       value={newCustomer.address}
-                      onChange={(e) => setNewCustomer({...newCustomer, address: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
                     />
                   </div>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       특이사항
                     </label>
                     <textarea
                       value={newCustomer.specialNote}
-                      onChange={(e) => setNewCustomer({...newCustomer, specialNote: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewCustomer({ ...newCustomer, specialNote: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s',
                         minHeight: '5rem'
@@ -2378,13 +2389,13 @@ function ConsultationContent() {
                   <button
                     type="button"
                     onClick={() => setShowCustomerForm(false)}
-                    style={{ 
-                      width: '100%', 
-                      backgroundColor: '#e5e7eb', 
-                      color: '#1f2937', 
+                    style={{
+                      width: '100%',
+                      backgroundColor: '#e5e7eb',
+                      color: '#1f2937',
                       padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
+                      fontSize: '1.125rem',
+                      borderRadius: '0.5rem',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -2397,13 +2408,13 @@ function ConsultationContent() {
                   <button
                     type="submit"
                     disabled={loading}
-                    style={{ 
-                      width: '100%', 
-                      backgroundColor: '#10b981', 
-                      color: 'white', 
+                    style={{
+                      width: '100%',
+                      backgroundColor: '#10b981',
+                      color: 'white',
                       padding: '1rem',
-                      fontSize: '1.125rem', 
-                      borderRadius: '0.5rem', 
+                      fontSize: '1.125rem',
+                      borderRadius: '0.5rem',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                       display: 'flex',
                       alignItems: 'center',
@@ -2421,7 +2432,7 @@ function ConsultationContent() {
 
           {/* 고객 정보 수정 폼 */}
           {showEditCustomerForm && (
-            <div style={{ 
+            <div style={{
               position: 'fixed',
               top: 0,
               left: 0,
@@ -2434,7 +2445,7 @@ function ConsultationContent() {
               justifyContent: 'center',
               padding: '1rem'
             }}>
-              <div style={{ 
+              <div style={{
                 width: '100%',
                 maxWidth: '640px',
                 maxHeight: '90vh',
@@ -2450,8 +2461,8 @@ function ConsultationContent() {
                   </h2>
                   <button
                     onClick={() => setShowEditCustomerForm(false)}
-                    style={{ 
-                      backgroundColor: 'transparent', 
+                    style={{
+                      backgroundColor: 'transparent',
                       border: 'none',
                       fontSize: '1.5rem',
                       cursor: 'pointer',
@@ -2467,14 +2478,14 @@ function ConsultationContent() {
                     ✕
                   </button>
                 </div>
-                
+
                 <form onSubmit={updateCustomer} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       이름 *
                     </label>
@@ -2482,60 +2493,60 @@ function ConsultationContent() {
                       ref={editNameInputRef}
                       type="text"
                       value={editCustomer.name}
-                      onChange={(e) => setEditCustomer({...editCustomer, name: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setEditCustomer({ ...editCustomer, name: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
                       required
                     />
                   </div>
-                  
+
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       전화번호
                     </label>
                     <input
                       type="tel"
                       value={editCustomer.phone}
-                      onChange={(e) => setEditCustomer({...editCustomer, phone: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setEditCustomer({ ...editCustomer, phone: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
                     />
                   </div>
-                  
+
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       성별
                     </label>
                     <select
                       value={editCustomer.gender}
-                      onChange={(e) => setEditCustomer({...editCustomer, gender: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setEditCustomer({ ...editCustomer, gender: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
@@ -2545,42 +2556,42 @@ function ConsultationContent() {
                       <option value="여성">여성</option>
                     </select>
                   </div>
-                  
+
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       생년월일
                     </label>
                     <input
                       type="date"
                       value={editCustomer.birth}
-                      onChange={(e) => setEditCustomer({...editCustomer, birth: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setEditCustomer({ ...editCustomer, birth: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
                     />
                   </div>
-                  
+
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       추정나이
-                      <span style={{ 
-                        fontSize: '0.75rem', 
-                        marginLeft: '0.5rem', 
+                      <span style={{
+                        fontSize: '0.75rem',
+                        marginLeft: '0.5rem',
                         color: '#6b7280',
                         fontWeight: 'normal'
                       }}>
@@ -2592,60 +2603,60 @@ function ConsultationContent() {
                       min="0"
                       max="150"
                       value={editCustomer.estimatedAge}
-                      onChange={(e) => setEditCustomer({...editCustomer, estimatedAge: e.target.value})}
+                      onChange={(e) => setEditCustomer({ ...editCustomer, estimatedAge: e.target.value })}
                       placeholder="대략적인 나이"
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
                     />
                   </div>
-                  
+
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       주소
                     </label>
                     <input
                       type="text"
                       value={editCustomer.address}
-                      onChange={(e) => setEditCustomer({...editCustomer, address: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setEditCustomer({ ...editCustomer, address: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
                     />
                   </div>
-                  
+
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       특이사항
                     </label>
                     <textarea
                       value={editCustomer.specialNote}
-                      onChange={(e) => setEditCustomer({...editCustomer, specialNote: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setEditCustomer({ ...editCustomer, specialNote: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s',
                         minHeight: '5rem'
@@ -2653,18 +2664,18 @@ function ConsultationContent() {
                       rows={3}
                     />
                   </div>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
                     <button
                       type="button"
                       onClick={() => setShowEditCustomerForm(false)}
-                      style={{ 
-                        width: '100%', 
-                        backgroundColor: '#e5e7eb', 
-                        color: '#1f2937', 
+                      style={{
+                        width: '100%',
+                        backgroundColor: '#e5e7eb',
+                        color: '#1f2937',
                         padding: '1rem',
-                        fontSize: '1.125rem', 
-                        borderRadius: '0.5rem', 
+                        fontSize: '1.125rem',
+                        borderRadius: '0.5rem',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -2677,13 +2688,13 @@ function ConsultationContent() {
                     <button
                       type="submit"
                       disabled={loading}
-                      style={{ 
-                        width: '100%', 
-                        backgroundColor: '#3b82f6', 
-                        color: 'white', 
+                      style={{
+                        width: '100%',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
                         padding: '1rem',
-                        fontSize: '1.125rem', 
-                        borderRadius: '0.5rem', 
+                        fontSize: '1.125rem',
+                        borderRadius: '0.5rem',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                         display: 'flex',
                         alignItems: 'center',
@@ -2702,7 +2713,7 @@ function ConsultationContent() {
 
           {/* 새 상담일지 폼 */}
           {showNewForm && (
-            <div style={{ 
+            <div style={{
               position: 'fixed',
               top: 0,
               left: 0,
@@ -2715,7 +2726,7 @@ function ConsultationContent() {
               justifyContent: 'center',
               padding: '1rem'
             }}>
-              <div style={{ 
+              <div style={{
                 width: '100%',
                 maxWidth: '640px',
                 maxHeight: '90vh',
@@ -2731,8 +2742,8 @@ function ConsultationContent() {
                   </h2>
                   <button
                     onClick={() => setShowNewForm(false)}
-                    style={{ 
-                      backgroundColor: 'transparent', 
+                    style={{
+                      backgroundColor: 'transparent',
                       border: 'none',
                       fontSize: '1.5rem',
                       cursor: 'pointer',
@@ -2748,14 +2759,14 @@ function ConsultationContent() {
                     ✕
                   </button>
                 </div>
-                
+
                 <form onSubmit={saveConsultation} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       상담일자 *
                     </label>
@@ -2763,36 +2774,36 @@ function ConsultationContent() {
                       type="date"
                       value={newConsultation.consultDate}
                       {...getDateInputRange(1900, 2)}
-                      onChange={(e) => setNewConsultation({...newConsultation, consultDate: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewConsultation({ ...newConsultation, consultDate: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
                       required
                     />
                   </div>
-                  
+
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       호소증상 *
                     </label>
                     <textarea
                       value={newConsultation.content}
-                      onChange={(e) => setNewConsultation({...newConsultation, content: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewConsultation({ ...newConsultation, content: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
@@ -2801,32 +2812,32 @@ function ConsultationContent() {
                     />
                   </div>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       증상 이미지
                     </label>
-                    
+
                     {/* 이미지 업로드 버튼 추가 */}
-                    <div style={{ 
-                      display: 'flex', 
-                      flexWrap: 'wrap', 
-                      gap: '0.75rem', 
-                      marginBottom: '0.75rem' 
+                    <div style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.75rem',
+                      marginBottom: '0.75rem'
                     }}>
                       <button
                         type="button"
                         onClick={openCamera}
-                        style={{ 
-                          backgroundColor: '#2563eb', 
-                          color: 'white', 
-                          padding: '1rem', 
-                          fontSize: '1.125rem', 
-                          borderRadius: '0.5rem', 
-                          display: 'flex', 
+                        style={{
+                          backgroundColor: '#2563eb',
+                          color: 'white',
+                          padding: '1rem',
+                          fontSize: '1.125rem',
+                          borderRadius: '0.5rem',
+                          display: 'flex',
                           alignItems: 'center',
                           border: 'none',
                           cursor: 'pointer'
@@ -2837,13 +2848,13 @@ function ConsultationContent() {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        style={{ 
-                          backgroundColor: '#10b981', 
-                          color: 'white', 
-                          padding: '1rem', 
-                          fontSize: '1.125rem', 
-                          borderRadius: '0.5rem', 
-                          display: 'flex', 
+                        style={{
+                          backgroundColor: '#10b981',
+                          color: 'white',
+                          padding: '1rem',
+                          fontSize: '1.125rem',
+                          borderRadius: '0.5rem',
+                          display: 'flex',
                           alignItems: 'center',
                           border: 'none',
                           cursor: 'pointer'
@@ -2868,53 +2879,53 @@ function ConsultationContent() {
                         capture="environment"
                       />
                     </div>
-                    
+
                     {/* 이미지 미리보기 */}
                     {newConsultation.images.length > 0 && (
-                      <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(2, 1fr)', 
-                        gap: '0.75rem', 
-                        marginTop: '0.75rem' 
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: '0.75rem',
+                        marginTop: '0.75rem'
                       }}>
                         {newConsultation.images.map((image, index) => (
-                          <div 
-                            key={index} 
-                            style={{ 
-                              position: 'relative', 
-                              borderRadius: '0.5rem', 
-                              overflow: 'hidden', 
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                              aspectRatio: '1', 
-                              transition: 'transform 0.2s', 
-                              backgroundColor: '#f3f4f6' 
+                          <div
+                            key={index}
+                            style={{
+                              position: 'relative',
+                              borderRadius: '0.5rem',
+                              overflow: 'hidden',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                              aspectRatio: '1',
+                              transition: 'transform 0.2s',
+                              backgroundColor: '#f3f4f6'
                             }}
                           >
-                            <img 
-                              src={image.data} 
-                              alt={`증상 이미지 ${index + 1}`} 
-                              style={{ 
-                                width: '100%', 
-                                height: '100%', 
-                                objectFit: 'cover' 
-                              }} 
+                            <img
+                              src={image.data}
+                              alt={`증상 이미지 ${index + 1}`}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                              }}
                             />
                             <button
                               type="button"
                               onClick={() => removeImage(index)}
-                              style={{ 
-                                position: 'absolute', 
-                                top: '0.25rem', 
-                                right: '0.25rem', 
-                                backgroundColor: 'rgba(239, 68, 68, 0.8)', 
-                                color: 'white', 
-                                width: '1.75rem', 
-                                height: '1.75rem', 
-                                borderRadius: '50%', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                fontSize: '1rem', 
+                              style={{
+                                position: 'absolute',
+                                top: '0.25rem',
+                                right: '0.25rem',
+                                backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                                color: 'white',
+                                width: '1.75rem',
+                                height: '1.75rem',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1rem',
                                 fontWeight: 'bold',
                                 border: 'none',
                                 cursor: 'pointer'
@@ -2930,22 +2941,22 @@ function ConsultationContent() {
 
 
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       환자상태
                     </label>
                     <textarea
                       value={newConsultation.stateAnalysis}
-                      onChange={(e) => setNewConsultation({...newConsultation, stateAnalysis: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewConsultation({ ...newConsultation, stateAnalysis: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
@@ -2953,24 +2964,24 @@ function ConsultationContent() {
                       placeholder="환자상태 내용을 입력하세요"
                     />
                   </div>
-                  
+
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       설진분석
                     </label>
                     <textarea
                       value={newConsultation.tongueAnalysis}
-                      onChange={(e) => setNewConsultation({...newConsultation, tongueAnalysis: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewConsultation({ ...newConsultation, tongueAnalysis: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
@@ -2978,24 +2989,24 @@ function ConsultationContent() {
                       placeholder="설진분석 내용을 입력하세요"
                     />
                   </div>
-                  
+
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       처방약
                     </label>
                     <textarea
                       value={newConsultation.medicine}
-                      onChange={(e) => setNewConsultation({...newConsultation, medicine: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewConsultation({ ...newConsultation, medicine: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
@@ -3003,26 +3014,26 @@ function ConsultationContent() {
                       placeholder="처방약 정보를 입력하세요"
                     />
                   </div>
-                  
-                  
-                  
+
+
+
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       특이사항
                     </label>
                     <textarea
                       value={newConsultation.specialNote}
-                      onChange={(e) => setNewConsultation({...newConsultation, specialNote: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewConsultation({ ...newConsultation, specialNote: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
@@ -3031,22 +3042,22 @@ function ConsultationContent() {
                     />
                   </div>
                   <div>
-                    <label style={{ 
-                      display: 'block', 
-                      marginBottom: '0.5rem', 
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
                       fontWeight: '600',
-                      color: '#1e40af' 
+                      color: '#1e40af'
                     }}>
                       결과
                     </label>
                     <textarea
                       value={newConsultation.result}
-                      onChange={(e) => setNewConsultation({...newConsultation, result: e.target.value})}
-                      style={{ 
-                        width: '100%', 
-                        padding: '1rem', 
-                        fontSize: '1.125rem', 
-                        border: '1px solid #d1d5db', 
+                      onChange={(e) => setNewConsultation({ ...newConsultation, result: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.5rem',
                         transition: 'all 0.2s'
                       }}
@@ -3056,19 +3067,19 @@ function ConsultationContent() {
                   </div>
 
 
-                  
-                  
+
+
                   <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                     <button
                       type="submit"
                       disabled={loading}
-                      style={{ 
+                      style={{
                         flex: 1,
-                        backgroundColor: '#10b981', 
-                        color: 'white', 
+                        backgroundColor: '#10b981',
+                        color: 'white',
                         padding: '1rem',
-                        fontSize: '1.125rem', 
-                        borderRadius: '0.5rem', 
+                        fontSize: '1.125rem',
+                        borderRadius: '0.5rem',
                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                         border: 'none',
                         cursor: 'pointer'
@@ -3076,17 +3087,17 @@ function ConsultationContent() {
                     >
                       {loading ? '저장 중...' : '저장하기'}
                     </button>
-                    
+
                     <button
                       type="button"
                       onClick={() => setShowNewForm(false)}
-                      style={{ 
+                      style={{
                         flex: 1,
-                        backgroundColor: '#e5e7eb', 
-                        color: '#1f2937', 
+                        backgroundColor: '#e5e7eb',
+                        color: '#1f2937',
                         padding: '1rem',
-                        fontSize: '1.125rem', 
-                        borderRadius: '0.5rem', 
+                        fontSize: '1.125rem',
+                        borderRadius: '0.5rem',
                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
                         border: 'none',
                         cursor: 'pointer'
@@ -3102,8 +3113,8 @@ function ConsultationContent() {
 
           {/* 이미지 모달 */}
           {showImageModal && (
-            <div 
-              style={{ 
+            <div
+              style={{
                 position: 'fixed',
                 top: 0,
                 left: 0,
@@ -3118,8 +3129,8 @@ function ConsultationContent() {
               }}
               onClick={closeImageModal}
             >
-              <div 
-                style={{ 
+              <div
+                style={{
                   position: 'relative',
                   maxWidth: '90vw',
                   maxHeight: '90vh',
@@ -3128,11 +3139,11 @@ function ConsultationContent() {
                   overflow: 'hidden',
                   padding: '0.5rem',
                   boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
-                }} 
+                }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <button 
-                  style={{ 
+                <button
+                  style={{
                     position: 'absolute',
                     top: '0.5rem',
                     right: '0.5rem',
@@ -3156,10 +3167,10 @@ function ConsultationContent() {
                   ×
                 </button>
                 {modalLoading && (
-                  <div style={{ 
-                    position: 'absolute', 
-                    top: '50%', 
-                    left: '50%', 
+                  <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
                     transform: 'translate(-50%, -50%)',
                     backgroundColor: 'rgba(0, 0, 0, 0.7)',
                     color: 'white',
@@ -3171,10 +3182,10 @@ function ConsultationContent() {
                     이미지 로딩 중...
                   </div>
                 )}
-                <img 
-                  src={selectedImage} 
-                  alt="증상 이미지 확대" 
-                  style={{ 
+                <img
+                  src={selectedImage}
+                  alt="증상 이미지 확대"
+                  style={{
                     maxWidth: '100%',
                     maxHeight: '85vh',
                     objectFit: 'contain',
@@ -3185,7 +3196,7 @@ function ConsultationContent() {
                   onLoad={handleImageLoaded}
                   onError={() => {
                     setModalLoading(false);
-                    
+
                     // 이미지 로드 실패 시 대체 URL 시도
                     try {
                       // 구글 드라이브 fileId 추출
@@ -3203,7 +3214,7 @@ function ConsultationContent() {
                           return null;
                         }
                       };
-                      
+
                       const fileId = extractFileId(selectedImage);
                       if (fileId) {
                         // lh3 URL이 실패했으면 uc 형식으로 시도
@@ -3214,7 +3225,7 @@ function ConsultationContent() {
                           return;
                         }
                       }
-                      
+
                       // 모든 시도 실패 시
                       alert('이미지를 불러올 수 없습니다. URL: ' + selectedImage);
                     } catch (error) {
@@ -3232,12 +3243,12 @@ function ConsultationContent() {
               <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>상담 일지</h1>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {consultations.map((consultation: FormattedConsultation) => (
-                  <div 
-                    key={consultation.id} 
+                  <div
+                    key={consultation.id}
                     id={`consultation-${consultation.id}`}
                     style={{
-                      border: '2px solid #e5e7eb', 
-                      borderRadius: '0.75rem', 
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '0.75rem',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                       overflow: 'hidden',
                       backgroundColor: 'white',
@@ -3246,10 +3257,10 @@ function ConsultationContent() {
                     }}
                   >
                     {/* 상담 정보 헤더 */}
-                    <div 
+                    <div
                       style={{
-                        backgroundColor: '#eff6ff', 
-                        padding: '1.25rem', 
+                        backgroundColor: '#eff6ff',
+                        padding: '1.25rem',
                         borderBottom: '2px solid #e5e7eb'
                       }}
                     >
@@ -3271,11 +3282,11 @@ function ConsultationContent() {
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                             <button
                               onClick={() => initEditForm(consultation)}
-                              style={{ 
-                                backgroundColor: '#3b82f6', 
-                                color: 'white', 
+                              style={{
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
                                 padding: '0.25rem 0.5rem',
-                                borderRadius: '0.25rem', 
+                                borderRadius: '0.25rem',
                                 fontSize: '0.875rem',
                                 border: 'none',
                                 cursor: 'pointer'
@@ -3286,11 +3297,11 @@ function ConsultationContent() {
                             </button>
                             <button
                               onClick={() => deleteConsultation(consultation.id)}
-                              style={{ 
-                                backgroundColor: '#ef4444', 
-                                color: 'white', 
+                              style={{
+                                backgroundColor: '#ef4444',
+                                color: 'white',
                                 padding: '0.25rem 0.5rem',
-                                borderRadius: '0.25rem', 
+                                borderRadius: '0.25rem',
                                 fontSize: '0.875rem',
                                 border: 'none',
                                 cursor: 'pointer'
@@ -3306,10 +3317,10 @@ function ConsultationContent() {
 
                     {/* 호소증상 */}
                     <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                      <div 
+                      <div
                         style={{
-                          border: '2px solid #f3f4f6', 
-                          borderRadius: '0.5rem', 
+                          border: '2px solid #f3f4f6',
+                          borderRadius: '0.5rem',
                           padding: '1rem',
                           backgroundColor: '#f9fafb'
                         }}
@@ -3328,7 +3339,7 @@ function ConsultationContent() {
                           <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.75rem' }}>
                             증상 이미지 ({consultation.symptomImages.filter(Boolean).length}장)
                           </h3>
-                          <div style={{ 
+                          <div style={{
                             display: 'flex',
                             flexWrap: 'nowrap',
                             overflowX: 'auto',
@@ -3338,10 +3349,10 @@ function ConsultationContent() {
                             scrollbarWidth: 'none'
                           }}>
                             {consultation.symptomImages.filter(Boolean).map((imageUrl: string, index: number) => (
-                              <ConsultationImage 
-                                key={index} 
-                                imageUrl={imageUrl} 
-                                index={index} 
+                              <ConsultationImage
+                                key={index}
+                                imageUrl={imageUrl}
+                                index={index}
                               />
                             ))}
                           </div>
@@ -3350,10 +3361,10 @@ function ConsultationContent() {
 
                       {/* 환자상태 정보 */}
                       {consultation.stateAnalysis && (
-                        <div 
+                        <div
                           style={{
-                            border: '2px solid #f3f4f6', 
-                            borderRadius: '0.5rem', 
+                            border: '2px solid #f3f4f6',
+                            borderRadius: '0.5rem',
                             padding: '1rem',
                             backgroundColor: '#f9fafb',
                             marginTop: '0.75rem'
@@ -3370,10 +3381,10 @@ function ConsultationContent() {
 
                       {/* 설진분석 정보 */}
                       {consultation.tongueAnalysis && (
-                        <div 
+                        <div
                           style={{
-                            border: '2px solid #f3f4f6', 
-                            borderRadius: '0.5rem', 
+                            border: '2px solid #f3f4f6',
+                            borderRadius: '0.5rem',
                             padding: '1rem',
                             backgroundColor: '#f9fafb',
                             marginTop: '0.75rem'
@@ -3389,10 +3400,10 @@ function ConsultationContent() {
                       )}
 
                       {/* 처방약 정보 - 항상 표시 */}
-                      <div 
+                      <div
                         style={{
-                          border: '2px solid #f3f4f6', 
-                          borderRadius: '0.5rem', 
+                          border: '2px solid #f3f4f6',
+                          borderRadius: '0.5rem',
                           padding: '1rem',
                           backgroundColor: '#f9fafb'
                         }}
@@ -3404,18 +3415,18 @@ function ConsultationContent() {
                           {consultation.prescription || '처방약 정보가 없습니다.'}
                         </p>
                       </div>
-           
 
-                      
 
-                      
+
+
+
 
                       {/* 특이사항 정보 */}
                       {consultation.specialNote && (
-                        <div 
+                        <div
                           style={{
-                            border: '2px solid #f3f4f6', 
-                            borderRadius: '0.5rem', 
+                            border: '2px solid #f3f4f6',
+                            borderRadius: '0.5rem',
                             padding: '1rem',
                             backgroundColor: '#f9fafb',
                             marginTop: '0.75rem'
@@ -3431,10 +3442,10 @@ function ConsultationContent() {
                       )}
                       {/* 결과 정보 */}
                       {consultation.result && (
-                        <div 
+                        <div
                           style={{
-                            border: '2px solid #f3f4f6', 
-                            borderRadius: '0.5rem', 
+                            border: '2px solid #f3f4f6',
+                            borderRadius: '0.5rem',
                             padding: '1rem',
                             backgroundColor: '#f9fafb'
                           }}
@@ -3448,33 +3459,33 @@ function ConsultationContent() {
                         </div>
                       )}
                     </div>
-                    
-                    
+
+
 
 
                     {/* 수정 폼 (해당 상담일지가 수정 중일 때만 표시) */}
                     {showEditForm && editingConsultation && editingConsultation.id === consultation.id && (
-                      <div style={{ 
-                        backgroundColor: '#eff6ff', 
-                        padding: '1.25rem', 
+                      <div style={{
+                        backgroundColor: '#eff6ff',
+                        padding: '1.25rem',
                         borderTop: '2px solid #e5e7eb',
                         borderRadius: '0 0 0.75rem 0.75rem'
                       }}>
                         <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1e40af' }}>
                           상담일지 수정
                         </h3>
-                        <form onSubmit={submitEditForm} style={{ 
-                          backgroundColor: '#f0f9ff', 
-                          padding: '1.25rem', 
-                          borderRadius: '0.5rem', 
+                        <form onSubmit={submitEditForm} style={{
+                          backgroundColor: '#f0f9ff',
+                          padding: '1.25rem',
+                          borderRadius: '0.5rem',
                           borderLeft: '4px solid #3b82f6'
                         }}>
                           <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              marginBottom: '0.5rem', 
+                            <label style={{
+                              display: 'block',
+                              marginBottom: '0.5rem',
                               fontWeight: '600',
-                              color: '#1e40af' 
+                              color: '#1e40af'
                             }}>
                               상담일자 *
                             </label>
@@ -3482,12 +3493,12 @@ function ConsultationContent() {
                               type="date"
                               value={editFormData.consultDate}
                               {...getDateInputRange(1900, 2)}
-                              onChange={(e) => setEditFormData({...editFormData, consultDate: e.target.value})}
-                              style={{ 
-                                width: '100%', 
-                                padding: '1rem', 
-                                fontSize: '1.125rem', 
-                                border: '1px solid #d1d5db', 
+                              onChange={(e) => setEditFormData({ ...editFormData, consultDate: e.target.value })}
+                              style={{
+                                width: '100%',
+                                padding: '1rem',
+                                fontSize: '1.125rem',
+                                border: '1px solid #d1d5db',
                                 borderRadius: '0.5rem',
                                 transition: 'all 0.2s'
                               }}
@@ -3495,23 +3506,23 @@ function ConsultationContent() {
                             />
                           </div>
                           <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              marginBottom: '0.5rem', 
+                            <label style={{
+                              display: 'block',
+                              marginBottom: '0.5rem',
                               fontWeight: '600',
-                              color: '#1e40af' 
+                              color: '#1e40af'
                             }}>
                               호소증상 *
                             </label>
                             <textarea
                               ref={editContentTextareaRef}
                               value={editFormData.content}
-                              onChange={(e) => setEditFormData({...editFormData, content: e.target.value})}
-                              style={{ 
-                                width: '100%', 
-                                padding: '1rem', 
-                                fontSize: '1.125rem', 
-                                border: '1px solid #d1d5db', 
+                              onChange={(e) => setEditFormData({ ...editFormData, content: e.target.value })}
+                              style={{
+                                width: '100%',
+                                padding: '1rem',
+                                fontSize: '1.125rem',
+                                border: '1px solid #d1d5db',
                                 borderRadius: '0.5rem',
                                 transition: 'all 0.2s',
                                 minHeight: '6rem'
@@ -3521,22 +3532,22 @@ function ConsultationContent() {
                             />
                           </div>
                           <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              marginBottom: '0.5rem', 
+                            <label style={{
+                              display: 'block',
+                              marginBottom: '0.5rem',
                               fontWeight: '600',
-                              color: '#1e40af' 
+                              color: '#1e40af'
                             }}>
                               환자상태
                             </label>
                             <textarea
                               value={editFormData.stateAnalysis}
-                              onChange={(e) => setEditFormData({...editFormData, stateAnalysis: e.target.value})}
-                              style={{ 
-                                width: '100%', 
-                                padding: '1rem', 
-                                fontSize: '1.125rem', 
-                                border: '1px solid #d1d5db', 
+                              onChange={(e) => setEditFormData({ ...editFormData, stateAnalysis: e.target.value })}
+                              style={{
+                                width: '100%',
+                                padding: '1rem',
+                                fontSize: '1.125rem',
+                                border: '1px solid #d1d5db',
                                 borderRadius: '0.5rem',
                                 transition: 'all 0.2s'
                               }}
@@ -3544,22 +3555,22 @@ function ConsultationContent() {
                             />
                           </div>
                           <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              marginBottom: '0.5rem', 
+                            <label style={{
+                              display: 'block',
+                              marginBottom: '0.5rem',
                               fontWeight: '600',
-                              color: '#1e40af' 
+                              color: '#1e40af'
                             }}>
                               설진분석
                             </label>
                             <textarea
                               value={editFormData.tongueAnalysis}
-                              onChange={(e) => setEditFormData({...editFormData, tongueAnalysis: e.target.value})}
-                              style={{ 
-                                width: '100%', 
-                                padding: '1rem', 
-                                fontSize: '1.125rem', 
-                                border: '1px solid #d1d5db', 
+                              onChange={(e) => setEditFormData({ ...editFormData, tongueAnalysis: e.target.value })}
+                              style={{
+                                width: '100%',
+                                padding: '1rem',
+                                fontSize: '1.125rem',
+                                border: '1px solid #d1d5db',
                                 borderRadius: '0.5rem',
                                 transition: 'all 0.2s'
                               }}
@@ -3570,47 +3581,47 @@ function ConsultationContent() {
 
 
                           <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              marginBottom: '0.5rem', 
+                            <label style={{
+                              display: 'block',
+                              marginBottom: '0.5rem',
                               fontWeight: '600',
-                              color: '#1e40af' 
+                              color: '#1e40af'
                             }}>
                               처방약
                             </label>
                             <textarea
                               value={editFormData.medicine}
-                              onChange={(e) => setEditFormData({...editFormData, medicine: e.target.value})}
-                              style={{ 
-                                width: '100%', 
-                                padding: '1rem', 
-                                fontSize: '1.125rem', 
-                                border: '1px solid #d1d5db', 
+                              onChange={(e) => setEditFormData({ ...editFormData, medicine: e.target.value })}
+                              style={{
+                                width: '100%',
+                                padding: '1rem',
+                                fontSize: '1.125rem',
+                                border: '1px solid #d1d5db',
                                 borderRadius: '0.5rem',
                                 transition: 'all 0.2s'
                               }}
                               rows={2}
                             />
                           </div>
-                          
-                          
+
+
                           <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              marginBottom: '0.5rem', 
+                            <label style={{
+                              display: 'block',
+                              marginBottom: '0.5rem',
                               fontWeight: '600',
-                              color: '#1e40af' 
+                              color: '#1e40af'
                             }}>
                               특이사항
                             </label>
                             <textarea
                               value={editFormData.specialNote}
-                              onChange={(e) => setEditFormData({...editFormData, specialNote: e.target.value})}
-                              style={{ 
-                                width: '100%', 
-                                padding: '1rem', 
-                                fontSize: '1.125rem', 
-                                border: '1px solid #d1d5db', 
+                              onChange={(e) => setEditFormData({ ...editFormData, specialNote: e.target.value })}
+                              style={{
+                                width: '100%',
+                                padding: '1rem',
+                                fontSize: '1.125rem',
+                                border: '1px solid #d1d5db',
                                 borderRadius: '0.5rem',
                                 transition: 'all 0.2s'
                               }}
@@ -3618,22 +3629,22 @@ function ConsultationContent() {
                             />
                           </div>
                           <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              marginBottom: '0.5rem', 
+                            <label style={{
+                              display: 'block',
+                              marginBottom: '0.5rem',
                               fontWeight: '600',
-                              color: '#1e40af' 
+                              color: '#1e40af'
                             }}>
                               결과
                             </label>
                             <textarea
                               value={editFormData.result}
-                              onChange={(e) => setEditFormData({...editFormData, result: e.target.value})}
-                              style={{ 
-                                width: '100%', 
-                                padding: '1rem', 
-                                fontSize: '1.125rem', 
-                                border: '1px solid #d1d5db', 
+                              onChange={(e) => setEditFormData({ ...editFormData, result: e.target.value })}
+                              style={{
+                                width: '100%',
+                                padding: '1rem',
+                                fontSize: '1.125rem',
+                                border: '1px solid #d1d5db',
                                 borderRadius: '0.5rem',
                                 transition: 'all 0.2s'
                               }}
@@ -3641,30 +3652,30 @@ function ConsultationContent() {
                             />
                           </div>
                           <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ 
-                              display: 'block', 
-                              marginBottom: '0.5rem', 
+                            <label style={{
+                              display: 'block',
+                              marginBottom: '0.5rem',
                               fontWeight: '600',
-                              color: '#1e40af' 
+                              color: '#1e40af'
                             }}>
                               <span style={{ marginRight: '0.25rem' }}>📷</span> 새 이미지 추가
                             </label>
-                            <div style={{ 
-                              display: 'flex', 
-                              flexWrap: 'wrap', 
-                              gap: '0.75rem', 
-                              marginBottom: '0.75rem' 
+                            <div style={{
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              gap: '0.75rem',
+                              marginBottom: '0.75rem'
                             }}>
                               <button
                                 type="button"
                                 onClick={openEditCamera}
-                                style={{ 
-                                  backgroundColor: '#2563eb', 
-                                  color: 'white', 
-                                  padding: '1rem', 
-                                  fontSize: '1.125rem', 
-                                  borderRadius: '0.5rem', 
-                                  display: 'flex', 
+                                style={{
+                                  backgroundColor: '#2563eb',
+                                  color: 'white',
+                                  padding: '1rem',
+                                  fontSize: '1.125rem',
+                                  borderRadius: '0.5rem',
+                                  display: 'flex',
                                   alignItems: 'center',
                                   border: 'none',
                                   cursor: 'pointer'
@@ -3675,13 +3686,13 @@ function ConsultationContent() {
                               <button
                                 type="button"
                                 onClick={() => editFileInputRef.current?.click()}
-                                style={{ 
-                                  backgroundColor: '#10b981', 
-                                  color: 'white', 
-                                  padding: '1rem', 
-                                  fontSize: '1.125rem', 
-                                  borderRadius: '0.5rem', 
-                                  display: 'flex', 
+                                style={{
+                                  backgroundColor: '#10b981',
+                                  color: 'white',
+                                  padding: '1rem',
+                                  fontSize: '1.125rem',
+                                  borderRadius: '0.5rem',
+                                  display: 'flex',
                                   alignItems: 'center',
                                   border: 'none',
                                   cursor: 'pointer'
@@ -3709,10 +3720,10 @@ function ConsultationContent() {
                             {/* 새 이미지 미리보기 */}
                             {editFormData.images.length > 0 && (
                               <div style={{ marginBottom: '1rem' }}>
-                                <h4 style={{ 
-                                  fontSize: '1rem', 
-                                  fontWeight: 'bold', 
-                                  color: '#1f2937', 
+                                <h4 style={{
+                                  fontSize: '1rem',
+                                  fontWeight: 'bold',
+                                  color: '#1f2937',
                                   marginBottom: '0.5rem',
                                   display: 'flex',
                                   alignItems: 'center',
@@ -3729,9 +3740,9 @@ function ConsultationContent() {
                                     추가됨
                                   </span>
                                 </h4>
-                                <div style={{ 
-                                  display: 'grid', 
-                                  gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', 
+                                <div style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
                                   gap: '0.75rem',
                                   padding: '0.75rem',
                                   backgroundColor: '#eff6ff',
@@ -3739,26 +3750,26 @@ function ConsultationContent() {
                                   border: '1px solid #bfdbfe'
                                 }}>
                                   {editFormData.images.map((image, index) => (
-                                    <div 
-                                      key={index} 
-                                      style={{ 
-                                        position: 'relative', 
-                                        borderRadius: '0.5rem', 
-                                        overflow: 'hidden', 
-                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                                        transition: 'transform 0.2s', 
+                                    <div
+                                      key={index}
+                                      style={{
+                                        position: 'relative',
+                                        borderRadius: '0.5rem',
+                                        overflow: 'hidden',
+                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                        transition: 'transform 0.2s',
                                         transform: 'scale(1)',
                                         border: '2px solid #3b82f6'
                                       }}
                                       className="hover:scale-105"
                                     >
-                                      <img 
-                                        src={image.data} 
-                                        alt={`새 이미지 ${index + 1}`} 
-                                        style={{ 
-                                          width: '100%', 
-                                          height: '8rem', 
-                                          objectFit: 'cover' 
+                                      <img
+                                        src={image.data}
+                                        alt={`새 이미지 ${index + 1}`}
+                                        style={{
+                                          width: '100%',
+                                          height: '8rem',
+                                          objectFit: 'cover'
                                         }}
                                       />
                                       <div style={{
@@ -3776,21 +3787,21 @@ function ConsultationContent() {
                                       <button
                                         type="button"
                                         onClick={() => removeEditImage(index)}
-                                        style={{ 
-                                          position: 'absolute', 
-                                          top: '0.5rem', 
-                                          right: '0.5rem', 
-                                          backgroundColor: '#ef4444', 
-                                          color: 'white', 
-                                          borderRadius: '50%', 
-                                          width: '2rem', 
-                                          height: '2rem', 
-                                          display: 'flex', 
-                                          alignItems: 'center', 
-                                          justifyContent: 'center', 
-                                          opacity: '1', 
-                                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                                          fontSize: '1.25rem', 
+                                        style={{
+                                          position: 'absolute',
+                                          top: '0.5rem',
+                                          right: '0.5rem',
+                                          backgroundColor: '#ef4444',
+                                          color: 'white',
+                                          borderRadius: '50%',
+                                          width: '2rem',
+                                          height: '2rem',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          opacity: '1',
+                                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                          fontSize: '1.25rem',
                                           fontWeight: 'bold',
                                           border: 'none',
                                           cursor: 'pointer'
@@ -3801,9 +3812,9 @@ function ConsultationContent() {
                                     </div>
                                   ))}
                                 </div>
-                                <p style={{ 
-                                  marginTop: '0.5rem', 
-                                  fontSize: '0.875rem', 
+                                <p style={{
+                                  marginTop: '0.5rem',
+                                  fontSize: '0.875rem',
                                   color: '#1d4ed8',
                                   fontWeight: '500'
                                 }}>
@@ -3811,14 +3822,14 @@ function ConsultationContent() {
                                 </p>
                               </div>
                             )}
-                            
+
                             {/* 기존 이미지 표시 */}
                             {editingConsultation && editingConsultation.symptomImages && editingConsultation.symptomImages.length > 0 && (
                               <div style={{ marginBottom: '1rem' }}>
-                                <h4 style={{ 
-                                  fontSize: '1rem', 
-                                  fontWeight: 'bold', 
-                                  color: '#1f2937', 
+                                <h4 style={{
+                                  fontSize: '1rem',
+                                  fontWeight: 'bold',
+                                  color: '#1f2937',
                                   marginBottom: '0.5rem',
                                   display: 'flex',
                                   alignItems: 'center',
@@ -3835,19 +3846,19 @@ function ConsultationContent() {
                                     유지됨
                                   </span>
                                 </h4>
-                                <div style={{ 
-                                  display: 'flex', 
-                                  gap: '0.5rem', 
+                                <div style={{
+                                  display: 'flex',
+                                  gap: '0.5rem',
                                   flexWrap: 'wrap',
                                   padding: '0.75rem',
                                   backgroundColor: '#f0fdf4',
                                   borderRadius: '0.5rem',
                                   border: '1px solid #bbf7d0'
                                 }}>
-                                  {editingConsultation.symptomImages.filter(Boolean).map((imageUrl: string, index: number) => (
-                                    <div 
-                                      key={`existing-${index}`} 
-                                      style={{ 
+                                  {editingConsultation.symptomImages.filter(img => img && !editFormData.removedImages.includes(img)).map((imageUrl: string, index: number) => (
+                                    <div
+                                      key={`existing-${index}`}
+                                      style={{
                                         flex: '0 0 auto',
                                         width: '100px',
                                         height: '100px',
@@ -3857,19 +3868,19 @@ function ConsultationContent() {
                                         position: 'relative'
                                       }}
                                     >
-                                      <img 
+                                      <img
                                         src={imageUrl}
                                         alt={`기존 이미지 ${index + 1}`}
-                                        style={{ 
-                                          width: '100%', 
-                                          height: '100%', 
-                                          objectFit: 'cover' 
+                                        style={{
+                                          width: '100%',
+                                          height: '100%',
+                                          objectFit: 'cover'
                                         }}
                                       />
                                       <div style={{
                                         position: 'absolute',
                                         top: '2px',
-                                        right: '2px',
+                                        left: '2px',
                                         backgroundColor: '#10b981',
                                         color: 'white',
                                         fontSize: '0.625rem',
@@ -3878,12 +3889,37 @@ function ConsultationContent() {
                                       }}>
                                         기존
                                       </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeExistingImage(imageUrl)}
+                                        style={{
+                                          position: 'absolute',
+                                          top: '0.25rem',
+                                          right: '0.25rem',
+                                          backgroundColor: '#ef4444',
+                                          color: 'white',
+                                          borderRadius: '50%',
+                                          width: '1.5rem',
+                                          height: '1.5rem',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          opacity: '1',
+                                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                          fontSize: '1rem',
+                                          fontWeight: 'bold',
+                                          border: 'none',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        ×
+                                      </button>
                                     </div>
                                   ))}
                                 </div>
-                                <p style={{ 
-                                  marginTop: '0.5rem', 
-                                  fontSize: '0.875rem', 
+                                <p style={{
+                                  marginTop: '0.5rem',
+                                  fontSize: '0.875rem',
                                   color: '#059669',
                                   fontWeight: '500'
                                 }}>
@@ -3899,13 +3935,13 @@ function ConsultationContent() {
                                 setShowEditForm(false);
                                 setEditingConsultation(null);
                               }}
-                              style={{ 
-                                width: '100%', 
-                                backgroundColor: '#e5e7eb', 
-                                color: '#1f2937', 
+                              style={{
+                                width: '100%',
+                                backgroundColor: '#e5e7eb',
+                                color: '#1f2937',
                                 padding: '1rem',
-                                fontSize: '1.125rem', 
-                                borderRadius: '0.5rem', 
+                                fontSize: '1.125rem',
+                                borderRadius: '0.5rem',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -3918,13 +3954,13 @@ function ConsultationContent() {
                             <button
                               type="submit"
                               disabled={loading}
-                              style={{ 
-                                width: '100%', 
-                                backgroundColor: '#3b82f6', 
-                                color: 'white', 
+                              style={{
+                                width: '100%',
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
                                 padding: '1rem',
-                                fontSize: '1.125rem', 
-                                borderRadius: '0.5rem', 
+                                fontSize: '1.125rem',
+                                borderRadius: '0.5rem',
                                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -3946,10 +3982,10 @@ function ConsultationContent() {
           )}
         </div>
       </main>
-      
+
       {/* 고객 선택 모달 */}
       {showCustomerSelectModal && (
-        <div style={{ 
+        <div style={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -3962,7 +3998,7 @@ function ConsultationContent() {
           justifyContent: 'center',
           padding: '1rem'
         }}>
-          <div style={{ 
+          <div style={{
             width: '100%',
             maxWidth: '600px',
             maxHeight: '90vh',
@@ -3978,8 +4014,8 @@ function ConsultationContent() {
               </h2>
               <button
                 onClick={() => setShowCustomerSelectModal(false)}
-                style={{ 
-                  backgroundColor: 'transparent', 
+                style={{
+                  backgroundColor: 'transparent',
                   border: 'none',
                   fontSize: '1.5rem',
                   cursor: 'pointer',
@@ -3995,15 +4031,15 @@ function ConsultationContent() {
                 ✕
               </button>
             </div>
-            
+
             <p style={{ marginBottom: '1rem', color: '#4b5563' }}>
               검색된 고객 중에서 선택해주세요.
             </p>
-            
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '0.75rem', 
+
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
               marginBottom: '1.5rem',
               maxHeight: '400px',
               overflowY: 'auto',
@@ -4034,16 +4070,16 @@ function ConsultationContent() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ 
-                      fontSize: '1.125rem', 
-                      fontWeight: 'bold', 
-                      color: '#1f2937', 
+                    <h3 style={{
+                      fontSize: '1.125rem',
+                      fontWeight: 'bold',
+                      color: '#1f2937',
                       margin: 0
                     }}>
                       {customer.name}
                     </h3>
-                    <span style={{ 
-                      fontSize: '0.875rem', 
+                    <span style={{
+                      fontSize: '0.875rem',
                       color: '#6b7280',
                       backgroundColor: '#e5e7eb',
                       padding: '0.25rem 0.5rem',
@@ -4052,50 +4088,50 @@ function ConsultationContent() {
                       {customer.customer_code}
                     </span>
                   </div>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                     {customer.phone && (
-                      <p style={{ 
-                        fontSize: '0.875rem', 
+                      <p style={{
+                        fontSize: '0.875rem',
                         color: '#6b7280',
                         margin: 0
                       }}>
                         📞 {customer.phone}
                       </p>
                     )}
-                    
+
                     {customer.birth_date && (
-                      <p style={{ 
-                        fontSize: '0.875rem', 
+                      <p style={{
+                        fontSize: '0.875rem',
                         color: '#6b7280',
                         margin: 0
                       }}>
                         🎂 {customer.birth_date} {customer.estimated_age && `(${customer.estimated_age}세)`}
                       </p>
                     )}
-                    
+
                     {customer.address && (
-                      <p style={{ 
-                        fontSize: '0.875rem', 
+                      <p style={{
+                        fontSize: '0.875rem',
                         color: '#6b7280',
                         margin: 0
                       }}>
                         📍 {customer.address}
                       </p>
                     )}
-                    
-                    <p style={{ 
-                      fontSize: '0.875rem', 
+
+                    <p style={{
+                      fontSize: '0.875rem',
                       color: '#059669',
                       margin: 0,
                       fontWeight: '500'
                     }}>
                       💬 상담 {customer.consultation_count || 0}회
                     </p>
-                    
+
                     {customer.special_notes && (
-                      <p style={{ 
-                        fontSize: '0.875rem', 
+                      <p style={{
+                        fontSize: '0.875rem',
                         color: '#dc2626',
                         margin: 0,
                         fontStyle: 'italic'
@@ -4107,16 +4143,16 @@ function ConsultationContent() {
                 </div>
               ))}
             </div>
-            
+
             <button
               onClick={() => setShowCustomerSelectModal(false)}
-              style={{ 
-                width: '100%', 
-                backgroundColor: '#e5e7eb', 
-                color: '#1f2937', 
+              style={{
+                width: '100%',
+                backgroundColor: '#e5e7eb',
+                color: '#1f2937',
                 padding: '1rem',
-                fontSize: '1.125rem', 
-                borderRadius: '0.5rem', 
+                fontSize: '1.125rem',
+                borderRadius: '0.5rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -4132,7 +4168,7 @@ function ConsultationContent() {
 
       {/* 밴드 선택 모달 */}
       {showBandModal && (
-        <div style={{ 
+        <div style={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -4145,7 +4181,7 @@ function ConsultationContent() {
           justifyContent: 'center',
           padding: '1rem'
         }}>
-          <div style={{ 
+          <div style={{
             width: '100%',
             maxWidth: '480px',
             maxHeight: '90vh',
@@ -4161,8 +4197,8 @@ function ConsultationContent() {
               </h2>
               <button
                 onClick={() => setShowBandModal(false)}
-                style={{ 
-                  backgroundColor: 'transparent', 
+                style={{
+                  backgroundColor: 'transparent',
                   border: 'none',
                   fontSize: '1.5rem',
                   cursor: 'pointer',
@@ -4178,11 +4214,11 @@ function ConsultationContent() {
                 ✕
               </button>
             </div>
-            
+
             {bandMessage && (
-              <div style={{ 
-                padding: '0.75rem', 
-                marginBottom: '1rem', 
+              <div style={{
+                padding: '0.75rem',
+                marginBottom: '1rem',
                 borderRadius: '0.375rem',
                 backgroundColor: bandMessage.includes('성공') ? '#d1fae5' : '#fee2e2',
                 color: bandMessage.includes('성공') ? '#047857' : '#b91c1c'
@@ -4190,24 +4226,24 @@ function ConsultationContent() {
                 {bandMessage}
               </div>
             )}
-            
+
             <p style={{ marginBottom: '1rem', color: '#4b5563' }}>
               상담 내역을 공유할 밴드를 선택하세요.
             </p>
-            
+
             {bandLoading ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '2rem', 
-                color: '#6b7280' 
+              <div style={{
+                textAlign: 'center',
+                padding: '2rem',
+                color: '#6b7280'
               }}>
                 로딩 중...
               </div>
             ) : bands.length > 0 ? (
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: '0.75rem', 
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
                 marginBottom: '1.5rem',
                 maxHeight: '300px',
                 overflowY: 'auto',
@@ -4230,38 +4266,38 @@ function ConsultationContent() {
                     }}
                   >
                     {band.cover && (
-                      <img 
-                        src={band.cover} 
+                      <img
+                        src={band.cover}
                         alt={band.name}
-                        style={{ 
-                          width: '40px', 
-                          height: '40px', 
-                          borderRadius: '50%', 
-                          objectFit: 'cover' 
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          objectFit: 'cover'
                         }}
                       />
                     )}
                     <div>
-                      <h3 style={{ 
-                        fontSize: '1rem', 
-                        fontWeight: 'bold', 
-                        color: '#1f2937', 
-                        marginBottom: '0.25rem' 
+                      <h3 style={{
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        color: '#1f2937',
+                        marginBottom: '0.25rem'
                       }}>
                         {band.name}
                       </h3>
-                      <p style={{ 
-                        fontSize: '0.875rem', 
-                        color: '#6b7280' 
+                      <p style={{
+                        fontSize: '0.875rem',
+                        color: '#6b7280'
                       }}>
                         멤버 {band.member_count}명
                       </p>
                     </div>
                     {selectedBandKey === band.band_key && (
-                      <div style={{ 
-                        marginLeft: 'auto', 
-                        color: '#5f3dc4', 
-                        fontWeight: 'bold' 
+                      <div style={{
+                        marginLeft: 'auto',
+                        color: '#5f3dc4',
+                        fontWeight: 'bold'
                       }}>
                         ✓
                       </div>
@@ -4270,28 +4306,28 @@ function ConsultationContent() {
                 ))}
               </div>
             ) : (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '2rem', 
-                backgroundColor: '#f3f4f6', 
-                borderRadius: '0.5rem', 
-                color: '#6b7280' 
+              <div style={{
+                textAlign: 'center',
+                padding: '2rem',
+                backgroundColor: '#f3f4f6',
+                borderRadius: '0.5rem',
+                color: '#6b7280'
               }}>
                 밴드 목록이 없습니다.
               </div>
             )}
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <button
                 onClick={postToBand}
                 disabled={bandLoading || !selectedBandKey}
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: !selectedBandKey ? '#e5e7eb' : '#5f3dc4', 
-                  color: !selectedBandKey ? '#9ca3af' : 'white', 
+                style={{
+                  width: '100%',
+                  backgroundColor: !selectedBandKey ? '#e5e7eb' : '#5f3dc4',
+                  color: !selectedBandKey ? '#9ca3af' : 'white',
                   padding: '1rem',
-                  fontSize: '1.125rem', 
-                  borderRadius: '0.5rem', 
+                  fontSize: '1.125rem',
+                  borderRadius: '0.5rem',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -4301,17 +4337,17 @@ function ConsultationContent() {
               >
                 {bandLoading ? '처리 중...' : '선택한 밴드에 포스팅하기'}
               </button>
-              
+
               <button
                 onClick={() => setShowBandModal(false)}
                 disabled={bandLoading}
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: '#e5e7eb', 
-                  color: '#1f2937', 
+                style={{
+                  width: '100%',
+                  backgroundColor: '#e5e7eb',
+                  color: '#1f2937',
                   padding: '1rem',
-                  fontSize: '1.125rem', 
-                  borderRadius: '0.5rem', 
+                  fontSize: '1.125rem',
+                  borderRadius: '0.5rem',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

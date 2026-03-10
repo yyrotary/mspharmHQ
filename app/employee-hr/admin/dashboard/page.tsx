@@ -219,19 +219,19 @@ export default function AdminDashboard() {
               <p className="text-sm text-rose-700">근로 계약서 작성 및 관리</p>
             </Link>
 
-            {/* 월 급여 정산 (신규 - 메인) */}
+            {/* 통합 인사 관리 (Unified Manager) */}
             <Link
-              href="/employee-hr/admin/payroll-settlement"
-              className="block bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 hover:shadow-lg transition-all border-2 border-purple-300"
+              href="/employee-hr/admin/manager"
+              className="block bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 hover:shadow-lg transition-all border-2 border-purple-500 shadow-md col-span-1 md:col-span-2"
             >
               <div className="flex items-start justify-between mb-2">
-                <div className="text-4xl">💼</div>
-                <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded-full font-bold">NEW</span>
+                <div className="text-4xl">👑</div>
+                <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded-full font-bold">ALL-IN-ONE</span>
               </div>
-              <h3 className="text-lg font-bold text-purple-900 mb-2">월 급여 정산</h3>
-              <p className="text-sm text-purple-700">단계별 정산 및 확정</p>
-              <div className="mt-2 text-xs text-purple-600">
-                근태→변동급→자동계산→확정
+              <h3 className="text-lg font-bold text-purple-900 mb-2">통합 인사 관리 (Unified Manager)</h3>
+              <p className="text-sm text-purple-700">근태 관리 + 급여 정산 + 명세서 발행을 한 화면에서</p>
+              <div className="mt-2 text-xs text-purple-600 font-medium">
+                ⭐ 추천: 화면 이동 없이 모든 업무 처리 가능
               </div>
             </Link>
 

@@ -15,6 +15,9 @@ interface Consultation {
   key_symptoms?: string[];
   prescribed_medications?: string[];
   urgency_level?: 'low' | 'medium' | 'high';
+  patient_condition?: string;
+  tongue_analysis?: string;
+  special_notes?: string;
 }
 
 export default function ConsultationsPage() {
@@ -40,7 +43,7 @@ export default function ConsultationsPage() {
     try {
       const response = await fetch(`/api/customer/consultations?customerId=${customerId}`);
       const data = await response.json();
-      
+
       if (response.ok) {
         setConsultations(data.consultations || []);
       }
@@ -52,20 +55,24 @@ export default function ConsultationsPage() {
   };
 
   const filteredConsultations = consultations.filter(c => {
-    const matchesSearch = searchQuery === '' || 
-      c.symptoms?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.result?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.prescription?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = searchQuery === '' ||
+      c.symptoms?.toLowerCase().includes(searchLower) ||
+      c.result?.toLowerCase().includes(searchLower) ||
+      c.prescription?.toLowerCase().includes(searchLower) ||
+      c.patient_condition?.toLowerCase().includes(searchLower) ||
+      c.tongue_analysis?.toLowerCase().includes(searchLower) ||
+      c.special_notes?.toLowerCase().includes(searchLower);
+
     const matchesYear = new Date(c.consult_date).getFullYear() === selectedYear;
-    
+
     return matchesSearch && matchesYear;
   });
 
   const groupedByMonth = filteredConsultations.reduce((acc, c) => {
-    const month = new Date(c.consult_date).toLocaleDateString('ko-KR', { 
-      year: 'numeric', 
-      month: 'long' 
+    const month = new Date(c.consult_date).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long'
     });
     if (!acc[month]) acc[month] = [];
     acc[month].push(c);
@@ -123,11 +130,10 @@ export default function ConsultationsPage() {
             <button
               key={year}
               onClick={() => setSelectedYear(year)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                selectedYear === year
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedYear === year
                   ? 'bg-purple-600 text-white shadow-md'
                   : 'bg-white text-gray-600 border border-gray-200'
-              }`}
+                }`}
             >
               {year}년
             </button>
@@ -191,7 +197,7 @@ export default function ConsultationsPage() {
                           </span>
                           {getUrgencyBadge(consultation.urgency_level)}
                         </div>
-                        
+
                         {consultation.patient_friendly_summary ? (
                           <p className="text-gray-800 text-sm leading-relaxed line-clamp-2">
                             {consultation.patient_friendly_summary}
@@ -205,7 +211,7 @@ export default function ConsultationsPage() {
                         {consultation.key_symptoms && consultation.key_symptoms.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
                             {consultation.key_symptoms.slice(0, 3).map((symptom, idx) => (
-                              <span 
+                              <span
                                 key={idx}
                                 className="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-full"
                               >

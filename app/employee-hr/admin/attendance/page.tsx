@@ -44,6 +44,7 @@ interface AttendanceFormData {
   check_out_hour: string;
   check_out_minute: string;
   is_holiday: boolean;
+  is_overtime: boolean;
 }
 
 export default function AdminAttendancePage() {
@@ -71,6 +72,7 @@ export default function AdminAttendancePage() {
     check_out_hour: '18',
     check_out_minute: '00',
     is_holiday: false,
+    is_overtime: false,
   });
 
   // 스캔 기능 상태
@@ -160,6 +162,7 @@ export default function AdminAttendancePage() {
       check_out_hour: '18',
       check_out_minute: '00',
       is_holiday: false,
+      is_overtime: false,
     });
     setShowModal(true);
   };
@@ -179,6 +182,7 @@ export default function AdminAttendancePage() {
       check_out_hour: checkOutTime.getHours().toString().padStart(2, '0'),
       check_out_minute: checkOutTime.getMinutes().toString().padStart(2, '0'),
       is_holiday: record.is_holiday,
+      is_overtime: false, // Will be calculated based on work_hours
     });
     setShowModal(true);
   };
@@ -292,7 +296,7 @@ export default function AdminAttendancePage() {
           work_date: formData.work_date,
           check_in_time: checkInTime,
           check_out_time: checkOutTime,
-          is_holiday: formData.is_holiday,
+          is_overtime: formData.is_overtime,
           record_id: editingRecord?.id,
         }),
       });
@@ -516,10 +520,10 @@ export default function AdminAttendancePage() {
                     </th>
                   )}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    출근
+                    시작
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    퇴근
+                    종료
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     근무
@@ -653,10 +657,10 @@ export default function AdminAttendancePage() {
                 />
               </div>
 
-              {/* 출근 시간 */}
+              {/* 시작 시간 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  출근 시간 <span className="text-red-500">*</span>
+                  시작 시간 <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-2">
                   <select
@@ -684,10 +688,10 @@ export default function AdminAttendancePage() {
                 </div>
               </div>
 
-              {/* 퇴근 시간 */}
+              {/* 종료 시간 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  퇴근 시간 <span className="text-red-500">*</span>
+                  종료 시간 <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-2">
                   <select
@@ -715,17 +719,17 @@ export default function AdminAttendancePage() {
                 </div>
               </div>
 
-              {/* 휴일 여부 */}
+              {/* 추가 근무 여부 */}
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  id="is_holiday"
-                  checked={formData.is_holiday}
-                  onChange={(e) => setFormData({ ...formData, is_holiday: e.target.checked })}
-                  className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                  id="is_overtime"
+                  checked={formData.is_overtime}
+                  onChange={(e) => setFormData({ ...formData, is_overtime: e.target.checked })}
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                 />
-                <label htmlFor="is_holiday" className="ml-2 text-sm text-gray-700">
-                  휴일 근무
+                <label htmlFor="is_overtime" className="ml-2 text-sm text-gray-700">
+                  추가 근무 (정규직의 경우 체크, 파트타임은 미체크)
                 </label>
               </div>
             </div>

@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
+    // const user = { role: 'owner', id: 'debug-user' }; // Mock user
     // 관리자만 급여 계산 가능
     if (!['manager', 'owner'].includes(user.role)) {
       return NextResponse.json(
@@ -29,6 +29,12 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = getEmployeePurchaseSupabase();
+    // DEBUG: Use Service Role Key directly to bypass RLS in test script
+    // const { createClient } = require('@supabase/supabase-js');
+    // const supabase = createClient(
+    //   process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    //   process.env.SUPABASE_SERVICE_ROLE_KEY!
+    // );
 
     // 1. 직원 급여 정보 조회
     const { data: salary, error: salaryError } = await supabase
@@ -66,51 +72,105 @@ export async function POST(request: NextRequest) {
     if (attendanceError) {
       console.error('Attendance fetch error:', attendanceError);
       return NextResponse.json(
-        { error: '근태 기록 조회에 실패했습니다' },
+        { error: '근태 기록 조회에 실패했습니다', details: attendanceError, env: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Key Exists' : 'Key Missing' },
         { status: 500 }
       );
     }
 
     // 3. 근무 통계 계산
     const totalWorkDays = attendance.filter(a => a.status === 'present').length;
-    const totalWorkHours = attendance.reduce((sum, a) => sum + (parseFloat(a.work_hours) || 0), 0);
-    const totalOvertimeHours = attendance.reduce((sum, a) => sum + (parseFloat(a.overtime_hours) || 0), 0);
-    const totalNightHours = attendance.reduce((sum, a) => sum + (parseFloat(a.night_hours) || 0), 0);
-    const holidayWorkHours = attendance
-      .filter(a => a.is_holiday)
-      .reduce((sum, a) => sum + (parseFloat(a.work_hours) || 0), 0);
+    const isFullTime = employeeData?.employment_type === 'full_time';
 
-    // 4. 급여 계산
-    let baseSalary = parseFloat(salary.base_salary);
-    const hourlyRate = salary.hourly_rate
-      ? parseFloat(salary.hourly_rate)
-      : baseSalary / 209; // 월 209시간 기준
+    // 정규직(full_time)의 경우: work_hours 필드는 "추가근무" 시간임 (기본 8시간은 별도)
+    // 파트타임의 경우: work_hours 필드는 실제 근무한 총 시간
+    let totalWorkHours = 0;
+    let totalOvertimeHours = 0;
+    let holidayWorkHours = 0;
 
-    // 고용 형태가 파트타임이거나 기본급이 0인 경우: 시급 * 근무시간을 기본급으로 사용
-    const isPartTime = employeeData?.employment_type === 'part_time';
+    if (isFullTime) {
+      // 정규직: work_hours = 추가근무, overtime_hours도 추가로 합산
+      totalOvertimeHours = attendance.reduce((sum, a) => {
+        const workHrs = parseFloat(a.work_hours) || 0;
+        const otHrs = parseFloat(a.overtime_hours) || 0;
+        return sum + workHrs + otHrs; // Both are overtime for regular employees
+      }, 0);
 
-    if (isPartTime || baseSalary === 0) {
-      // 기본급이 0이면 (또는 파트타임이면) 시급 계산
-      baseSalary = Math.round((hourlyRate || 0) * totalWorkHours);
+      // 휴일 근무도 추가근무로 계산 (work_hours + overtime_hours)
+      holidayWorkHours = attendance
+        .filter(a => a.is_holiday)
+        .reduce((sum, a) => {
+          const workHrs = parseFloat(a.work_hours) || 0;
+          const otHrs = parseFloat(a.overtime_hours) || 0;
+          return sum + workHrs + otHrs;
+        }, 0);
+
+      // 정규직은 기본 근무시간 계산 불필요 (월급제)
+      totalWorkHours = 0;
+    } else {
+      // 파트타임: work_hours = 실제 근무 시간
+      totalWorkHours = attendance.reduce((sum, a) => sum + (parseFloat(a.work_hours) || 0), 0);
+      totalOvertimeHours = attendance.reduce((sum, a) => sum + (parseFloat(a.overtime_hours) || 0), 0);
+
+      holidayWorkHours = attendance
+        .filter(a => a.is_holiday)
+        .reduce((sum, a) => sum + (parseFloat(a.work_hours) || 0), 0);
     }
 
-    // 수당 계산 함수
-    const calculateAllowance = (hours: number, rateValue: any, defaultMultiplier: number) => {
-      const rate = parseFloat(rateValue) || defaultMultiplier;
-      // 10보다 크면 고정 금액으로 간주 (예: 13500)
-      if (rate > 10) {
-        return hours * rate;
-      }
-      // 10 이하이면 배율로 간주 (예: 1.5)
-      return hours * hourlyRate * rate;
+    const weekdayWorkHours = totalWorkHours - holidayWorkHours;
+    const totalNightHours = attendance.reduce((sum, a) => sum + (parseFloat(a.night_hours) || 0), 0);
+
+    // 4. 급여 계산
+    let rawBaseSalary = parseFloat(salary.base_salary);
+    const hourlyRate = salary.hourly_rate
+      ? parseFloat(salary.hourly_rate)
+      : rawBaseSalary / 209;
+
+    // 고정 OT 금액 확인 (없으면 0)
+    const fixedOvertimePay = parseFloat(salary.fixed_overtime_pay) || 0;
+
+    // 화면 표시용 기본급 계산
+    let baseSalary = rawBaseSalary;
+
+    if (isFullTime) {
+      // 정규직: 기본급에서 고정 OT 차감하여 순수 기본급 표시
+      baseSalary = Math.max(rawBaseSalary - fixedOvertimePay, 0);
+    } else {
+      // 파트타임: 시급 * 근무시간
+      baseSalary = Math.round((hourlyRate || 0) * weekdayWorkHours);
+    }
+
+    // 수당 계산 함수 (무조건 고정 금액 * 시간)
+    const calculateAllowance = (hours: number, rateValue: any, type: string) => {
+      // Remove commas if string and parse
+      const cleanRate = typeof rateValue === 'string' ? rateValue.replace(/,/g, '') : rateValue;
+      const rate = parseFloat(cleanRate) || 0; // Default to 0 if invalid
+
+      console.log(`[CalcDetail] Type: ${type}`);
+      console.log(`[CalcDetail] RawRate: ${JSON.stringify(rateValue)}`);
+      console.log(`[CalcDetail] CleanRate: ${cleanRate}`);
+      console.log(`[CalcDetail] ParsedRate: ${rate}`);
+      console.log(`[CalcDetail] Hours: ${hours}`);
+
+      // 단순 곱하기 (시간 * 금액)
+      const pay = hours * rate;
+      console.log(`[Calc] ${type} Result: ${pay}`);
+
+      return pay;
     };
 
-    const overtimePay = calculateAllowance(totalOvertimeHours, salary.overtime_rate, 1.5);
-    const nightShiftPay = calculateAllowance(totalNightHours, salary.night_shift_rate, 1.5);
-    const holidayPay = calculateAllowance(holidayWorkHours, salary.holiday_rate, 2.0);
+    // Remove defaultMultiplier arguments
+    const calculatedOvertimePay = calculateAllowance(totalOvertimeHours, salary.overtime_rate, 'Overtime');
+    const nightShiftPay = calculateAllowance(totalNightHours, salary.night_shift_rate, 'Night');
+    const holidayPay = calculateAllowance(holidayWorkHours, salary.holiday_rate, 'Holiday');
 
-    // 총 지급액 (세전)
-    const grossPay = baseSalary + overtimePay + nightShiftPay + holidayPay;
+    // 고정 OT를 초과하는 실제 OT만 추가 지급
+    // Fixed OT is already included in rawBaseSalary, so only pay the excess
+    const actualOvertimePay = Math.max(0, calculatedOvertimePay - fixedOvertimePay);
+
+    console.log(`[OT Logic] Calculated: ${calculatedOvertimePay}, Fixed: ${fixedOvertimePay}, Actual Extra: ${actualOvertimePay}`);
+
+    // 총 지급액 = DB 기본급(총액) + 추가 OT(고정 OT 초과분만) + 야간 + 휴일
+    const grossPay = rawBaseSalary + actualOvertimePay + nightShiftPay + holidayPay;
 
     // 5. 4대보험 및 세금 계산
     const nationalPension = Math.round(grossPay * 0.045); // 국민연금 4.5%
@@ -138,7 +198,7 @@ export async function POST(request: NextRequest) {
         pay_period_end,
         payment_date: payment_date || new Date(pay_period_end).toISOString().split('T')[0],
         base_salary: baseSalary,
-        overtime_pay: overtimePay,
+        overtime_pay: actualOvertimePay,
         night_shift_pay: nightShiftPay,
         holiday_pay: holidayPay,
         bonus: 0,

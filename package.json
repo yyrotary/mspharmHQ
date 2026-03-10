@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev --turbo -p 3000",
+    "dev:safe": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev -p 3000",
     "dev:https": "next dev --experimental-https",
     "build": "next build",
     "start": "next start",

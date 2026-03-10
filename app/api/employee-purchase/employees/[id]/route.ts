@@ -12,6 +12,7 @@ export async function PATCH(
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    // const user = { role: 'owner', id: 'debug-user' }; // Mock user
 
     if (user.role !== 'owner') {
       return NextResponse.json({ error: 'Owner access required' }, { status: 403 });
@@ -98,9 +99,9 @@ export async function PATCH(
         meal_allowance: currentSalaries?.meal_allowance || 200000,
         car_allowance: currentSalaries?.car_allowance || 0,
         childcare_allowance: currentSalaries?.childcare_allowance || 0,
-        overtime_rate: currentSalaries?.overtime_rate || 1.5,
-        night_shift_rate: currentSalaries?.night_shift_rate || 1.5,
-        holiday_rate: currentSalaries?.holiday_rate || 2.0,
+        overtime_rate: currentSalaries?.overtime_rate || 0,
+        night_shift_rate: currentSalaries?.night_shift_rate || 0,
+        holiday_rate: currentSalaries?.holiday_rate || 0,
         fixed_overtime_hours: currentSalaries?.fixed_overtime_hours || 0,
         base_salary: currentSalaries?.base_salary || 0,
         hourly_rate: currentSalaries?.hourly_rate || 0,
@@ -149,9 +150,9 @@ export async function PATCH(
         salaryData.fixed_overtime_pay = parseFloat(fixed_overtime_pay) || 0;
       }
 
-      if (overtime_rate !== undefined) salaryData.overtime_rate = parseFloat(overtime_rate) || 1.5;
-      if (night_shift_rate !== undefined) salaryData.night_shift_rate = parseFloat(night_shift_rate) || 1.5;
-      if (holiday_rate !== undefined) salaryData.holiday_rate = parseFloat(holiday_rate) || 2.0;
+      if (overtime_rate !== undefined) salaryData.overtime_rate = parseFloat(overtime_rate) || 0;
+      if (night_shift_rate !== undefined) salaryData.night_shift_rate = parseFloat(night_shift_rate) || 0;
+      if (holiday_rate !== undefined) salaryData.holiday_rate = parseFloat(holiday_rate) || 0;
 
       // 3. 유효 시작일 결정 (기본: 다음달 1일)
       let effectiveDate = '';

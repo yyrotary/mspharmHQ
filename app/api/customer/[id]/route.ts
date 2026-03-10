@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
-import { 
-  getCustomerById, 
-  updateCustomer, 
+import {
+  getCustomerById,
+  updateCustomer,
   deleteCustomer,
-  type UpdateCustomerData 
+  type UpdateCustomerData
 } from '@/app/lib/supabase-customer';
 
 
@@ -16,11 +16,11 @@ const notion = new Client({
 // 고객 정보 수정
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const data = await request.json();
-    const customerId = params.id;
+    const { id: customerId } = await params;
 
     // 필수 필드 검증
     if (!data.name) {
@@ -100,7 +100,7 @@ export async function PUT(
   } catch (error) {
     console.error('고객 수정 오류:', error);
     return NextResponse.json(
-      { error: '고객 정보 수정 중 오류가 발생했습니다.' },
+      { error: '고객 정보 수정 중 오류가 발생했습니다.', details: error },
       { status: 500 }
     );
   }
@@ -109,10 +109,10 @@ export async function PUT(
 // 고객 삭제 (소프트 삭제)
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const customerId = params.id;
+    const { id: customerId } = await params;
 
     // 고객 존재 확인
     const existingCustomer = await getCustomerById(customerId);

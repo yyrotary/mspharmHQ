@@ -151,7 +151,12 @@ export async function POST(request: NextRequest) {
     const totalWorkHours = attendance?.reduce((sum, a) => sum + (parseFloat(a.work_hours) || 0), 0) || 0;
     const totalOvertimeHours = attendance?.reduce((sum, a) => sum + (parseFloat(a.overtime_hours) || 0), 0) || 0;
     const totalNightHours = attendance?.reduce((sum, a) => sum + (parseFloat(a.night_hours) || 0), 0) || 0;
-    const holidayWorkHours = attendance?.filter(a => a.is_holiday).reduce((sum, a) => sum + (parseFloat(a.work_hours) || 0), 0) || 0;
+    const holidayWorkHours = attendance?.filter(a => a.is_holiday).reduce((sum, a) => {
+      // 휴일 근무는 work_hours(일반) + overtime_hours(추가근무 체크) 모두 포함
+      const w = parseFloat(a.work_hours) || 0;
+      const o = parseFloat(a.overtime_hours) || 0;
+      return sum + w + o;
+    }, 0) || 0;
 
     // 5. 비과세 항목 계산
     // 식대는 기본급에 포함되어 있으므로 별도 지급하지 않음
@@ -181,10 +186,15 @@ export async function POST(request: NextRequest) {
       actualBasePay = baseSalary;
     }
 
-    // 수당 계산 (파트타임도 연장/야간/휴일 수당 적용)
-    const overtimePay = totalOvertimeHours * hourlyRate * (parseFloat(salary.overtime_rate) || 1.5);
-    const nightShiftPay = totalNightHours * hourlyRate * (parseFloat(salary.night_shift_rate) || 1.5);
-    const holidayPay = holidayWorkHours * hourlyRate * (parseFloat(salary.holiday_rate) || 2.0);
+    // 수당 계산 (무조건 고정 금액 * 시간)
+    // 2026년 급여 정책: 배율 폐지, 입력된 금액(원) 그대로 적용
+    const otRate = parseFloat(salary.overtime_rate) || 0;
+    const nightRate = parseFloat(salary.night_shift_rate) || 0;
+    const holidayRate = parseFloat(salary.holiday_rate) || 0;
+
+    const overtimePay = totalOvertimeHours * otRate;
+    const nightShiftPay = totalNightHours * nightRate;
+    const holidayPay = holidayWorkHours * holidayRate;
 
     // 주휴 수당 계산 (파트타임 직원만 해당)
     // 주 15시간 이상 근무 시 주휴 수당 지급
@@ -391,8 +401,15 @@ export async function POST(request: NextRequest) {
       data: {
         ...payroll,
         employee_name: employee.name,
-        weekly_holiday_pay: weeklyHolidayPay, // 주휴 수당 별도 전달
+        weekly_holiday_pay: weeklyHolidayPay,
         warning: !minimumWageCheck ? '⚠️ 최저임금 미달' : null,
+        // UI 표시를 위한 메타 데이터
+        meta: {
+          hourly_rate: hourlyRate,
+          overtime_rate: otRate,
+          night_shift_rate: nightRate,
+          holiday_rate: holidayRate,
+        }
       }
     });
 

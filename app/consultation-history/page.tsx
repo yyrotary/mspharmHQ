@@ -32,7 +32,7 @@ function ConsultationHistoryContent() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [consultations, setConsultations] = useState<ConsultationHistoryItem[]>([]);
-  
+
   // 기간 설정을 위한 상태 (날짜 기준)
   const [startDate, setStartDate] = useState(() => {
     const koreaTime = getKoreaTime();
@@ -44,6 +44,10 @@ function ConsultationHistoryContent() {
     return koreaTime.toISOString().split('T')[0];
   });
 
+  // 검색어 상태
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
   // 확대 이미지 모달 상태
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
@@ -54,9 +58,14 @@ function ConsultationHistoryContent() {
       setLoading(true);
       setMessage('상담 내역을 불러오는 중입니다...');
 
-      // Supabase API 사용 (consultation-v2)
-      const response = await fetch(`/api/consultation-v2?startDate=${startDate}&endDate=${endDate}&limit=100`);
-      
+      // API 호출 URL 생성 (검색어 포함)
+      let url = `/api/consultation-v2?startDate=${startDate}&endDate=${endDate}&limit=100`;
+      if (searchQuery.trim()) {
+        url += `&search=${encodeURIComponent(searchQuery.trim())}`;
+      }
+
+      const response = await fetch(url);
+
       if (!response.ok) {
         throw new Error('상담 내역 조회에 실패했습니다.');
       }
@@ -104,18 +113,18 @@ function ConsultationHistoryContent() {
     }
   };
 
-  // 기간 변경 시 상담 내역 다시 조회
+  // 기간 변경 또는 검색어 변경 시 상담 내역 다시 조회
   useEffect(() => {
     fetchConsultations();
-  }, [startDate, endDate]);
+  }, [startDate, endDate, searchQuery]);
 
   // 빠른 기간 설정 함수
   const setQuickPeriod = (days: number) => {
     const koreaTime = getKoreaTime();
     const endKoreaTime = getKoreaTime();
-    
+
     koreaTime.setDate(koreaTime.getDate() - (days - 1));
-    
+
     setStartDate(koreaTime.toISOString().split('T')[0]);
     setEndDate(endKoreaTime.toISOString().split('T')[0]);
   };
@@ -197,10 +206,10 @@ function ConsultationHistoryContent() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* 헤더 */}
-      <header 
-        style={{ 
-          background: 'linear-gradient(to right, #2563eb, #1e40af)', 
-          color: 'white', 
+      <header
+        style={{
+          background: 'linear-gradient(to right, #2563eb, #1e40af)',
+          color: 'white',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}
       >
@@ -219,13 +228,13 @@ function ConsultationHistoryContent() {
           {/* 기간 설정 영역 */}
           <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', padding: '1.5rem', marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1e40af' }}>기간 설정</h2>
-            
+
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                style={{ 
+                style={{
                   padding: '0.5rem',
                   border: '1px solid #d1d5db',
                   borderRadius: '0.375rem',
@@ -237,7 +246,7 @@ function ConsultationHistoryContent() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                style={{ 
+                style={{
                   padding: '0.5rem',
                   border: '1px solid #d1d5db',
                   borderRadius: '0.375rem',
@@ -246,10 +255,44 @@ function ConsultationHistoryContent() {
               />
             </div>
 
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="호소증상, 처방약, 설진분석 등 세부 사항으로 검색"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setSearchQuery(searchInput);
+                  }
+                }}
+                style={{
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.375rem',
+                  flex: 1
+                }}
+              />
+              <button
+                onClick={() => setSearchQuery(searchInput)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#1e40af',
+                  color: 'white',
+                  borderRadius: '0.375rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                검색
+              </button>
+            </div>
+
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 onClick={() => setQuickPeriod(7)}
-                style={{ 
+                style={{
                   padding: '0.5rem 1rem',
                   backgroundColor: '#e5e7eb',
                   color: '#374151',
@@ -262,7 +305,7 @@ function ConsultationHistoryContent() {
               </button>
               <button
                 onClick={() => setQuickPeriod(30)}
-                style={{ 
+                style={{
                   padding: '0.5rem 1rem',
                   backgroundColor: '#e5e7eb',
                   color: '#374151',
@@ -275,7 +318,7 @@ function ConsultationHistoryContent() {
               </button>
               <button
                 onClick={() => setQuickPeriod(90)}
-                style={{ 
+                style={{
                   padding: '0.5rem 1rem',
                   backgroundColor: '#e5e7eb',
                   color: '#374151',
@@ -300,13 +343,13 @@ function ConsultationHistoryContent() {
             ) : (
               <>
                 {message && (
-                  <div style={{ 
-                    marginBottom: '1rem', 
-                    padding: '1rem', 
-                    backgroundColor: '#fefce8', 
-                    color: '#854d0e', 
-                    borderRadius: '0.5rem', 
-                    borderLeft: '4px solid #facc15' 
+                  <div style={{
+                    marginBottom: '1rem',
+                    padding: '1rem',
+                    backgroundColor: '#fefce8',
+                    color: '#854d0e',
+                    borderRadius: '0.5rem',
+                    borderLeft: '4px solid #facc15'
                   }}>
                     {message}
                   </div>
@@ -389,7 +432,7 @@ function ConsultationHistoryContent() {
                               e.stopPropagation();
                               router.push(`/consultation-history/image-gallery?customerId=${consultation.customerId}&customerName=${encodeURIComponent(consultation.customerName)}`);
                             }}
-                            style={{ 
+                            style={{
                               padding: '0.25rem 0.75rem',
                               backgroundColor: '#10b981',
                               color: 'white',
@@ -407,9 +450,9 @@ function ConsultationHistoryContent() {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ 
-                    padding: '2rem', 
-                    textAlign: 'center', 
+                  <div style={{
+                    padding: '2rem',
+                    textAlign: 'center',
                     color: '#6b7280',
                     backgroundColor: '#f9fafb',
                     borderRadius: '0.5rem'

@@ -830,8 +830,8 @@ function EditEmployeeModal({
     employment_type: employee.employment_type || 'full_time',
     hire_date: employee.hire_date || '',
     base_salary: '',
-    hourly_rate: '',
-    fixed_overtime_pay: '',
+    hourly_rate: (employee.hourly_rate !== undefined && employee.hourly_rate !== null) ? employee.hourly_rate.toString() : '',
+    fixed_overtime_pay: (employee.fixed_overtime_pay !== undefined && employee.fixed_overtime_pay !== null) ? employee.fixed_overtime_pay.toString() : '',
     is_active: employee.is_active !== false,
     resignation_date: employee.resignation_date || '',
     overtime_rate: employee.overtime_rate?.toString() || '',
@@ -840,6 +840,24 @@ function EditEmployeeModal({
     effective_date: '', // Default empty (will use API default if not set)
   });
   const [showCalculator, setShowCalculator] = useState(false);
+  const [salaryHistory, setSalaryHistory] = useState<any[]>([]);
+  const [showHistoryForm, setShowHistoryForm] = useState(false);
+
+  useEffect(() => {
+    fetchSalaryHistory();
+  }, [employee.id]);
+
+  const fetchSalaryHistory = async () => {
+    try {
+      const res = await fetch(`/api/employee-purchase/employees/${employee.id}/salaries`);
+      const data = await res.json();
+      if (data.success) {
+        setSalaryHistory(data.salaries);
+      }
+    } catch (error) {
+      console.error('Failed to fetch salary history:', error);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -869,6 +887,72 @@ function EditEmployeeModal({
     if (formData.effective_date) updates.effective_from = formData.effective_date;
 
     onUpdate(updates);
+  };
+
+  const handleAddHistory = async () => {
+    if (!formData.effective_date) {
+      alert('적용 시작일을 선택해주세요');
+      return;
+    }
+    if (!confirm('이 날짜로 새 급여 이력을 추가하시겠습니까? 기존 이력 날짜가 자동으로 조정됩니다.')) return;
+
+    try {
+      const res = await fetch(`/api/employee-purchase/employees/${employee.id}/salaries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          effective_from: formData.effective_date,
+          base_salary: formData.base_salary,
+          hourly_rate: formData.hourly_rate,
+          fixed_overtime_pay: formData.fixed_overtime_pay,
+          overtime_rate: formData.overtime_rate,
+          night_shift_rate: formData.night_shift_rate,
+          holiday_rate: formData.holiday_rate,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error);
+
+      alert('급여 이력이 추가되었습니다');
+      fetchSalaryHistory();
+      setShowHistoryForm(false);
+    } catch (err: any) {
+      alert('추가 실패: ' + err.message);
+    }
+  };
+
+  const handleDeleteHistory = async (salaryId: string) => {
+    if (!confirm('이 급여 이력을 삭제하시겠습니까? 이전 이력의 종료일이 자동으로 조정됩니다.')) return;
+
+    try {
+      const res = await fetch(`/api/employee-purchase/employees/${employee.id}/salaries?salaryId=${salaryId}`, {
+        method: 'DELETE',
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error);
+
+      alert('급여 이력이 삭제되었습니다');
+      fetchSalaryHistory();
+    } catch (err: any) {
+      alert('삭제 실패: ' + err.message);
+    }
+  };
+
+  const handleResetHistory = async () => {
+    if (!confirm('경고: 이 직원의 모든 급여 이력을 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+
+    try {
+      const res = await fetch(`/api/employee-purchase/employees/${employee.id}/salaries?reset=true`, {
+        method: 'DELETE',
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error);
+
+      alert('급여 이력이 초기화되었습니다');
+      fetchSalaryHistory();
+    } catch (err: any) {
+      alert('초기화 실패: ' + err.message);
+    }
   };
 
   return (
@@ -1153,55 +1237,154 @@ function EditEmployeeModal({
 
               {/* 추가 수당 비율/금액 설정 */}
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-800 mb-3">수당 비율/금액 설정</h4>
+                <h4 className="text-sm font-semibold text-gray-800 mb-3">수당 시급 설정 (금액)</h4>
                 <p className="text-xs text-blue-600 mb-3 bg-blue-50 p-2 rounded">
-                  💡 10 이하 입력 시 <b>배율</b>로 적용 (예: 1.5배), 10 초과 입력 시 <b>고정 시급</b>으로 적용 (예: 13,500원)
+                  💡 각 수당의 <b>시급 금액</b>을 입력하세요. (예: 13,500). 모든 수당은 '근무시간 × 설정금액'으로 계산됩니다.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      연장 수당
+                      연장 수당 (원)
                     </label>
                     <input
                       type="number"
-                      step="0.1"
                       value={formData.overtime_rate}
                       onChange={(e) => setFormData({ ...formData, overtime_rate: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                      placeholder="1.5"
+                      placeholder="13500"
                     />
-                    <p className="text-xs text-gray-500 mt-1">기본: 1.5배</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      야간 수당
+                      야간 수당 (원)
                     </label>
                     <input
                       type="number"
-                      step="0.1"
                       value={formData.night_shift_rate}
                       onChange={(e) => setFormData({ ...formData, night_shift_rate: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                      placeholder="1.5"
+                      placeholder="13500"
                     />
-                    <p className="text-xs text-gray-500 mt-1">기본: 1.5배</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      휴일 수당
+                      휴일 수당 (원)
                     </label>
                     <input
                       type="number"
-                      step="0.1"
                       value={formData.holiday_rate}
                       onChange={(e) => setFormData({ ...formData, holiday_rate: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                      placeholder="2.0"
+                      placeholder="13500"
                     />
-                    <p className="text-xs text-gray-500 mt-1">기본: 2.0배</p>
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* 급여 이력 관리 */}
+            <div className="mt-8 border-t pt-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">📜 급여 이력 관리</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowHistoryForm(!showHistoryForm)}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  {showHistoryForm ? '이력 목록 보기' : '+ 과거 이력 추가하기'}
+                </button>
+              </div>
+
+              {showHistoryForm ? (
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
+                  <h4 className="text-sm font-bold text-blue-800 mb-2">새 급여 이력 추가</h4>
+                  <p className="text-xs text-blue-600 mb-3">
+                    위 "급여 정보" 및 "적용 시작일"에 입력된 내용으로 새 이력을 생성합니다.
+                    <br />
+                    * 2024년 1월 계약 등을 추가하려면 날짜를 2024-01-01로 설정하고 정보를 입력한 후 아래 버튼을 누르세요.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleAddHistory}
+                    className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
+                  >
+                    현재 입력된 정보로 이력 추가하기
+                  </button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto border rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">시작일</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">종료일</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">기본급</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">시급</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">연장</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">야간</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">휴일</th>
+                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">관리</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {salaryHistory.length > 0 ? (
+                        salaryHistory.map((history) => (
+                          <tr key={history.id} className={!history.effective_to ? "bg-green-50" : ""}>
+                            <td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">
+                              {history.effective_from}
+                              {!history.effective_to && <span className="ml-1 text-xs text-green-600 font-bold">(현재)</span>}
+                            </td>
+                            <td className="px-3 py-2 text-sm text-gray-500 whitespace-nowrap">
+                              {history.effective_to || '계속'}
+                            </td>
+                            <td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">
+                              {Number(history.base_salary).toLocaleString()}
+                            </td>
+                            <td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">
+                              {Number(history.hourly_rate).toLocaleString()}
+                            </td>
+                            <td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">
+                              {Number(history.overtime_rate || 0).toLocaleString()}
+                            </td>
+                            <td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">
+                              {Number(history.night_shift_rate || 0).toLocaleString()}
+                            </td>
+                            <td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">
+                              {Number(history.holiday_rate || 0).toLocaleString()}
+                            </td>
+                            <td className="px-3 py-2 text-sm text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteHistory(history.id)}
+                                className="text-red-500 hover:text-red-700 text-xs px-2 py-1 border border-red-200 rounded hover:bg-red-50"
+                              >
+                                삭제
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="px-3 py-4 text-sm text-center text-gray-500">
+                            이력이 없습니다.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  {salaryHistory.length > 0 && (
+                    <div className="p-3 border-t bg-gray-50 text-right">
+                      <button
+                        type="button"
+                        onClick={handleResetHistory}
+                        className="text-xs text-red-600 hover:text-red-800 underline"
+                      >
+                        ⚠️ 모든 이력 초기화
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* 버튼 */}
